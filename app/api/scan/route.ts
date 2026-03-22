@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import {
   OPENAI_API_KEY,
+  SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY,
 } from '@/lib/env';
 
 const requiredEnvVars = [
+  ['NEXT_PUBLIC_SUPABASE_ANON_KEY', SUPABASE_ANON_KEY],
   ['SUPABASE_SERVICE_ROLE_KEY', SUPABASE_SERVICE_ROLE_KEY],
   ['OPENAI_API_KEY', OPENAI_API_KEY],
 ] as const;
