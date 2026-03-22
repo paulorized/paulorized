@@ -2,6 +2,7 @@ const getEnv = (name: keyof NodeJS.ProcessEnv) => {
   const value = process.env[name];
 
   if (!value) {
+    console.error('Missing environment variable:', name);
     throw new Error(`Missing environment variable: ${name}`);
   }
 
