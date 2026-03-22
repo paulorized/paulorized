@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { openai } from '@/lib/openai';
+import { createServerSupabaseClient } from '@/lib/supabase';
 import { emptyProduct } from '@/types/product';
+
+const extractionInstruction =
+  'Extract cannabis product label information. Return strict JSON only. Use null for unknown numeric values and empty strings for unknown text fields.';
+
+const extractionShapeInstruction =
+  'Extract this exact JSON shape: {"brand":"","product_type":"","weight":"","strain_type":"","strain_name":"","strain_bio":"","thc_percent":null,"cbd_percent":null,"confidence":0}';
 
 const ExtractedProductSchema = z.object({
   brand: z.string(),
@@ -18,10 +24,14 @@ const ExtractedProductSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    console.info('[api/scan] Request received');
+
     const formData = await request.formData();
     const files = formData
       .getAll('images')
       .filter((value): value is File => value instanceof File && value.size > 0);
+
+    console.info(`[api/scan] Files loaded: ${files.length}`);
 
     if (files.length === 0) {
       return NextResponse.json({ error: 'At least one image is required.' }, { status: 400 });
@@ -30,12 +40,15 @@ export async function POST(request: Request) {
     const imageInputs = await Promise.all(
       files.map(async (file) => {
         const buffer = Buffer.from(await file.arrayBuffer());
+
         return {
           type: 'input_image' as const,
           image_url: `data:${file.type || 'image/jpeg'};base64,${buffer.toString('base64')}`,
         };
       }),
     );
+
+    console.info('[api/scan] OpenAI request starting');
 
     const response = await openai.responses.create({
       model: 'gpt-4.1-mini',
@@ -45,8 +58,7 @@ export async function POST(request: Request) {
           content: [
             {
               type: 'input_text',
-              text:
-                'Extract cannabis product label information. Return strict JSON only. Use null for unknown numeric values and empty strings for unknown text fields.',
+              text: extractionInstruction,
             },
           ],
         },
@@ -55,8 +67,7 @@ export async function POST(request: Request) {
           content: [
             {
               type: 'input_text',
-              text:
-                'Extract this exact JSON shape: {"brand":"","product_type":"","weight":"","strain_type":"","strain_name":"","strain_bio":"","thc_percent":null,"cbd_percent":null,"confidence":0}',
+              text: extractionShapeInstruction,
             },
             ...imageInputs,
           ],
@@ -97,8 +108,12 @@ export async function POST(request: Request) {
       },
     });
 
+    console.info('[api/scan] OpenAI response received');
+
     const outputText = response.output_text || JSON.stringify(emptyProduct);
     const extractedData = ExtractedProductSchema.parse(JSON.parse(outputText));
+
+    console.info('[api/scan] Supabase insert starting');
 
     const supabase = createServerSupabaseClient();
     const { data: insertedRow, error } = await supabase
@@ -119,13 +134,18 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      console.error('Failed to insert product log:', error);
+      console.error('[api/scan] Failed to insert product log:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    console.info('[api/scan] Supabase insert succeeded');
 
     return NextResponse.json({ extractedData, insertedRow });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Scan failed.';
+
+    console.error('[api/scan] Unhandled error:', error);
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -41,13 +41,24 @@ export function ScanForm() {
         body: formData,
       });
 
-      const payload = await response.json();
+      const responseText = await response.text();
+      let payload: { error?: string; extractedData?: ExtractedProduct } | null = null;
 
-      if (!response.ok) {
-        throw new Error(payload.error || 'Scan failed.');
+      try {
+        payload = responseText ? JSON.parse(responseText) : null;
+      } catch {
+        throw new Error(responseText || 'Invalid response from scan API.');
       }
 
-      setResult(payload.data);
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Scan failed.');
+      }
+
+      if (!payload?.extractedData) {
+        throw new Error('Scan API returned no extracted data.');
+      }
+
+      setResult(payload.extractedData);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'Scan failed.');
     } finally {
