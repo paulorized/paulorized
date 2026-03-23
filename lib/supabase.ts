@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from '@/lib/env';
+import { env as clientEnv } from '@/lib/env.client';
+import { env as serverEnv } from '@/lib/env.server';
 
 export const createBrowserSupabaseClient = () =>
-  createClient(env.nextPublicSupabaseUrl, env.nextPublicSupabaseAnonKey);
+  createClient(clientEnv.nextPublicSupabaseUrl, clientEnv.nextPublicSupabaseAnonKey);
 
 export const createServerSupabaseClient = () =>
-  createClient(env.nextPublicSupabaseUrl, env.supabaseServiceRoleKey, {
+  createClient(clientEnv.nextPublicSupabaseUrl, serverEnv.supabaseServiceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

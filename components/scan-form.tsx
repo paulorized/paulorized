@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
 
 const fieldLabels: Array<{ key: keyof ExtractedProduct; label: string; type?: 'number' }> = [
@@ -22,7 +22,56 @@ export function ScanForm() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Camera state
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const fileNames = useMemo(() => files.map((file) => file.name).join(', '), [files]);
+
+  const openCamera = async () => {
+    setCameraError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+      });
+      streamRef.current = stream;
+      setCameraOpen(true);
+      // Attach stream to video element after it mounts
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      }, 50);
+    } catch {
+      setCameraError('Could not access camera. Please allow camera permissions and try again.');
+    }
+  };
+
+  const closeCamera = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')?.drawImage(video, 0, 0);
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
+      setFiles((prev) => [...prev, file]);
+      closeCamera();
+    }, 'image/jpeg', 0.92);
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -87,20 +136,66 @@ export function ScanForm() {
       <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
         <div>
           <h2 className="text-xl font-semibold">Scan product label</h2>
-          <p className="mt-1 text-sm text-zinc-400">Upload one or more product images, extract data, and save the result.</p>
+          <p className="mt-1 text-sm text-zinc-400">Upload images or use your camera to extract data and save the result.</p>
         </div>
 
-        <label className="block text-sm font-medium text-zinc-200">
-          Images
-          <input
-            className="mt-2 block w-full rounded-xl border border-dashed border-zinc-700 bg-zinc-950 px-4 py-8 text-sm text-zinc-300 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-500 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-950"
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(event) => setFiles(Array.from(event.target.files || []))}
-            required
-          />
-        </label>
+        {/* Camera viewfinder */}
+        {cameraOpen && (
+          <div className="relative overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
+            <video
+              ref={videoRef}
+              className="w-full"
+              autoPlay
+              playsInline
+              muted
+            />
+            <div className="flex gap-3 p-3">
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="flex-1 rounded-xl bg-emerald-400 py-3 font-medium text-zinc-950 transition hover:bg-emerald-300"
+              >
+                Take photo
+              </button>
+              <button
+                type="button"
+                onClick={closeCamera}
+                className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-300 transition hover:bg-zinc-800"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Input row: file upload + camera button */}
+        {!cameraOpen && (
+          <div className="space-y-2">
+            <span className="block text-sm font-medium text-zinc-200">Images</span>
+            <div className="flex gap-3">
+              <label className="flex-1 cursor-pointer">
+                <input
+                  className="hidden"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => setFiles((prev) => [...prev, ...Array.from(event.target.files || [])])}
+                />
+                <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-zinc-950 px-4 py-5 text-sm text-zinc-400 transition hover:border-zinc-500 hover:text-zinc-200">
+                  Upload images
+                </div>
+              </label>
+              <button
+                type="button"
+                onClick={openCamera}
+                className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800"
+              >
+                📷 Camera
+              </button>
+            </div>
+            {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
+          </div>
+        )}
 
         <label className="block text-sm font-medium text-zinc-200">
           User ID (optional for now)
@@ -115,6 +210,15 @@ export function ScanForm() {
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/80 p-4 text-sm text-zinc-400">
           <strong className="text-zinc-200">Selected files:</strong> {fileNames || 'None yet'}
+          {files.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setFiles([])}
+              className="ml-3 text-xs text-zinc-500 underline hover:text-zinc-300"
+            >
+              Clear
+            </button>
+          )}
         </div>
 
         <button
