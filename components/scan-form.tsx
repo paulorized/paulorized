@@ -15,12 +15,16 @@ const fieldLabels: Array<{ key: keyof ExtractedProduct; label: string; type?: 'n
   { key: 'confidence', label: 'Confidence', type: 'number' },
 ];
 
+type Stage = 'idle' | 'scanned' | 'saved';
+
 export function ScanForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [userId, setUserId] = useState('');
   const [result, setResult] = useState<ExtractedProduct>(emptyProduct);
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [stage, setStage] = useState<Stage>('idle');
 
   // Camera state
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -38,7 +42,6 @@ export function ScanForm() {
       });
       streamRef.current = stream;
       setCameraOpen(true);
-      // Attach stream to video element after it mounts
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -59,12 +62,10 @@ export function ScanForm() {
   const capturePhoto = () => {
     const video = videoRef.current;
     if (!video) return;
-
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d')?.drawImage(video, 0, 0);
-
     canvas.toBlob((blob) => {
       if (!blob) return;
       const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -73,46 +74,61 @@ export function ScanForm() {
     }, 'image/jpeg', 0.92);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  // Step 1: Scan — extract only, no save
+  const handleScan = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsLoading(true);
+    setIsScanning(true);
     setError('');
+    setStage('idle');
 
     const formData = new FormData();
     files.forEach((file) => formData.append('images', file));
-    if (userId) {
-      formData.append('user_id', userId);
-    }
 
     try {
-      const response = await fetch('/api/scan', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const response = await fetch('/api/scan', { method: 'POST', body: formData });
       const responseText = await response.text();
       let payload: { error?: string; extractedData?: ExtractedProduct } | null = null;
-
       try {
         payload = responseText ? JSON.parse(responseText) : null;
       } catch {
         throw new Error(responseText || 'Invalid response from scan API.');
       }
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Scan failed.');
-      }
-
-      if (!payload?.extractedData) {
-        throw new Error('Scan API returned no extracted data.');
-      }
-
+      if (!response.ok) throw new Error(payload?.error || 'Scan failed.');
+      if (!payload?.extractedData) throw new Error('Scan API returned no extracted data.');
       setResult(payload.extractedData);
-    } catch (submissionError) {
-      setError(submissionError instanceof Error ? submissionError.message : 'Scan failed.');
+      setStage('scanned');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Scan failed.');
     } finally {
-      setIsLoading(false);
+      setIsScanning(false);
     }
+  };
+
+  // Step 2: Save — write reviewed data to Supabase
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError('');
+    try {
+      const response = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ extractedData: result, userId: userId || undefined }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Save failed.');
+      setStage('saved');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFiles([]);
+    setResult(emptyProduct);
+    setError('');
+    setStage('idle');
   };
 
   const handleFieldChange = (key: keyof ExtractedProduct, value: string) => {
@@ -120,35 +136,26 @@ export function ScanForm() {
       ...current,
       [key]:
         key === 'thc_percent' || key === 'cbd_percent'
-          ? value === ''
-            ? null
-            : Number(value)
+          ? value === '' ? null : Number(value)
           : key === 'confidence'
-            ? value === ''
-              ? 0
-              : Number(value)
+            ? value === '' ? 0 : Number(value)
             : value,
     }));
   };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-      <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+      {/* Left panel — image input */}
+      <form onSubmit={handleScan} className="space-y-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
         <div>
           <h2 className="text-xl font-semibold">Scan product label</h2>
-          <p className="mt-1 text-sm text-zinc-400">Upload images or use your camera to extract data and save the result.</p>
+          <p className="mt-1 text-sm text-zinc-400">Upload images or use your camera, then review the extracted fields before saving.</p>
         </div>
 
         {/* Camera viewfinder */}
         {cameraOpen && (
           <div className="relative overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
-            <video
-              ref={videoRef}
-              className="w-full"
-              autoPlay
-              playsInline
-              muted
-            />
+            <video ref={videoRef} className="w-full" autoPlay playsInline muted />
             <div className="flex gap-3 p-3">
               <button
                 type="button"
@@ -168,7 +175,7 @@ export function ScanForm() {
           </div>
         )}
 
-        {/* Input row: file upload + camera button */}
+        {/* File upload + camera */}
         {!cameraOpen && (
           <div className="space-y-2">
             <span className="block text-sm font-medium text-zinc-200">Images</span>
@@ -224,18 +231,23 @@ export function ScanForm() {
         <button
           className="inline-flex items-center rounded-xl bg-emerald-400 px-4 py-3 font-medium text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
           type="submit"
-          disabled={isLoading || files.length === 0}
+          disabled={isScanning || files.length === 0}
         >
-          {isLoading ? 'Scanning…' : 'Scan and save'}
+          {isScanning ? 'Scanning…' : 'Scan'}
         </button>
 
         {error ? <p className="text-sm text-rose-400">{error}</p> : null}
       </form>
 
+      {/* Right panel — review + save */}
       <section className="space-y-6 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
         <div>
           <h2 className="text-xl font-semibold">Review extracted fields</h2>
-          <p className="mt-1 text-sm text-zinc-400">After the scan runs, the extracted values appear here for quick review or manual edits.</p>
+          <p className="mt-1 text-sm text-zinc-400">
+            {stage === 'idle' && 'Scan a label to extract fields — you can edit anything before saving.'}
+            {stage === 'scanned' && 'Review and edit the fields below, then click Save.'}
+            {stage === 'saved' && '✅ Saved successfully!'}
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -259,6 +271,29 @@ export function ScanForm() {
               )}
             </label>
           ))}
+        </div>
+
+        {/* Save / reset buttons */}
+        <div className="flex gap-3">
+          {stage === 'scanned' && (
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="rounded-xl bg-emerald-400 px-5 py-3 font-medium text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
+            >
+              {isSaving ? 'Saving…' : 'Save'}
+            </button>
+          )}
+          {stage === 'saved' && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-medium text-zinc-200 transition hover:bg-zinc-800"
+            >
+              Scan another
+            </button>
+          )}
         </div>
 
         <div>

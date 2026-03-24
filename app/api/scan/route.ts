@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@/lib/openai';
-import { createServerSupabaseClient } from '@/lib/supabase';
 import { type ExtractedProduct } from '@/types/product';
 
 const EXTRACTION_PROMPT = `You are a cannabis product label parser. Extract the following fields from the product label image(s) provided and return ONLY valid JSON matching this exact structure:
@@ -19,12 +18,10 @@ const EXTRACTION_PROMPT = `You are a cannabis product label parser. Extract the 
 
 If a field is not visible or not applicable, use an empty string for text fields or null for numeric fields. Set confidence to reflect how clearly the label was readable (1.0 = perfectly clear, 0.0 = unreadable). Return ONLY the JSON object, no markdown, no explanation.`;
 
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const images = formData.getAll('images') as File[];
-    const userId = formData.get('user_id') as string | null;
 
     if (!images || images.length === 0) {
       return NextResponse.json({ error: 'No images provided.' }, { status: 400 });
@@ -86,31 +83,9 @@ export async function POST(request: NextRequest) {
     // Normalize strain_type to match DB check constraint allowed values
     const ALLOWED_STRAIN_TYPES = ['indica', 'sativa', 'hybrid', 'unknown'];
     const rawStrainType = (extractedData.strain_type ?? '').toLowerCase().trim();
-    const strainType = ALLOWED_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : null;
+    extractedData.strain_type = ALLOWED_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
 
-    // Save to Supabase
-    const supabase = createServerSupabaseClient();
-    const { error: dbError } = await supabase.from('product_logs').insert({
-      user_id: userId || null,
-      brand: extractedData.brand ?? '',
-      product_type: extractedData.product_type ?? '',
-      weight: extractedData.weight ?? '',
-      strain_type: strainType,
-      strain_name: extractedData.strain_name ?? '',
-      strain_bio: extractedData.strain_bio ?? '',
-      thc_percent: extractedData.thc_percent ?? null,
-      cbd_percent: extractedData.cbd_percent ?? null,
-      extraction_confidence: extractedData.confidence ?? null,
-      extracted_data_json: extractedData,
-    });
-
-    if (dbError) {
-      return NextResponse.json(
-        { error: `Database error: ${dbError.message}` },
-        { status: 500 },
-      );
-    }
-
+    // Return extracted data only — saving happens separately via /api/save
     return NextResponse.json({ extractedData });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unexpected error.';
