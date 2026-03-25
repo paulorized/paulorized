@@ -115,38 +115,46 @@ export async function POST(request: NextRequest) {
 
     // If THC/CBD are missing and we have a strain name, look up averages via GPT knowledge
     if (extractedData.strain_name) {
-      const missingPercent = extractedData.thc_percent == null && extractedData.cbd_percent == null;
-      const missingMg = extractedData.thc_mg == null && extractedData.cbd_mg == null;
+      const productTypeLower = (extractedData.product_type ?? '').toLowerCase();
+      const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate');
+      // For edibles, check mg fields. For everything else (flower, vape, concentrate, pre-roll), check percent fields.
+      const missingThc = isEdible
+        ? (extractedData.thc_mg == null)
+        : (extractedData.thc_percent == null);
 
-      if (missingPercent && missingMg) {
+      if (missingThc) {
         try {
+          const thcPrompt = isEdible
+            ? `What is the typical average THC content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? Reply with just a number (e.g. 100). If unknown, reply: null.`
+            : `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 22). If unknown, reply: null.`;
+
           const thcLookup = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: [
-              {
-                role: 'user',
-                content: `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 22). If unknown, reply: null.`,
-              },
-            ],
+            messages: [{ role: 'user', content: thcPrompt }],
             max_tokens: 10,
           });
           const thcRaw = (thcLookup.choices[0]?.message?.content ?? '').trim();
           const thcVal = parseFloat(thcRaw);
-          if (!isNaN(thcVal)) extractedData.thc_percent = thcVal;
+          if (!isNaN(thcVal)) {
+            if (isEdible) extractedData.thc_mg = thcVal;
+            else extractedData.thc_percent = thcVal;
+          }
+
+          const cbdPrompt = isEdible
+            ? `What is the typical average CBD content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? Reply with just a number (e.g. 5). If unknown or negligible, reply: null.`
+            : `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 0.5). If unknown or negligible, reply: null.`;
 
           const cbdLookup = await openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: [
-              {
-                role: 'user',
-                content: `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 0.5). If unknown or negligible, reply: null.`,
-              },
-            ],
+            messages: [{ role: 'user', content: cbdPrompt }],
             max_tokens: 10,
           });
           const cbdRaw = (cbdLookup.choices[0]?.message?.content ?? '').trim();
           const cbdVal = parseFloat(cbdRaw);
-          if (!isNaN(cbdVal)) extractedData.cbd_percent = cbdVal;
+          if (!isNaN(cbdVal)) {
+            if (isEdible) extractedData.cbd_mg = cbdVal;
+            else extractedData.cbd_percent = cbdVal;
+          }
         } catch {
           // Best-effort — don't fail the scan if lookup errors
         }
