@@ -114,19 +114,20 @@ export async function POST(request: NextRequest) {
     }
 
     // If THC/CBD are missing and we have a strain name, look up averages via GPT knowledge
+    console.log('[scan] strain_name:', extractedData.strain_name, '| thc_percent:', extractedData.thc_percent, '| product_type:', extractedData.product_type);
     if (extractedData.strain_name) {
       const productTypeLower = (extractedData.product_type ?? '').toLowerCase();
       const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate');
-      // For edibles, check mg fields. For everything else (flower, vape, concentrate, pre-roll), check percent fields.
       const missingThc = isEdible
         ? (extractedData.thc_mg == null)
         : (extractedData.thc_percent == null);
 
+      console.log('[scan] isEdible:', isEdible, '| missingThc:', missingThc);
       if (missingThc) {
         try {
           const thcPrompt = isEdible
-            ? `What is the typical average THC content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? Reply with just a number (e.g. 100). If unknown, reply: null.`
-            : `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 22). If unknown, reply: null.`;
+            ? `What is the typical average THC content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for cannabis edibles. Reply with just a number (e.g. 100). Do not reply with null or text.`
+            : `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for ${extractedData.product_type ?? 'cannabis flower'}. Reply with just a number (e.g. 22). Do not reply with null or text.`;
 
           const thcLookup = await openai.chat.completions.create({
             model: 'gpt-4o',
@@ -134,6 +135,7 @@ export async function POST(request: NextRequest) {
             max_tokens: 10,
           });
           const thcRaw = (thcLookup.choices[0]?.message?.content ?? '').trim();
+          console.log('[scan] GPT THC raw response:', thcRaw);
           const thcVal = parseFloat(thcRaw);
           if (!isNaN(thcVal)) {
             if (isEdible) extractedData.thc_mg = thcVal;
@@ -141,8 +143,8 @@ export async function POST(request: NextRequest) {
           }
 
           const cbdPrompt = isEdible
-            ? `What is the typical average CBD content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? Reply with just a number (e.g. 5). If unknown or negligible, reply: null.`
-            : `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 0.5). If unknown or negligible, reply: null.`;
+            ? `What is the typical average CBD content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate. Reply with just a number (e.g. 5). Do not reply with null or text.`
+            : `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for ${extractedData.product_type ?? 'cannabis flower'}. Reply with just a number (e.g. 0.5). Do not reply with null or text.`;
 
           const cbdLookup = await openai.chat.completions.create({
             model: 'gpt-4o',
