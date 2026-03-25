@@ -11,7 +11,7 @@ export async function GET() {
   const { data, error } = await supabase
     .from('dispensaries')
     .select('id, name')
-    .is('user_id', userId)
+    .eq('user_id', userId)
     .order('name', { ascending: true });
 
   if (error) {

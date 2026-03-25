@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
         .from('dispensaries')
         .select('id')
         .eq('name', dispensaryName.trim())
-        .is('user_id', userId)
+        .eq('user_id', userId)
         .maybeSingle();
 
       if (!existing) {

@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
     const rawStrainType = (extractedData.strain_type ?? '').toLowerCase().trim();
     extractedData.strain_type = ALLOWED_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
 
-    // If strain_type is missing and we have a strain name, look it up via GPT knowledge
-    if (!extractedData.strain_type && extractedData.strain_name) {
+    // If strain_type is missing or unknown and we have a strain name, look it up via GPT knowledge
+    if ((!extractedData.strain_type || extractedData.strain_type === 'unknown') && extractedData.strain_name) {
       try {
         const lookupCompletion = await openai.chat.completions.create({
           model: 'gpt-4o',
@@ -110,6 +110,46 @@ export async function POST(request: NextRequest) {
         }
       } catch {
         // Best-effort — don't fail the scan if lookup errors
+      }
+    }
+
+    // If THC/CBD are missing and we have a strain name, look up averages via GPT knowledge
+    if (extractedData.strain_name) {
+      const missingPercent = extractedData.thc_percent == null && extractedData.cbd_percent == null;
+      const missingMg = extractedData.thc_mg == null && extractedData.cbd_mg == null;
+
+      if (missingPercent && missingMg) {
+        try {
+          const thcLookup = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+              {
+                role: 'user',
+                content: `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 22). If unknown, reply: null.`,
+              },
+            ],
+            max_tokens: 10,
+          });
+          const thcRaw = (thcLookup.choices[0]?.message?.content ?? '').trim();
+          const thcVal = parseFloat(thcRaw);
+          if (!isNaN(thcVal)) extractedData.thc_percent = thcVal;
+
+          const cbdLookup = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+              {
+                role: 'user',
+                content: `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? Reply with just a number (e.g. 0.5). If unknown or negligible, reply: null.`,
+              },
+            ],
+            max_tokens: 10,
+          });
+          const cbdRaw = (cbdLookup.choices[0]?.message?.content ?? '').trim();
+          const cbdVal = parseFloat(cbdRaw);
+          if (!isNaN(cbdVal)) extractedData.cbd_percent = cbdVal;
+        } catch {
+          // Best-effort — don't fail the scan if lookup errors
+        }
       }
     }
 
