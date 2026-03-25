@@ -1,16 +1,9 @@
+// Client-safe — no server-only imports here.
 import { createClient } from '@supabase/supabase-js';
-import { env as clientEnv } from '@/lib/env.client';
-import { env as serverEnv } from '@/lib/env.server';
 
-// Browser client — used in client components ('use client')
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+// Single browser client instance
 export const createBrowserSupabaseClient = () =>
-  createClient(clientEnv.nextPublicSupabaseUrl, clientEnv.nextPublicSupabaseAnonKey);
-
-// Server client with service role — bypasses RLS, used in API routes only
-export const createServerSupabaseClient = () =>
-  createClient(clientEnv.nextPublicSupabaseUrl, serverEnv.supabaseServiceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  createClient(supabaseUrl, supabaseAnonKey);

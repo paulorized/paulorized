@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { createAuthServerClient } from '@/lib/supabase.server';
+import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 
 // GET — fetch dispensaries for the current user
 export async function GET() {

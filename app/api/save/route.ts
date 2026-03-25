@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { createAuthServerClient } from '@/lib/supabase.server';
+import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { type ExtractedProduct } from '@/types/product';
 
 export async function POST(request: NextRequest) {

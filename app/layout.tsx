@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  // Get the logged-in user (if any) to show in the nav
   let userEmail: string | null = null;
+
   try {
     const supabase = await createAuthServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     userEmail = user?.email ?? null;
   } catch {
-    // Not logged in or middleware hasn't run yet — that's fine
+    // Not logged in
   }
 
   return (

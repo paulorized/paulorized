@@ -1,29 +1,31 @@
-// This file uses next/headers and can ONLY be imported in Server Components or API routes.
-// Never import this in a 'use client' file.
+// Server-only — never import this in a 'use client' file.
+import { createClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { env as clientEnv } from '@/lib/env.client';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Service role client — bypasses RLS, for API routes
+export const createServerSupabaseClient = () =>
+  createClient(supabaseUrl, supabaseServiceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+// Auth-aware server client — reads session cookie
 export const createAuthServerClient = async () => {
   const cookieStore = await cookies();
-  return createServerClient(
-    clientEnv.nextPublicSupabaseUrl,
-    clientEnv.nextPublicSupabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Called from a Server Component — cookies can't be set here, that's fine
-          }
-        },
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() { return cookieStore.getAll(); },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        } catch { /* Server component — can't set cookies */ }
       },
-    }
-  );
+    },
+  });
 };

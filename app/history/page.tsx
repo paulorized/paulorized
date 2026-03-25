@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { createServerSupabaseClient } from '@/lib/supabase';
-import { createAuthServerClient } from '@/lib/supabase.server';
+import { redirect } from 'next/navigation';
+import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { HistoryRow } from '@/components/history-row';
 
 type ProductLog = {
@@ -20,10 +20,14 @@ type ProductLog = {
 };
 
 export default async function HistoryPage() {
-  // Get logged-in user
   const authClient = await createAuthServerClient();
   const { data: { user } } = await authClient.auth.getUser();
-  const userId = user?.id ?? null;
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userId = user.id;
 
   // Fetch only this user's logs
   const supabase = createServerSupabaseClient();
