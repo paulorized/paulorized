@@ -86,26 +86,26 @@ export async function POST(request: NextRequest) {
     extractedData.cbd_mg = parsePercent(extractedData.cbd_mg);
     extractedData.mg_per_piece = parsePercent(extractedData.mg_per_piece);
 
-    // Normalize strain_type to match DB check constraint allowed values
-    const ALLOWED_STRAIN_TYPES = ['indica', 'sativa', 'hybrid', 'unknown'];
+    // Normalize strain_type — only store real values, never "unknown"
+    const REAL_STRAIN_TYPES = ['indica', 'sativa', 'hybrid'];
     const rawStrainType = (extractedData.strain_type ?? '').toLowerCase().trim();
-    extractedData.strain_type = ALLOWED_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
+    extractedData.strain_type = REAL_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
 
-    // If strain_type is missing or unknown and we have a strain name, look it up via GPT knowledge
-    if ((!extractedData.strain_type || extractedData.strain_type === 'unknown') && extractedData.strain_name) {
+    // If strain_type is still blank and we have a strain name, look it up via GPT knowledge
+    if (!extractedData.strain_type && extractedData.strain_name) {
       try {
         const lookupCompletion = await openai.chat.completions.create({
           model: 'gpt-4o',
           messages: [
             {
               role: 'user',
-              content: `What is the strain type for the cannabis strain "${extractedData.strain_name}"? Reply with exactly one word: indica, sativa, or hybrid. If unknown, reply: unknown.`,
+              content: `What is the strain type for the cannabis strain "${extractedData.strain_name}"? Reply with exactly one word: indica, sativa, or hybrid. No other words.`,
             },
           ],
           max_tokens: 10,
         });
         const lookedUp = (lookupCompletion.choices[0]?.message?.content ?? '').toLowerCase().trim();
-        if (ALLOWED_STRAIN_TYPES.includes(lookedUp)) {
+        if (REAL_STRAIN_TYPES.includes(lookedUp)) {
           extractedData.strain_type = lookedUp;
         }
       } catch {
