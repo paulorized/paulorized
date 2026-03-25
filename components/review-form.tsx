@@ -11,6 +11,9 @@ export type Review = {
   notes: string;
   effects: string[];
   flavors: string[];
+  burn_speed: 'slow' | 'medium' | 'fast' | null;
+  canoeing: boolean | null;
+  clogging: boolean | null;
 };
 
 const emptyReview: Review = {
@@ -19,21 +22,26 @@ const emptyReview: Review = {
   notes: '',
   effects: [],
   flavors: [],
+  burn_speed: null,
+  canoeing: null,
+  clogging: null,
 };
 
 type Props = {
   productLogId: string;
+  productType?: string;
   userId?: string;
 };
 
-export function ReviewForm({ productLogId, userId }: Props) {
+export function ReviewForm({ productLogId, productType, userId }: Props) {
   const [review, setReview] = useState<Review>(emptyReview);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
-  // Load existing review if any
+  const isPreroll = (productType ?? '').toLowerCase().includes('pre');
+
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
@@ -47,10 +55,13 @@ export function ReviewForm({ productLogId, userId }: Props) {
             notes: data.review.notes ?? '',
             effects: data.review.effects ?? [],
             flavors: data.review.flavors ?? [],
+            burn_speed: data.review.burn_speed ?? null,
+            canoeing: data.review.canoeing ?? null,
+            clogging: data.review.clogging ?? null,
           });
         }
       } catch {
-        // No existing review, start fresh
+        // No existing review
       } finally {
         setIsLoading(false);
       }
@@ -153,6 +164,76 @@ export function ReviewForm({ productLogId, userId }: Props) {
           ))}
         </div>
       </div>
+
+      {/* Pre-roll specific section */}
+      {isPreroll && (
+        <div className="space-y-4 rounded-xl border border-zinc-700/50 bg-zinc-900/40 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Pre-roll</p>
+
+          {/* Burn speed */}
+          <div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Burn speed</p>
+            <div className="flex gap-2">
+              {(['slow', 'medium', 'fast'] as const).map((speed) => (
+                <button
+                  key={speed}
+                  type="button"
+                  onClick={() => { setReview((p) => ({ ...p, burn_speed: p.burn_speed === speed ? null : speed })); setSaved(false); }}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium capitalize transition ${
+                    review.burn_speed === speed
+                      ? 'border-sky-500/50 bg-sky-500/20 text-sky-300'
+                      : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  {speed === 'slow' ? '🐢 Slow' : speed === 'medium' ? '👌 Medium' : '🔥 Fast'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Canoeing */}
+          <div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Did it canoe?</p>
+            <div className="flex gap-2">
+              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => { setReview((p) => ({ ...p, canoeing: p.canoeing === value ? null : value })); setSaved(false); }}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                    review.canoeing === value
+                      ? 'border-sky-500/50 bg-sky-500/20 text-sky-300'
+                      : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Clogging */}
+          <div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
+            <div className="flex gap-2">
+              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => { setReview((p) => ({ ...p, clogging: p.clogging === value ? null : value })); setSaved(false); }}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                    review.clogging === value
+                      ? 'border-sky-500/50 bg-sky-500/20 text-sky-300'
+                      : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Would buy again */}
       <div>

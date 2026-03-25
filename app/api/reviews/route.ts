@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { product_log_id, user_id, rating, would_buy_again, notes, effects, flavors } = body;
+    const { product_log_id, user_id, rating, would_buy_again, notes, effects, flavors, burn_speed, canoeing, clogging } = body;
 
     if (!product_log_id) {
       return NextResponse.json({ error: 'product_log_id is required.' }, { status: 400 });
@@ -47,12 +47,12 @@ export async function POST(request: NextRequest) {
     if (existing?.id) {
       ({ error } = await supabase
         .from('reviews')
-        .update({ rating, would_buy_again, notes, effects, flavors, updated_at: new Date().toISOString() })
+        .update({ rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, updated_at: new Date().toISOString() })
         .eq('id', existing.id));
     } else {
       ({ error } = await supabase
         .from('reviews')
-        .insert({ product_log_id, user_id: user_id || null, rating, would_buy_again, notes, effects, flavors }));
+        .insert({ product_log_id, user_id: user_id || null, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null }));
     }
 
     if (error) {

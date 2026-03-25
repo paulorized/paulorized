@@ -126,7 +126,7 @@ export function HistoryRow({ log }: { log: ProductLog }) {
       {expanded && (
         <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>
-          <ReviewForm productLogId={log.id} />
+          <ReviewForm productLogId={log.id} productType={log.product_type} />
         </div>
       )}
     </div>
