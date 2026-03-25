@@ -140,6 +140,7 @@ export async function POST(request: NextRequest) {
           if (!isNaN(thcVal)) {
             if (isEdible) extractedData.thc_mg = thcVal;
             else extractedData.thc_percent = thcVal;
+            extractedData.thc_estimated = true;
           }
 
           const cbdPrompt = isEdible

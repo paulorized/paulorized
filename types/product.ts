@@ -11,6 +11,7 @@ export type ExtractedProduct = {
   cbd_mg: number | null;
   mg_per_piece: number | null;
   confidence: number;
+  thc_estimated?: boolean;
 };
 
 export const emptyProduct: ExtractedProduct = {

@@ -224,6 +224,8 @@ export function ScanForm() {
 
         {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
 
+        <p className="text-xs text-zinc-500">💡 For best results, snap photos of all visible sides of the package — especially the potency label.</p>
+
         {fileCount > 0 && !cameraOpen && (
           <div className="flex items-center justify-between rounded-xl bg-zinc-950 px-4 py-2.5 text-sm">
             <span className="text-zinc-400">{fileCount} file{fileCount > 1 ? 's' : ''} selected</span>
@@ -293,6 +295,9 @@ export function ScanForm() {
                   {result.cbd_mg != null && <div><p className="text-xs text-zinc-600">CBD total</p><p className="font-medium text-zinc-100">{result.cbd_mg}mg</p></div>}
                   {result.mg_per_piece != null && <div><p className="text-xs text-zinc-600">Per piece</p><p className="font-medium text-zinc-100">{result.mg_per_piece}mg</p></div>}
                 </div>
+                {result.thc_estimated && (
+                  <p className="mt-3 text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info wasn't found on the label. For accurate numbers, try scanning all sides of the package.</p>
+                )}
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={handleReset}
