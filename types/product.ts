@@ -7,6 +7,9 @@ export type ExtractedProduct = {
   strain_bio: string;
   thc_percent: number | null;
   cbd_percent: number | null;
+  thc_mg: number | null;
+  cbd_mg: number | null;
+  mg_per_piece: number | null;
   confidence: number;
 };
 
@@ -19,5 +22,8 @@ export const emptyProduct: ExtractedProduct = {
   strain_bio: '',
   thc_percent: null,
   cbd_percent: null,
+  thc_mg: null,
+  cbd_mg: null,
+  mg_per_piece: null,
   confidence: 0,
 };
