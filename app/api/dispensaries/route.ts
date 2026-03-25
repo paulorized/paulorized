@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { createAuthServerClient } from '@/lib/supabase.server';
 
-// GET — fetch all dispensaries (for dropdown)
+// GET — fetch dispensaries for the current user
 export async function GET() {
+  const authClient = await createAuthServerClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  const userId = user?.id ?? null;
+
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from('dispensaries')
     .select('id, name')
+    .is('user_id', userId)
     .order('name', { ascending: true });
 
   if (error) {
@@ -19,18 +25,21 @@ export async function GET() {
 // POST — save a new dispensary name if it doesn't already exist
 export async function POST(request: NextRequest) {
   try {
-    const { name, user_id } = await request.json();
+    const { name } = await request.json();
 
     if (!name?.trim()) {
       return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
     }
 
+    const authClient = await createAuthServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    const userId = user?.id ?? null;
+
     const supabase = createServerSupabaseClient();
 
-    // Insert — ignore conflict if already exists for this user
     const { error } = await supabase
       .from('dispensaries')
-      .upsert({ name: name.trim(), user_id: user_id || null }, { onConflict: 'user_id,name', ignoreDuplicates: true });
+      .upsert({ name: name.trim(), user_id: userId }, { onConflict: 'user_id,name', ignoreDuplicates: true });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

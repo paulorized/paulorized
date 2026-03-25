@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabaseClient } from '@/lib/supabase';
+import { createAuthServerClient } from '@/lib/supabase.server';
 import { HistoryRow } from '@/components/history-row';
 
 type ProductLog = {
@@ -19,10 +20,17 @@ type ProductLog = {
 };
 
 export default async function HistoryPage() {
+  // Get logged-in user
+  const authClient = await createAuthServerClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  const userId = user?.id ?? null;
+
+  // Fetch only this user's logs
   const supabase = createServerSupabaseClient();
   const { data, error } = await supabase
     .from('product_logs')
     .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at')
+    .is('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(100);
 
