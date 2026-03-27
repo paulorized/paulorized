@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, CartesianGrid
+  PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
 } from 'recharts';
 
 type DashboardData = {
@@ -24,13 +24,13 @@ type DashboardData = {
 };
 
 const STRAIN_COLORS: Record<string, string> = {
-  sativa: '#10b981',
-  indica: '#8b5cf6',
-  hybrid: '#f59e0b',
-  unknown: '#52525b',
+  sativa: '#10b981', indica: '#8b5cf6', hybrid: '#f59e0b', unknown: '#52525b',
 };
-
 const COLORS = ['#10b981','#8b5cf6','#f59e0b','#3b82f6','#ef4444','#ec4899','#14b8a6','#f97316'];
+const TT = {
+  contentStyle: { background: '#18181b', border: '1px solid #3f3f46', borderRadius: 12, color: '#f4f4f5', fontSize: 12 },
+  cursor: { fill: 'rgba(255,255,255,0.04)' },
+};
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -58,11 +58,6 @@ function Empty({ msg }: { msg: string }) {
     </div>
   );
 }
-
-const tooltipStyle = {
-  contentStyle: { background: '#18181b', border: '1px solid #3f3f46', borderRadius: 12, color: '#f4f4f5', fontSize: 12 },
-  cursor: { fill: 'rgba(255,255,255,0.04)' },
-};
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -118,10 +113,9 @@ export default function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-zinc-100">My Dashboard</h1>
-        <p className="text-sm text-zinc-500 mt-1">A look at everything you've logged</p>
+        <p className="text-sm text-zinc-500 mt-1">A look at everything you&apos;ve logged</p>
       </div>
 
       {/* Stat cards */}
@@ -129,7 +123,8 @@ export default function DashboardPage() {
         <StatCard label="Total Scans" value={data.totalScans} />
         <StatCard label="Reviews" value={data.totalReviews} />
         <StatCard label="Avg THC" value={data.avgThc != null ? `${data.avgThc}%` : '—'} />
-        <StatCard label="Avg Rating" value={data.avgRating != null ? `${data.avgRating}/5` : '—'} sub={data.wbaPct != null ? `${data.wbaPct}% would buy again` : undefined} />
+        <StatCard label="Avg Rating" value={data.avgRating != null ? `${data.avgRating}/5` : '—'}
+          sub={data.wbaPct != null ? `${data.wbaPct}% would buy again` : undefined} />
       </div>
 
       {/* Scans over time */}
@@ -141,7 +136,7 @@ export default function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                 <XAxis dataKey="month" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip {...tooltipStyle} />
+                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                 <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Scans" />
               </LineChart>
             </ResponsiveContainer>
@@ -161,7 +156,7 @@ export default function DashboardPage() {
                       <Cell key={i} fill={STRAIN_COLORS[entry.name.toLowerCase()] ?? COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip {...tooltipStyle} />
+                  <Tooltip contentStyle={TT.contentStyle} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-2 mt-2">
@@ -184,7 +179,7 @@ export default function DashboardPage() {
                   <Pie data={productPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
                     {productPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip {...tooltipStyle} />
+                  <Tooltip contentStyle={TT.contentStyle} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-2 mt-2">
@@ -208,7 +203,7 @@ export default function DashboardPage() {
               <BarChart data={data.thcDistribution} barSize={28}>
                 <XAxis dataKey="range" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip {...tooltipStyle} />
+                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                 <Bar dataKey="count" fill="#10b981" radius={[6, 6, 0, 0]} name="Products" />
               </BarChart>
             </ResponsiveContainer>
@@ -224,7 +219,7 @@ export default function DashboardPage() {
               <BarChart data={data.topStrains} layout="vertical" barSize={18}>
                 <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
-                <Tooltip {...tooltipStyle} />
+                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                 <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Times logged" />
               </BarChart>
             </ResponsiveContainer>
@@ -240,7 +235,7 @@ export default function DashboardPage() {
               <BarChart data={data.topBrands} layout="vertical" barSize={18}>
                 <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
                 <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
-                <Tooltip {...tooltipStyle} />
+                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                 <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Times scanned" />
               </BarChart>
             </ResponsiveContainer>
@@ -262,7 +257,7 @@ export default function DashboardPage() {
         </Section>
       )}
 
-      {/* Effects + Flavors */}
+      {/* Effects */}
       {data.topEffects.length > 0 && (
         <Section title="Most common effects">
           <div className="flex flex-wrap gap-2">
@@ -275,6 +270,7 @@ export default function DashboardPage() {
         </Section>
       )}
 
+      {/* Flavors */}
       {data.topFlavors.length > 0 && (
         <Section title="Most common flavors">
           <div className="flex flex-wrap gap-2">
