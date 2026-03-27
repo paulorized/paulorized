@@ -114,7 +114,6 @@ export async function POST(request: NextRequest) {
     }
 
     // If THC/CBD are missing and we have a strain name, look up averages via GPT knowledge
-    console.log('[scan] strain_name:', extractedData.strain_name, '| thc_percent:', extractedData.thc_percent, '| product_type:', extractedData.product_type);
     if (extractedData.strain_name) {
       const productTypeLower = (extractedData.product_type ?? '').toLowerCase();
       const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate');
@@ -122,7 +121,6 @@ export async function POST(request: NextRequest) {
         ? (extractedData.thc_mg == null)
         : (extractedData.thc_percent == null);
 
-      console.log('[scan] isEdible:', isEdible, '| missingThc:', missingThc);
       if (missingThc) {
         try {
           const thcPrompt = isEdible
@@ -135,7 +133,6 @@ export async function POST(request: NextRequest) {
             max_tokens: 10,
           });
           const thcRaw = (thcLookup.choices[0]?.message?.content ?? '').trim();
-          console.log('[scan] GPT THC raw response:', thcRaw);
           const thcVal = parseFloat(thcRaw);
           if (!isNaN(thcVal)) {
             if (isEdible) extractedData.thc_mg = thcVal;
