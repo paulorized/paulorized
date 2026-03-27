@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -91,9 +92,9 @@ export default function DashboardPage() {
         <p className="text-4xl">📊</p>
         <h1 className="text-xl font-bold text-zinc-100">Your dashboard is empty</h1>
         <p className="text-sm text-zinc-500">Start scanning products to see your personal stats here.</p>
-        <a href="/" className="inline-block mt-4 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
+        <Link href="/" className="inline-block mt-4 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
           Scan something →
-        </a>
+        </Link>
       </main>
     );
   }
