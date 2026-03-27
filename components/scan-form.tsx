@@ -15,16 +15,16 @@ const fieldLabels: Array<{ key: keyof ExtractedProduct; label: string; type?: 'n
   { key: 'thc_mg', label: 'THC mg (total)', type: 'number', section: 'potency' },
   { key: 'cbd_mg', label: 'CBD mg (total)', type: 'number', section: 'potency' },
   { key: 'mg_per_piece', label: 'mg per piece', type: 'number', section: 'potency' },
-  { key: 'confidence', label: 'Scan confidence', type: 'number', section: 'potency' },
 ];
 
 type Stage = 'idle' | 'scanned' | 'saved';
+type Mode = 'choose' | 'upload' | 'camera' | 'manual';
 
 const inputClass = 'w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-emerald-500/50 placeholder:text-zinc-600 transition';
 
 export function ScanForm() {
+  const [mode, setMode] = useState<Mode>('choose');
   const [files, setFiles] = useState<File[]>([]);
-  const [userId] = useState('');
   const [result, setResult] = useState<ExtractedProduct>(emptyProduct);
   const [error, setError] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -137,7 +137,7 @@ export function ScanForm() {
       const response = await fetch('/api/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ extractedData: result, userId: userId || undefined, dispensaryName: dispensaryName || undefined }),
+        body: JSON.stringify({ extractedData: result, dispensaryName: dispensaryName || undefined }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || 'Save failed.');
@@ -155,6 +155,8 @@ export function ScanForm() {
     setError('');
     setStage('idle');
     setDispensaryName('');
+    setMode('choose');
+    setCameraOpen(false);
   };
 
   const handleFieldChange = (key: keyof ExtractedProduct, value: string) => {
@@ -169,198 +171,363 @@ export function ScanForm() {
     }));
   };
 
-  // Group fields by section
   const sections = [
     { title: 'Product', keys: fieldLabels.filter(f => f.section === 'product') },
     { title: 'Strain', keys: fieldLabels.filter(f => f.section === 'strain') },
     { title: 'Potency', keys: fieldLabels.filter(f => f.section === 'potency') },
   ];
 
-  return (
-    <div className="space-y-4">
-
-      {/* ── Step 1: Add images ── */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
-          <h2 className="font-semibold text-zinc-100">Add photos</h2>
-          {fileCount > 0 && <span className="ml-auto text-xs text-emerald-400">{fileCount} photo{fileCount > 1 ? 's' : ''} added</span>}
-        </div>
-
-        {/* Camera viewfinder */}
-        {cameraOpen && (
-          <div className="overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
-            <video ref={videoRef} className="w-full" autoPlay playsInline muted />
-            <div className="flex gap-3 p-3">
-              <button type="button" onClick={capturePhoto}
-                className="flex-1 rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition active:bg-emerald-300">
-                📸 Take photo
-              </button>
-              <button type="button" onClick={closeCamera}
-                className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800">
-                Cancel
-              </button>
+  // ── Saved confirmation screen ──
+  if (stage === 'saved') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">✓</span>
+            <h2 className="font-semibold text-zinc-100">Saved to your log ✅</h2>
+          </div>
+          <div className="rounded-xl bg-zinc-950 p-4 space-y-3">
+            {dispensaryName && <p className="text-sm text-zinc-400">📍 {dispensaryName}</p>}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {result.brand && <div><p className="text-xs text-zinc-600">Brand</p><p className="font-medium text-zinc-100">{result.brand}</p></div>}
+              {result.strain_name && <div><p className="text-xs text-zinc-600">Strain</p><p className="font-medium text-zinc-100">{result.strain_name}</p></div>}
+              {result.strain_type && <div><p className="text-xs text-zinc-600">Type</p><p className="font-medium text-zinc-100 capitalize">{result.strain_type}</p></div>}
+              {result.product_type && <div><p className="text-xs text-zinc-600">Product</p><p className="font-medium text-zinc-100">{result.product_type}</p></div>}
+              {result.thc_percent != null && <div><p className="text-xs text-zinc-600">THC</p><p className="font-medium text-zinc-100">{result.thc_percent}%</p></div>}
+              {result.cbd_percent != null && <div><p className="text-xs text-zinc-600">CBD</p><p className="font-medium text-zinc-100">{result.cbd_percent}%</p></div>}
+              {result.thc_mg != null && <div><p className="text-xs text-zinc-600">THC total</p><p className="font-medium text-zinc-100">{result.thc_mg}mg</p></div>}
+              {result.mg_per_piece != null && <div><p className="text-xs text-zinc-600">Per piece</p><p className="font-medium text-zinc-100">{result.mg_per_piece}mg</p></div>}
             </div>
+            {result.thc_estimated && (
+              <p className="text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label.</p>
+            )}
           </div>
-        )}
-
-        {!cameraOpen && (
-          <div className="grid grid-cols-2 gap-3">
-            <label className="cursor-pointer">
-              <input className="hidden" type="file" accept="image/*" multiple
-                onChange={(e) => setFiles((prev) => [...prev, ...Array.from(e.target.files || [])])} />
-              <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-zinc-700 bg-zinc-950 py-6 text-sm text-zinc-500 transition hover:border-zinc-500 hover:text-zinc-300 active:bg-zinc-900">
-                <span className="text-2xl">🖼️</span>
-                <span>Upload</span>
-              </div>
-            </label>
-            <button type="button" onClick={openCamera}
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-950 py-6 text-sm text-zinc-500 transition hover:border-zinc-500 hover:text-zinc-300 active:bg-zinc-900">
-              <span className="text-2xl">📷</span>
-              <span>Camera</span>
+          <div className="flex gap-3">
+            <button type="button" onClick={handleReset}
+              className="flex-1 rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition active:bg-emerald-300">
+              Log another
             </button>
+            <a href="/history"
+              className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-3 text-center text-sm font-medium text-zinc-300 transition hover:bg-zinc-800">
+              View my log →
+            </a>
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
 
-        {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
-
-        <p className="text-xs text-zinc-500">💡 For best results, snap photos of all visible sides of the package — especially the potency label.</p>
-
-        {fileCount > 0 && !cameraOpen && (
-          <div className="flex items-center justify-between rounded-xl bg-zinc-950 px-4 py-2.5 text-sm">
-            <span className="text-zinc-400">{fileCount} file{fileCount > 1 ? 's' : ''} selected</span>
-            <button type="button" onClick={() => setFiles([])} className="text-xs text-zinc-600 hover:text-zinc-300 transition">Clear</button>
+  // ── Review & save screen (after scan or manual) ──
+  if (stage === 'scanned') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">2</span>
+              <h2 className="font-semibold text-zinc-100">Review &amp; edit</h2>
+            </div>
+            <button type="button" onClick={handleReset} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Start over</button>
           </div>
-        )}
 
-        {/* Dispensary */}
-        <div ref={dispensaryRef} className="relative">
-          <input
-            className={inputClass}
-            type="text"
-            placeholder="📍 Dispensary (optional)"
-            value={dispensaryName}
-            onChange={(e) => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
-            onFocus={() => setShowDispensaryDropdown(true)}
-            autoComplete="off"
-          />
-          {showDispensaryDropdown && filteredDispensaries.length > 0 && (
-            <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
-              {filteredDispensaries.map((d) => (
-                <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-                  className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
-                  📍 {d}
-                </li>
-              ))}
-            </ul>
+          {sections.map(({ title, keys }) => (
+            <div key={title} className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {keys.map(({ key, label, type }) => (
+                  <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
+                    <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
+                    {key === 'strain_bio' ? (
+                      <textarea
+                        className={`${inputClass} min-h-20 resize-none`}
+                        value={result[key] === null ? '' : String(result[key])}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        className={inputClass}
+                        type={type === 'number' ? 'number' : 'text'}
+                        step={type === 'number' ? '0.01' : undefined}
+                        value={result[key] === null ? '' : String(result[key])}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                      />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Dispensary */}
+          <div ref={dispensaryRef} className="relative">
+            <input className={inputClass} type="text" placeholder="📍 Dispensary (optional)"
+              value={dispensaryName}
+              onChange={(e) => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
+              onFocus={() => setShowDispensaryDropdown(true)}
+              autoComplete="off"
+            />
+            {showDispensaryDropdown && filteredDispensaries.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
+                {filteredDispensaries.map((d) => (
+                  <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
+                    📍 {d}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {result.thc_estimated && (
+            <p className="text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label. For accurate numbers, try scanning all sides of the package.</p>
+          )}
+
+          <button type="button" onClick={handleSave} disabled={isSaving}
+            className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
+            {isSaving ? 'Saving…' : '💾 Save to my log'}
+          </button>
+
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+
+          <button type="button" onClick={() => setShowJson(v => !v)}
+            className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-500 transition">
+            <span>{showJson ? '▾' : '▸'}</span>
+            <span>{showJson ? 'Hide' : 'Show'} raw JSON</span>
+          </button>
+          {showJson && (
+            <pre className="overflow-x-auto rounded-xl bg-zinc-950 p-4 text-xs text-emerald-400">
+              {JSON.stringify(result, null, 2)}
+            </pre>
           )}
         </div>
       </div>
+    );
+  }
 
-      {/* ── Step 2: Scan button ── */}
-      <form onSubmit={handleScan}>
-        <button
-          className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
-          type="submit"
-          disabled={isScanning || fileCount === 0}
-        >
-          {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
-        </button>
-        {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
-      </form>
-
-      {/* ── Step 3: Review & save ── */}
-      {(stage === 'scanned' || stage === 'saved') && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">2</span>
-            <h2 className="font-semibold text-zinc-100">
-              {stage === 'saved' ? 'Saved to your log ✅' : 'Review & edit'}
-            </h2>
+  // ── Choose mode screen ──
+  if (mode === 'choose') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
+            <h2 className="font-semibold text-zinc-100">How would you like to log?</h2>
           </div>
 
-          {stage === 'saved' ? (
-            <div className="space-y-4">
-              {/* Summary card */}
-              <div className="rounded-xl bg-zinc-950 p-4 space-y-3">
-                {dispensaryName && <p className="text-sm text-zinc-400">📍 {dispensaryName}</p>}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  {result.brand && <div><p className="text-xs text-zinc-600">Brand</p><p className="font-medium text-zinc-100">{result.brand}</p></div>}
-                  {result.strain_name && <div><p className="text-xs text-zinc-600">Strain</p><p className="font-medium text-zinc-100">{result.strain_name}</p></div>}
-                  {result.strain_type && <div><p className="text-xs text-zinc-600">Type</p><p className="font-medium text-zinc-100 capitalize">{result.strain_type}</p></div>}
-                  {result.product_type && <div><p className="text-xs text-zinc-600">Product</p><p className="font-medium text-zinc-100">{result.product_type}</p></div>}
-                  {result.thc_percent != null && <div><p className="text-xs text-zinc-600">THC</p><p className="font-medium text-zinc-100">{result.thc_percent}%</p></div>}
-                  {result.cbd_percent != null && <div><p className="text-xs text-zinc-600">CBD</p><p className="font-medium text-zinc-100">{result.cbd_percent}%</p></div>}
-                  {result.thc_mg != null && <div><p className="text-xs text-zinc-600">THC total</p><p className="font-medium text-zinc-100">{result.thc_mg}mg</p></div>}
-                  {result.cbd_mg != null && <div><p className="text-xs text-zinc-600">CBD total</p><p className="font-medium text-zinc-100">{result.cbd_mg}mg</p></div>}
-                  {result.mg_per_piece != null && <div><p className="text-xs text-zinc-600">Per piece</p><p className="font-medium text-zinc-100">{result.mg_per_piece}mg</p></div>}
-                </div>
-                {result.thc_estimated && (
-                  <p className="mt-3 text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label. For accurate numbers, try scanning all sides of the package.</p>
-                )}
+          {/* Upload photo */}
+          <label className="cursor-pointer block">
+            <input className="hidden" type="file" accept="image/*" multiple
+              onChange={(e) => {
+                const selected = Array.from(e.target.files || []);
+                if (selected.length > 0) { setFiles(selected); setMode('upload'); }
+              }} />
+            <div className="flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-2xl">📁</span>
+              <div>
+                <p className="font-medium text-zinc-100 text-sm">Upload a photo</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Choose from your gallery or files</p>
               </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={handleReset}
+              <span className="ml-auto text-zinc-600 text-lg">›</span>
+            </div>
+          </label>
+
+          {/* Camera */}
+          <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
+            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-2xl">📷</span>
+            <div>
+              <p className="font-medium text-zinc-100 text-sm">Scan with camera</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Point at the label to capture it live</p>
+            </div>
+            <span className="ml-auto text-zinc-600 text-lg">›</span>
+          </button>
+
+          {/* Manual entry */}
+          <button type="button" onClick={() => setMode('manual')}
+            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-2xl">✏️</span>
+            <div>
+              <p className="font-medium text-zinc-100 text-sm">Enter manually</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Type in product details yourself</p>
+            </div>
+            <span className="ml-auto text-zinc-600 text-lg">›</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Camera mode ──
+  if (mode === 'camera') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
+              <h2 className="font-semibold text-zinc-100">Scan with camera</h2>
+            </div>
+            <button type="button" onClick={() => { closeCamera(); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+          </div>
+
+          {cameraOpen ? (
+            <div className="overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
+              <video ref={videoRef} className="w-full" autoPlay playsInline muted />
+              <div className="flex gap-3 p-3">
+                <button type="button" onClick={capturePhoto}
                   className="flex-1 rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition active:bg-emerald-300">
-                  Scan another
+                  📸 Take photo
                 </button>
-                <a href="/history"
-                  className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-3 text-center text-sm font-medium text-zinc-300 transition hover:bg-zinc-800">
-                  View my log →
-                </a>
+                <button type="button" onClick={() => { closeCamera(); setMode('choose'); }}
+                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800">
+                  Cancel
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="space-y-5">
-              {sections.map(({ title, keys }) => (
-                <div key={title} className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {keys.map(({ key, label, type }) => (
-                      <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
-                        <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
-                        {key === 'strain_bio' ? (
-                          <textarea
-                            className={`${inputClass} min-h-20 resize-none`}
-                            value={result[key] === null ? '' : String(result[key])}
-                            onChange={(e) => handleFieldChange(key, e.target.value)}
-                          />
-                        ) : (
-                          <input
-                            className={inputClass}
-                            type={type === 'number' ? 'number' : 'text'}
-                            step={type === 'number' ? '0.01' : undefined}
-                            value={result[key] === null ? '' : String(result[key])}
-                            onChange={(e) => handleFieldChange(key, e.target.value)}
-                          />
-                        )}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              <button type="button" onClick={handleSave} disabled={isSaving}
-                className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
-                {isSaving ? 'Saving…' : '💾 Save to my log'}
-              </button>
-
-              {error && <p className="text-sm text-rose-400">{error}</p>}
-
-              <button type="button" onClick={() => setShowJson(v => !v)}
-                className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-500 transition">
-                <span>{showJson ? '▾' : '▸'}</span>
-                <span>{showJson ? 'Hide' : 'Show'} raw JSON</span>
-              </button>
-              {showJson && (
-                <pre className="overflow-x-auto rounded-xl bg-zinc-950 p-4 text-xs text-emerald-400">
-                  {JSON.stringify(result, null, 2)}
-                </pre>
-              )}
+          ) : fileCount > 0 ? (
+            // Photos captured — show scan button
+            <div className="space-y-3">
+              <p className="text-sm text-emerald-400">{fileCount} photo{fileCount > 1 ? 's' : ''} captured ✓</p>
+              <p className="text-xs text-zinc-500">💡 For best results, snap all visible sides of the package — especially the potency label.</p>
+              <div className="flex gap-3">
+                <button type="button" onClick={openCamera}
+                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-800 transition">
+                  + Add more
+                </button>
+                <button type="button" onClick={() => setFiles([])}
+                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-600 hover:text-zinc-400 transition">
+                  Clear
+                </button>
+              </div>
             </div>
+          ) : null}
+
+          {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
+
+          {fileCount > 0 && !cameraOpen && (
+            <form onSubmit={handleScan}>
+              <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
+                type="submit" disabled={isScanning}>
+                {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+              </button>
+              {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+            </form>
           )}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  // ── Upload mode ──
+  if (mode === 'upload') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
+              <h2 className="font-semibold text-zinc-100">Upload photos</h2>
+            </div>
+            <button type="button" onClick={() => { setFiles([]); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl bg-zinc-950 px-4 py-3 text-sm">
+            <span className="text-zinc-400">{fileCount} file{fileCount > 1 ? 's' : ''} selected</span>
+            <div className="flex gap-3">
+              <label className="cursor-pointer text-xs text-emerald-400 hover:text-emerald-300 transition">
+                <input className="hidden" type="file" accept="image/*" multiple
+                  onChange={(e) => setFiles(prev => [...prev, ...Array.from(e.target.files || [])])} />
+                + Add more
+              </label>
+              <button type="button" onClick={() => setFiles([])} className="text-xs text-zinc-600 hover:text-zinc-400 transition">Clear</button>
+            </div>
+          </div>
+
+          <p className="text-xs text-zinc-500">💡 For best results, include photos of all visible sides of the package — especially the potency label.</p>
+
+          <form onSubmit={handleScan}>
+            <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
+              type="submit" disabled={isScanning || fileCount === 0}>
+              {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+            </button>
+            {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Manual entry mode ──
+  if (mode === 'manual') {
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">1</span>
+              <h2 className="font-semibold text-zinc-100">Enter product details</h2>
+            </div>
+            <button type="button" onClick={() => { setResult(emptyProduct); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+          </div>
+
+          {sections.map(({ title, keys }) => (
+            <div key={title} className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
+              <div className="grid grid-cols-2 gap-3">
+                {keys.map(({ key, label, type }) => (
+                  <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
+                    <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
+                    {key === 'strain_bio' ? (
+                      <textarea
+                        className={`${inputClass} min-h-20 resize-none`}
+                        placeholder={`Enter ${label.toLowerCase()}…`}
+                        value={result[key] === null ? '' : String(result[key])}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                      />
+                    ) : (
+                      <input
+                        className={inputClass}
+                        type={type === 'number' ? 'number' : 'text'}
+                        step={type === 'number' ? '0.01' : undefined}
+                        placeholder={type === 'number' ? '0' : `Enter ${label.toLowerCase()}…`}
+                        value={result[key] === null ? '' : String(result[key])}
+                        onChange={(e) => handleFieldChange(key, e.target.value)}
+                      />
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Dispensary */}
+          <div ref={dispensaryRef} className="relative">
+            <input className={inputClass} type="text" placeholder="📍 Dispensary (optional)"
+              value={dispensaryName}
+              onChange={(e) => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
+              onFocus={() => setShowDispensaryDropdown(true)}
+              autoComplete="off"
+            />
+            {showDispensaryDropdown && filteredDispensaries.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
+                {filteredDispensaries.map((d) => (
+                  <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
+                    📍 {d}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <button type="button" onClick={() => { setStage('scanned'); setMode('upload'); }}
+            className="w-full rounded-xl bg-purple-500 py-4 text-base font-semibold text-white transition hover:bg-purple-400 active:scale-[0.99]">
+            Review &amp; save →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
