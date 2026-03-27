@@ -56,6 +56,7 @@ export function ReviewForm({ productLogId, productType, userId }: Props) {
 
   const productTypeLower = (productType ?? '').toLowerCase();
   const isPreroll = productTypeLower.includes('pre');
+  const isVape = productTypeLower.includes('vape') || productTypeLower.includes('cartridge') || productTypeLower.includes('cart');
   const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate') || productTypeLower.includes('candy') || productTypeLower.includes('beverage') || productTypeLower.includes('tincture');
 
   useEffect(() => {
@@ -251,6 +252,21 @@ export function ReviewForm({ productLogId, productType, userId }: Props) {
                 <button key={opt.value} type="button" onClick={() => set('edible_dose_feedback', review.edible_dose_feedback === opt.value ? null : opt.value)}
                   className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium transition ${review.edible_dose_feedback === opt.value ? 'border-purple-500/50 bg-purple-500/20 text-purple-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'}`}
                 >{opt.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {isVape && (
+        <div className="space-y-4 rounded-xl border border-zinc-700/50 bg-zinc-900/40 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Vape</p>
+          <div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
+            <div className="flex gap-2">
+              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+                <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
+                >{label}</button>
               ))}
             </div>
           </div>
