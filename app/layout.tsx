@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
           <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/?reset=1" className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight text-emerald-400">CannaBaseAI</span>
             </Link>
             <nav className="flex items-center gap-1">
@@ -73,15 +73,4 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     title="Join our Discord"
                   >
                     Discord
-                  </a>
-                  <SignOutButton />
-                </>
-              ) : null}
-            </nav>
-          </div>
-        </header>
-        {children}
-      </body>
-    </html>
-  );
-}
+        

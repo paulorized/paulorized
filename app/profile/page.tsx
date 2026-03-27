@@ -113,9 +113,14 @@ export default function ProfilePage() {
       return;
     }
 
+    const isFirstSave = !profile;
     setSuccess('Profile saved!');
     setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
-    router.refresh();
+    if (isFirstSave) {
+      router.push('/');
+    } else {
+      router.refresh();
+    }
   }
 
   // Max DOB — must be 21+

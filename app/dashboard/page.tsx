@@ -278,13 +278,4 @@ export default function DashboardPage() {
             {data.topFlavors.map((f, i) => (
               <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
                 {f.name} <span className="text-amber-600">×{f.count}</span>
-              </span>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      <div className="pb-8" />
-    </main>
-  );
-}
+          

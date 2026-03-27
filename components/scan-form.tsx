@@ -1,11 +1,17 @@
 'use client';
 
 import { useMemo, useRef, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
+
+const PRODUCT_TYPES = [
+  'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
+];
+
+const STRAIN_TYPES = ['sativa', 'indica', 'hybrid', 'unknown'];
 
 const fieldLabels: Array<{ key: keyof ExtractedProduct; label: string; type?: 'number'; section: 'product' | 'strain' | 'potency' }> = [
   { key: 'brand', label: 'Brand', section: 'product' },
-  { key: 'product_type', label: 'Product type', section: 'product' },
   { key: 'weight', label: 'Weight', section: 'product' },
   { key: 'strain_name', label: 'Strain name', section: 'strain' },
   { key: 'strain_type', label: 'Strain type', section: 'strain' },
@@ -106,6 +112,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 const inputClass = 'w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-emerald-500/50 placeholder:text-zinc-600 transition';
 
 export function ScanForm() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>('choose');
   const [files, setFiles] = useState<File[]>([]);
   const [result, setResult] = useState<ExtractedProduct>(emptyProduct);
@@ -115,6 +122,30 @@ export function ScanForm() {
   const [stage, setStage] = useState<Stage>('idle');
   const [showJson, setShowJson] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Manual entry search state
+  const [manualBrand, setManualBrand] = useState('');
+  const [manualStrain, setManualStrain] = useState('');
+  const [isLooking, setIsLooking] = useState(false);
+  const [lookupError, setLookupError] = useState('');
+  const [lookupDone, setLookupDone] = useState(false);
+
+  // Reset form when ?reset=1 is in the URL (logo click)
+  useEffect(() => {
+    if (searchParams.get('reset') === '1') {
+      setFiles([]);
+      setResult(emptyProduct);
+      setError('');
+      setStage('idle');
+      setDispensaryName('');
+      setMode('choose');
+      setCameraOpen(false);
+      setManualBrand('');
+      setManualStrain('');
+      setLookupError('');
+      setLookupDone(false);
+    }
+  }, [searchParams]);
 
   // Dispensary state
   const [dispensaryName, setDispensaryName] = useState('');
@@ -241,6 +272,31 @@ export function ScanForm() {
     setDispensaryName('');
     setMode('choose');
     setCameraOpen(false);
+    setManualBrand('');
+    setManualStrain('');
+    setLookupError('');
+    setLookupDone(false);
+  };
+
+  const handleStrainLookup = async () => {
+    if (!manualBrand.trim() && !manualStrain.trim()) return;
+    setIsLooking(true);
+    setLookupError('');
+    try {
+      const res = await fetch('/api/strain-lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brand: manualBrand.trim(), strain: manualStrain.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Lookup failed.');
+      setResult((prev) => ({ ...prev, ...data.product }));
+      setLookupDone(true);
+    } catch (err) {
+      setLookupError(err instanceof Error ? err.message : 'Lookup failed.');
+    } finally {
+      setIsLooking(false);
+    }
   };
 
   const handleFieldChange = (key: keyof ExtractedProduct, value: string) => {
@@ -331,7 +387,35 @@ export function ScanForm() {
             <div key={title} className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
               <div className="grid grid-cols-2 gap-3">
-                {keys.map(({ key, label, type }) => (
+                {/* Product type dropdown injected into Product section */}
+                {title === 'Product' && (
+                  <label>
+                    <span className="mb-1.5 block text-xs text-zinc-500">Product type</span>
+                    <select
+                      className={inputClass}
+                      value={result.product_type ?? ''}
+                      onChange={(e) => handleFieldChange('product_type', e.target.value)}
+                    >
+                      <option value="">Select type…</option>
+                      {PRODUCT_TYPES.map(t => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                    </select>
+                  </label>
+                )}
+                {/* Strain type dropdown injected into Strain section */}
+                {title === 'Strain' && (
+                  <label>
+                    <span className="mb-1.5 block text-xs text-zinc-500">Strain type</span>
+                    <select
+                      className={inputClass}
+                      value={result.strain_type ?? ''}
+                      onChange={(e) => handleFieldChange('strain_type', e.target.value)}
+                    >
+                      <option value="">Select type…</option>
+                      {STRAIN_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                    </select>
+                  </label>
+                )}
+                {keys.filter(f => f.key !== 'strain_type').map(({ key, label, type }) => (
                   <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
                     <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
                     {key === 'strain_bio' ? (
@@ -575,14 +659,83 @@ export function ScanForm() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">1</span>
               <h2 className="font-semibold text-zinc-100">Enter product details</h2>
             </div>
-            <button type="button" onClick={() => { setResult(emptyProduct); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
           </div>
 
+          {/* Brand + Strain search */}
+          <div className="space-y-3 rounded-xl border border-zinc-700/60 bg-zinc-950/50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Quick search</p>
+            <p className="text-xs text-zinc-500">Enter a brand and/or strain name to auto-fill details.</p>
+            <div className="grid grid-cols-2 gap-3">
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">Brand</span>
+                <input
+                  className={inputClass}
+                  type="text"
+                  placeholder="e.g. Cookies"
+                  value={manualBrand}
+                  onChange={(e) => setManualBrand(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleStrainLookup(); } }}
+                />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">Strain name</span>
+                <input
+                  className={inputClass}
+                  type="text"
+                  placeholder="e.g. Wedding Cake"
+                  value={manualStrain}
+                  onChange={(e) => setManualStrain(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleStrainLookup(); } }}
+                />
+              </label>
+            </div>
+            {lookupError && <p className="text-xs text-rose-400">{lookupError}</p>}
+            {lookupDone && <p className="text-xs text-emerald-400">✓ Fields pre-filled — review and adjust below.</p>}
+            <button
+              type="button"
+              onClick={handleStrainLookup}
+              disabled={isLooking || (!manualBrand.trim() && !manualStrain.trim())}
+              className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLooking ? '🔍 Searching…' : '🔍 Search & auto-fill'}
+            </button>
+          </div>
+
+          {/* Full form */}
           {sections.map(({ title, keys }) => (
             <div key={title} className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
               <div className="grid grid-cols-2 gap-3">
-                {keys.map(({ key, label, type }) => (
+                {/* Product type dropdown in Product section */}
+                {title === 'Product' && (
+                  <label>
+                    <span className="mb-1.5 block text-xs text-zinc-500">Product type</span>
+                    <select
+                      className={inputClass}
+                      value={result.product_type ?? ''}
+                      onChange={(e) => handleFieldChange('product_type', e.target.value)}
+                    >
+                      <option value="">Select type…</option>
+                      {PRODUCT_TYPES.map(t => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                    </select>
+                  </label>
+                )}
+                {/* Strain type dropdown in Strain section */}
+                {title === 'Strain' && (
+                  <label>
+                    <span className="mb-1.5 block text-xs text-zinc-500">Strain type</span>
+                    <select
+                      className={inputClass}
+                      value={result.strain_type ?? ''}
+                      onChange={(e) => handleFieldChange('strain_type', e.target.value)}
+                    >
+                      <option value="">Select type…</option>
+                      {STRAIN_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                    </select>
+                  </label>
+                )}
+                {keys.filter(f => f.key !== 'strain_type').map(({ key, label, type }) => (
                   <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
                     <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
                     {key === 'strain_bio' ? (
@@ -620,22 +773,4 @@ export function ScanForm() {
               <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
                 {filteredDispensaries.map((d) => (
                   <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
-                    📍 {d}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <button type="button" onClick={() => { setStage('scanned'); setMode('upload'); }}
-            className="w-full rounded-xl bg-purple-500 py-4 text-base font-semibold text-white transition hover:bg-purple-400 active:scale-[0.99]">
-            Review &amp; save →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-}
+     
