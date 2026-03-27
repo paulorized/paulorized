@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -773,4 +773,35 @@ export function ScanForm() {
               <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
                 {filteredDispensaries.map((d) => (
                   <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-     
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
+                    📍 {d}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+
+          <button type="button" onClick={handleSave} disabled={isSaving}
+            className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
+            {isSaving ? 'Saving…' : '💾 Save to my log'}
+          </button>
+
+          <button type="button" onClick={() => setShowJson(v => !v)}
+            className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-500 transition">
+            <span>{showJson ? '▾' : '▸'}</span>
+            <span>{showJson ? 'Hide' : 'Show'} raw JSON</span>
+          </button>
+          {showJson && (
+            <pre className="overflow-x-auto rounded-xl bg-zinc-950 p-4 text-xs text-emerald-400">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}

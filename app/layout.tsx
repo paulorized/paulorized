@@ -1,4 +1,4 @@
-import './globals.css';
+﻿import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
@@ -73,4 +73,19 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     title="Join our Discord"
                   >
                     Discord
-        
+                  </a>
+                  <SignOutButton />
+                </>
+              ) : (
+                <Link href="/auth" className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/20">
+                  Sign in
+                </Link>
+              )}
+            </nav>
+          </div>
+        </header>
+        <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+      </body>
+    </html>
+  );
+}
