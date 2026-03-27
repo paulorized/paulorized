@@ -29,8 +29,19 @@ export default async function HistoryPage() {
 
   const userId = user.id;
 
-  // Fetch only this user's logs
+  // Ensure profile is set up
   const supabase = createServerSupabaseClient();
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (!profile) {
+    redirect('/profile');
+  }
+
+  // Fetch only this user's logs
   const { data, error } = await supabase
     .from('product_logs')
     .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at')

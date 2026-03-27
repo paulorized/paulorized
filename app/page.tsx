@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createAuthServerClient } from '@/lib/supabase.server';
+import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
 
 export default async function HomePage() {
@@ -8,6 +8,18 @@ export default async function HomePage() {
 
   if (!user) {
     redirect('/login');
+  }
+
+  // Check if user has completed their profile (21+ verification)
+  const db = createServerSupabaseClient();
+  const { data: profile } = await db
+    .from('profiles')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!profile) {
+    redirect('/profile');
   }
 
   return (

@@ -106,7 +106,7 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="text-3xl font-bold tracking-tight text-emerald-400">CannaBase</span>
+          <span className="text-3xl font-bold tracking-tight text-emerald-400">CannaBaseAI</span>
           <p className="mt-2 text-sm text-zinc-500">Track what you love</p>
         </div>
         <Suspense fallback={null}>
