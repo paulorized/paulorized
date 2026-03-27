@@ -494,7 +494,6 @@ export function ScanForm() {
               </div>
             </div>
           ) : fileCount > 0 ? (
-            // Photos captured — show scan button
             <div className="space-y-3">
               <p className="text-sm text-emerald-400">{fileCount} photo{fileCount > 1 ? 's' : ''} captured ✓</p>
               <p className="text-xs text-zinc-500">💡 For best results, snap all visible sides of the package — especially the potency label.</p>
