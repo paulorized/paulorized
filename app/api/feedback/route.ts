@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           from: 'CannaBaseAI <onboarding@resend.dev>',
-          to: 'Paul@paulorized.com',
+          to: 'pvalerio862@gmail.com',
           subject: 'New feedback on CannaBaseAI',
           html: `
             <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;">
