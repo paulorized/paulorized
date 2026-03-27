@@ -309,6 +309,21 @@ export default function ProfilePage() {
           </button>
         </form>
       </div>
+
+      {/* Discord community card */}
+      <a
+        href="https://discord.gg/MTNvDM4MS"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10"
+      >
+        <span className="text-2xl">💬</span>
+        <div>
+          <p className="font-medium text-indigo-300 text-sm">Join our Discord community</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Share feedback, chat with other users, and get updates</p>
+        </div>
+        <span className="ml-auto text-indigo-500 text-lg">›</span>
+      </a>
     </main>
   );
 }

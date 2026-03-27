@@ -212,6 +212,19 @@ export function ScanForm() {
               View my log →
             </a>
           </div>
+          <a
+            href="https://discord.gg/MTNvDM4MS"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 transition hover:border-indigo-500/40 hover:bg-indigo-500/10"
+          >
+            <span>💬</span>
+            <div>
+              <p className="text-xs font-medium text-indigo-300">Enjoying CannaBaseAI? Join our Discord</p>
+              <p className="text-xs text-zinc-600">Share feedback &amp; chat with the community</p>
+            </div>
+            <span className="ml-auto text-indigo-500 text-sm">›</span>
+          </a>
         </div>
       </div>
     );
