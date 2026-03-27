@@ -9,13 +9,10 @@ export const metadata: Metadata = {
   description: 'Scan cannabis product labels, track your collection, and log your experience.',
 };
 
-function getAvatarUrl(username: string) {
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}&backgroundColor=059669`;
-}
-
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let userId: string | null = null;
   let username: string | null = null;
+  let avatarUrl: string | null = null;
 
   try {
     const supabase = await createAuthServerClient();
@@ -26,10 +23,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       const db = createServerSupabaseClient();
       const { data: profile } = await db
         .from('profiles')
-        .select('username')
+        .select('username, avatar_url')
         .eq('id', userId)
         .maybeSingle();
       username = profile?.username ?? null;
+      avatarUrl = profile?.avatar_url ?? null;
     }
   } catch {
     // Not logged in
@@ -53,13 +51,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     My Log
                   </Link>
                   <Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    {username ? (
+                    {avatarUrl ? (
                       <img
-                        src={getAvatarUrl(username)}
-                        alt={username}
-                        className="h-6 w-6 rounded-full bg-zinc-800"
+                        src={avatarUrl}
+                        alt={username ?? 'avatar'}
+                        className="h-6 w-6 rounded-full bg-zinc-800 object-cover"
                       />
-                    ) : null}
+                    ) : (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700 text-xs">👤</span>
+                    )}
                     <span>{username ? `@${username}` : 'Profile'}</span>
                   </Link>
                   <SignOutButton />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
 const US_STATES = [
@@ -19,10 +19,7 @@ interface Profile {
   date_of_birth: string;
   state: string | null;
   sex: string | null;
-}
-
-function getAvatarUrl(username: string) {
-  return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(username)}&backgroundColor=059669`;
+  avatar_url: string | null;
 }
 
 function getAge(dob: string): number {
@@ -35,17 +32,23 @@ function getAge(dob: string): number {
 
 export default function ProfilePage() {
   const router = useRouter();
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [avatarError, setAvatarError] = useState('');
 
   // Form fields
   const [username, setUsername] = useState('');
   const [dob, setDob] = useState('');
   const [state, setState] = useState('');
   const [sex, setSex] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/profile')
@@ -57,11 +60,32 @@ export default function ProfilePage() {
           setDob(data.profile.date_of_birth ?? '');
           setState(data.profile.state ?? '');
           setSex(data.profile.sex ?? '');
+          setAvatarUrl(data.profile.avatar_url ?? null);
         }
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
+
+  async function handleAvatarChange(file: File) {
+    setAvatarError('');
+    setAvatarUploading(true);
+
+    const form = new FormData();
+    form.append('avatar', file);
+
+    const res = await fetch('/api/profile/avatar', { method: 'POST', body: form });
+    const data = await res.json();
+    setAvatarUploading(false);
+
+    if (!res.ok) {
+      setAvatarError(data.error ?? 'Upload failed.');
+      return;
+    }
+
+    setAvatarUrl(data.avatar_url);
+    router.refresh();
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -84,11 +108,11 @@ export default function ProfilePage() {
     }
 
     setSuccess('Profile saved!');
-    setProfile({ username, date_of_birth: dob, state, sex });
+    setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
     router.refresh();
   }
 
-  // Max date for DOB — must be at least 21 years old
+  // Max DOB — must be 21+
   const maxDob = (() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 21);
@@ -105,18 +129,67 @@ export default function ProfilePage() {
 
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
-      <div className="mb-8 flex flex-col items-center gap-3">
-        {username ? (
-          <img
-            src={getAvatarUrl(username)}
-            alt="Your avatar"
-            className="h-20 w-20 rounded-full border-2 border-emerald-500/40 bg-zinc-800"
-          />
-        ) : (
-          <div className="h-20 w-20 rounded-full border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center text-zinc-500 text-2xl">
-            ?
-          </div>
+
+      {/* Avatar section */}
+      <div className="mb-8 flex flex-col items-center gap-4">
+        <div className="relative">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Your avatar"
+              className="h-24 w-24 rounded-full border-2 border-emerald-500/50 bg-zinc-800 object-cover"
+            />
+          ) : (
+            <div className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-600 bg-zinc-800 flex items-center justify-center">
+              <span className="text-3xl">👤</span>
+            </div>
+          )}
+          {avatarUploading && (
+            <div className="absolute inset-0 rounded-full bg-zinc-950/70 flex items-center justify-center">
+              <span className="text-xs text-zinc-300">Uploading…</span>
+            </div>
+          )}
+        </div>
+
+        {/* Upload / Camera buttons */}
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => uploadInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
+          >
+            🖼️ Upload photo
+          </button>
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
+          >
+            📷 Take photo
+          </button>
+        </div>
+
+        {/* Hidden file inputs */}
+        <input
+          ref={uploadInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }}
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="user"
+          className="hidden"
+          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }}
+        />
+
+        {avatarError && (
+          <p className="text-xs text-rose-400">{avatarError}</p>
         )}
+
         <div className="text-center">
           <h1 className="text-xl font-bold text-zinc-100">
             {profile?.username ? `@${profile.username}` : 'Set up your profile'}
@@ -127,6 +200,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Profile form */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
         <h2 className="mb-6 text-base font-semibold text-zinc-100">Profile details</h2>
 
