@@ -102,6 +102,12 @@ export default function ProfilePage() {
     const data = await res.json();
     setSaving(false);
 
+    if (res.status === 403) {
+      // Underage — redirect to blocked page
+      window.location.href = '/blocked';
+      return;
+    }
+
     if (!res.ok) {
       setError(data.error ?? 'Something went wrong.');
       return;

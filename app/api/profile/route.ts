@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     if (age < 21) {
       return NextResponse.json(
         { error: 'You must be 21 or older to use CannaBaseAI.' },
-        { status: 400 }
+        { status: 403 }
       );
     }
 

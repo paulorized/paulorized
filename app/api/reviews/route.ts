@@ -28,11 +28,27 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { product_log_id, user_id, rating, would_buy_again, notes, effects, flavors, burn_speed, canoeing, clogging } = body;
+    const {
+      product_log_id, user_id, rating, would_buy_again, notes, effects, flavors,
+      burn_speed, canoeing, clogging,
+      edible_dose_mg, edible_onset, edible_peak_duration, edible_total_duration,
+      edible_effect_type, edible_feelings, edible_taste_rating, edible_dose_feedback,
+    } = body;
 
     if (!product_log_id) {
       return NextResponse.json({ error: 'product_log_id is required.' }, { status: 400 });
     }
+
+    const edibleFields = {
+      edible_dose_mg: edible_dose_mg ?? null,
+      edible_onset: edible_onset ?? null,
+      edible_peak_duration: edible_peak_duration ?? null,
+      edible_total_duration: edible_total_duration ?? null,
+      edible_effect_type: edible_effect_type ?? null,
+      edible_feelings: edible_feelings ?? [],
+      edible_taste_rating: edible_taste_rating ?? null,
+      edible_dose_feedback: edible_dose_feedback ?? null,
+    };
 
     const supabase = createServerSupabaseClient();
 
@@ -47,12 +63,12 @@ export async function POST(request: NextRequest) {
     if (existing?.id) {
       ({ error } = await supabase
         .from('reviews')
-        .update({ rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, updated_at: new Date().toISOString() })
+        .update({ rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields, updated_at: new Date().toISOString() })
         .eq('id', existing.id));
     } else {
       ({ error } = await supabase
         .from('reviews')
-        .insert({ product_log_id, user_id: user_id || null, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null }));
+        .insert({ product_log_id, user_id: user_id || null, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields }));
     }
 
     if (error) {
