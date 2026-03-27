@@ -296,7 +296,7 @@ export function ScanForm() {
                   {result.mg_per_piece != null && <div><p className="text-xs text-zinc-600">Per piece</p><p className="font-medium text-zinc-100">{result.mg_per_piece}mg</p></div>}
                 </div>
                 {result.thc_estimated && (
-                  <p className="mt-3 text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info wasn't found on the label. For accurate numbers, try scanning all sides of the package.</p>
+                  <p className="mt-3 text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label. For accurate numbers, try scanning all sides of the package.</p>
                 )}
               </div>
               <div className="flex gap-3">
