@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface StrainResult {
@@ -52,8 +53,9 @@ function saveRecent(query: string) {
   } catch {}
 }
 
-export default function StrainSearchPage() {
-  const [query, setQuery] = useState('');
+function StrainSearchInner() {
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<StrainResult | null>(null);
   const [error, setError] = useState('');
@@ -63,7 +65,12 @@ export default function StrainSearchPage() {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setRecent(getRecent()); }, []);
+  useEffect(() => {
+    setRecent(getRecent());
+    const q = searchParams.get('q');
+    if (q) doSearch(q);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Check if current result is already wishlisted
   useEffect(() => {
@@ -314,5 +321,13 @@ export default function StrainSearchPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function StrainSearchPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto w-full max-w-2xl px-4 py-8 text-zinc-500 text-sm">Loading...</div>}>
+      <StrainSearchInner />
+    </Suspense>
   );
 }

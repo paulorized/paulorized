@@ -1,4 +1,4 @@
-﻿import './globals.css';
+import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
@@ -24,7 +24,6 @@ function getBubbleColor(userId: string): string {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let userId: string | null = null;
-  let username: string | null = null;
   let avatarUrl: string | null = null;
 
   try {
@@ -39,7 +38,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         .select('username, avatar_url')
         .eq('id', userId)
         .maybeSingle();
-      username = profile?.username ?? null;
       avatarUrl = profile?.avatar_url ?? null;
     }
   } catch {}
@@ -69,27 +67,29 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     <Link href="/strain-search" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
                       <span className="text-yellow-300 font-semibold">StrainAI</span>
                     </Link>
+                    <Link href="/wishlist" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
+                      <span className="text-amber-400 font-semibold">&#x1F4D5;</span>
+                    </Link>
                     <Link href="/profile" className="ml-1 flex shrink-0 items-center rounded-full transition hover:opacity-80">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt={username ?? 'avatar'} referrerPolicy="no-referrer" className="h-8 w-8 rounded-full bg-zinc-800 object-cover ring-2 ring-zinc-700 hover:ring-emerald-500 transition" />
+                        <img src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
+                          className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
                       ) : (
-                        <span className={"flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-2 ring-zinc-700 hover:ring-emerald-500 transition " + bubbleColor}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white">
-                            <path d="M12 2C9.5 2 7.5 3.5 6.8 5.7 5.2 5.3 3.5 6.2 2.8 7.8c-.8 1.8 0 3.9 1.7 4.8C3.8 14.8 5.2 16 7 16h1v4a1 1 0 0 0 2 0v-4h2v4a1 1 0 0 0 2 0v-4h1c1.8 0 3.2-1.2 3.5-3.4 1.7-.9 2.5-3 1.7-4.8-.7-1.6-2.4-2.5-4-2.1C15.5 3.5 13.8 2 12 2z"/>
+                        <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
+                            <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
                           </svg>
-                        </span>
+                        </div>
                       )}
                     </Link>
                   </>
                 ) : (
-                  <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">Sign in</Link>
+                  <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">Sign In</Link>
                 )}
               </nav>
             </div>
           </header>
-          <div className="w-full">
-            {children}
-          </div>
+          <div className="w-full">{children}</div>
         </ThemeProvider>
       </body>
     </html>
