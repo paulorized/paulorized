@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -60,6 +60,10 @@ export default function StrainSearchPage() {
   const [recent, setRecent] = useState<string[]>([]);
   const [logMatches, setLogMatches] = useState<LogMatch[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [locationError, setLocationError] = useState('');
+  const [locationSummary, setLocationSummary] = useState('');
+  const [nearbyDispensaries, setNearbyDispensaries] = useState<{name:string;description:string;distance:string}[]>([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   useEffect(() => { setRecent(getRecent()); }, []);
 
@@ -70,6 +74,9 @@ export default function StrainSearchPage() {
     setError('');
     setResult(null);
     setLogMatches([]);
+    setNearbyDispensaries([]);
+    setLocationSummary('');
+    setLocationError('');
     try {
       const res = await fetch('/api/strain-search', {
         method: 'POST',
@@ -240,6 +247,57 @@ export default function StrainSearchPage() {
               )}
             </Link>
           )}
+
+          {/* Nearby Dispensaries */}
+          <div className="px-6 py-4 border-t border-zinc-800">
+            {nearbyDispensaries.length === 0 && !nearbyLoading && !locationError && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!navigator.geolocation) { setLocationError('Geolocation not supported'); return; }
+                  setNearbyLoading(true);
+                  navigator.geolocation.getCurrentPosition(
+                    async (pos) => {
+                      try {
+                        const res = await fetch('/api/dispensaries-nearby', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ strain_name: result?.strain_name, lat: pos.coords.latitude, lon: pos.coords.longitude }),
+                        });
+                        const data = await res.json();
+                        setNearbyDispensaries(data.dispensaries ?? []);
+                        setLocationSummary(data.location_summary ?? '');
+                      } catch { setLocationError('Could not load nearby dispensaries'); }
+                      finally { setNearbyLoading(false); }
+                    },
+                    () => { setLocationError('Location access denied'); setNearbyLoading(false); }
+                  );
+                }}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-900/50 py-2.5 text-sm text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400"
+              >
+                📍 Find nearby dispensaries
+              </button>
+            )}
+            {nearbyLoading && <p className="text-xs text-zinc-500 text-center py-2">Finding dispensaries near you...</p>}
+            {locationError && <p className="text-xs text-rose-400 text-center py-2">{locationError}</p>}
+            {nearbyDispensaries.length > 0 && (
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">Nearby Dispensaries</p>
+                {locationSummary && <p className="mb-3 text-xs text-zinc-600">{locationSummary}</p>}
+                <div className="space-y-2">
+                  {nearbyDispensaries.map((d, i) => (
+                    <div key={i} className="flex items-start justify-between gap-2 rounded-xl bg-zinc-900 px-3 py-2.5">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-200">{d.name}</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{d.description}</p>
+                      </div>
+                      {d.distance && <span className="shrink-0 text-xs text-zinc-600">{d.distance}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

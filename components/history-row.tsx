@@ -44,7 +44,7 @@ function cbdDisplay(log: ProductLog): string | null {
   return null;
 }
 
-export function HistoryRow({ log }: { log: ProductLog }) {
+export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?: number }) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
@@ -133,6 +133,9 @@ export function HistoryRow({ log }: { log: ProductLog }) {
           {/* Right column: date, actions */}
           <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
             <span className="text-xs text-zinc-500">{date}</span>
+            {scanCount > 1 && (
+              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500">{scanCount}x</span>
+            )}
 
             {/* Log again */}
             <button

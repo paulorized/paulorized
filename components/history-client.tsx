@@ -31,6 +31,15 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
 
   const filtered = filter === 'all' ? logs : logs.filter(l => (l.product_type ?? '').toLowerCase() === filter);
 
+  const scanCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const log of logs) {
+      const key = ((log.brand ?? '') + '__' + (log.strain_name ?? '') + '__' + (log.product_type ?? '')).toLowerCase();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  }, [logs]);
+
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -84,7 +93,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
       {filtered.length > 0 && (
         <div className="flex flex-col gap-3">
           {filtered.map((log) => (
-            <HistoryRow key={log.id} log={log} />
+            <HistoryRow key={log.id} log={log} scanCount={scanCounts.get(((log.brand ?? '') + '__' + (log.strain_name ?? '') + '__' + (log.product_type ?? '')).toLowerCase()) ?? 1} />
           ))}
         </div>
       )}
