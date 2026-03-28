@@ -55,6 +55,7 @@ export default function ProfilePage() {
   const [state, setState] = useState('');
   const [sex, setSex] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [tier, setTier] = useState<{ label: string; emoji: string; color: string } | null>(null);
 
   useEffect(() => {
     fetch('/api/profile')
@@ -71,6 +72,14 @@ export default function ProfilePage() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  }, []);
+
+  // Fetch connoisseur tier
+  useEffect(() => {
+    fetch('/api/my-tier', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => { if (data.tier) setTier(data.tier); })
+      .catch(() => {});
   }, []);
 
   async function handleAvatarChange(file: File) {
@@ -165,6 +174,12 @@ export default function ProfilePage() {
           <h1 className="text-xl font-bold text-zinc-100">
             {profile?.username ? `@${profile.username}` : 'Set up your profile'}
           </h1>
+          {tier && (
+            <div className="mt-1 flex items-center justify-center gap-1.5">
+              <span className="text-base">{tier.emoji}</span>
+              <span className={`text-sm font-semibold ${tier.color}`}>{tier.label}</span>
+            </div>
+          )}
           {profile?.date_of_birth && (
             <p className="text-sm text-zinc-500 mt-0.5">{getAge(profile.date_of_birth)} years old</p>
           )}
