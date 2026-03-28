@@ -74,4 +74,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, id: newLog?.id ?? null });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unexpected error.';
-    return
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
