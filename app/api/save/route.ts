@@ -45,6 +45,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Database error: ${dbError.message}` }, { status: 500 });
     }
 
+    // Auto-remove from wishlist if this strain was wishlisted
+    const strainNameSaved = extractedData.strain_name?.trim();
+    if (userId && strainNameSaved) {
+      await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_id', userId)
+        .ilike('strain_name', strainNameSaved);
+    }
+
     // Auto-save dispensary name for future autocomplete
     if (dispensaryName?.trim()) {
       const { data: existing } = await supabase
@@ -64,6 +74,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, id: newLog?.id ?? null });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unexpected error.';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+    return

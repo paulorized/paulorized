@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -59,9 +59,23 @@ export default function StrainSearchPage() {
   const [error, setError] = useState('');
   const [recent, setRecent] = useState<string[]>([]);
   const [logMatches, setLogMatches] = useState<LogMatch[]>([]);
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setRecent(getRecent()); }, []);
+
+  // Check if current result is already wishlisted
+  useEffect(() => {
+    if (!result || result.not_found) { setWishlisted(false); return; }
+    fetch('/api/wishlist')
+      .then(r => r.json())
+      .then(data => {
+        const names = (data.items ?? []).map((i: { strain_name: string }) => i.strain_name.toLowerCase());
+        setWishlisted(names.includes(result.strain_name.toLowerCase()));
+      })
+      .catch(() => {});
+  }, [result]);
 
   const doSearch = async (q: string) => {
     const trimmed = q.trim();
@@ -70,6 +84,7 @@ export default function StrainSearchPage() {
     setError('');
     setResult(null);
     setLogMatches([]);
+    setWishlisted(false);
     try {
       const res = await fetch('/api/strain-search', {
         method: 'POST',
@@ -104,6 +119,29 @@ export default function StrainSearchPage() {
     doSearch(query);
   };
 
+  const toggleWishlist = async () => {
+    if (!result || wishlistLoading) return;
+    setWishlistLoading(true);
+    try {
+      if (wishlisted) {
+        await fetch('/api/wishlist', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strain_name: result.strain_name }),
+        });
+        setWishlisted(false);
+      } else {
+        await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strain_name: result.strain_name, strain_type: result.strain_type }),
+        });
+        setWishlisted(true);
+      }
+    } catch {}
+    setWishlistLoading(false);
+  };
+
   const thcRange = (min: number | null, max: number | null) => {
     if (min == null && max == null) return null;
     if (min != null && max != null) return min + '-' + max + '%';
@@ -126,7 +164,7 @@ export default function StrainSearchPage() {
             className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 pr-10 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none" />
           {query && (
             <button type="button" onClick={() => { setQuery(''); setResult(null); setError(''); setLogMatches([]); inputRef.current?.focus(); }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">✕</button>
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">&#x2715;</button>
           )}
         </div>
         <button type="submit" disabled={loading || !query.trim()}
@@ -150,7 +188,7 @@ export default function StrainSearchPage() {
 
       {result?.not_found && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 text-center space-y-2">
-          <div className="text-3xl">🔍</div>
+          <div className="text-3xl">&#x1F50D;</div>
           <p className="text-sm font-medium text-zinc-300">Strain not found</p>
           <p className="text-xs text-zinc-500">{result.message ?? "We couldn't find info on that strain. Try a different name."}</p>
         </div>
@@ -218,50 +256,45 @@ export default function StrainSearchPage() {
           )}
 
           {logMatches.length > 0 && (
-            <Link href="/history" className="block px-6 py-4 rounded-b-2xl bg-emerald-500/5 hover:bg-emerald-500/10 transition">
+            <Link href="/history" className="block px-6 py-4 bg-emerald-500/5 hover:bg-emerald-500/10 transition">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 text-sm">✓</span>
+                  <span className="text-emerald-400 text-sm">&#x2713;</span>
                   <span className="text-sm font-medium text-emerald-300">Previously scanned</span>
                   <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-400">
                     {logMatches.length}x
                   </span>
                 </div>
                 <span className="text-xs text-zinc-500 flex items-center gap-1">
-                  View in History <span className="text-emerald-400">→</span>
+                  View in History <span className="text-emerald-400">&#x2192;</span>
                 </span>
               </div>
               {logMatches[0] && (
                 <p className="mt-1 text-xs text-zinc-600">
                   Last scanned {formatDate(logMatches[0].created_at)}
-                  {logMatches[0].brand ? ` · ${logMatches[0].brand}` : ""}
-                  {logMatches[0].product_type ? ` · ${logMatches[0].product_type}` : ""}
+                  {logMatches[0].brand ? ' · ' + logMatches[0].brand : ''}
+                  {logMatches[0].product_type ? ' · ' + logMatches[0].product_type : ''}
                 </p>
               )}
             </Link>
           )}
 
-          {/* Nearby Dispensaries */}
-          <div className="px-6 py-4 border-t border-zinc-800">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-zinc-500">Find it near you</p>
-            <div className="flex gap-2">
-              <a
-                href={"https://weedmaps.com/search?q=" + encodeURIComponent(result?.strain_name ?? "") + "&storefront_type=dispensary"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-center text-sm font-semibold text-emerald-400 transition hover:bg-zinc-700"
-              >
-                Weedmaps
-              </a>
-              <a
-                href={"https://www.leafly.com/search?q=" + encodeURIComponent(result?.strain_name ?? "") + "&typefilter=dispensary"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-center text-sm font-semibold text-purple-400 transition hover:bg-zinc-700"
-              >
-                Leafly
-              </a>
-            </div>
+          {/* Wishlist */}
+          <div className="px-6 py-4">
+            <button
+              onClick={toggleWishlist}
+              disabled={wishlistLoading}
+              className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2 ${
+                wishlisted
+                  ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+              }`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+              {wishlistLoading ? 'Saving...' : wishlisted ? 'Saved to Wishlist' : 'Add to Wishlist'}
+            </button>
           </div>
 
         </div>

@@ -15,3 +15,12 @@ create table if not exists public.product_logs (
   extracted_data_json jsonb not null,
   created_at timestamptz not null default timezone('utc', now())
 );
+
+create table if not exists public.wishlist (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  strain_name text not null,
+  strain_type text null,
+  added_at timestamptz not null default timezone('utc', now()),
+  unique (user_id, strain_name)
+);
