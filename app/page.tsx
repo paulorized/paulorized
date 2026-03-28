@@ -14,22 +14,12 @@ export default async function HomePage() {
   const db = createServerSupabaseClient();
   const { data: profile } = await db
     .from('profiles')
-    .select('id')
+    .select('id, username')
     .eq('id', user.id)
     .maybeSingle();
 
-  if (!profile) redirect('/profile');
+  if (!profile) redirect('/profile?setup=1');
+  if (!profile.username) redirect('/profile?setup=1');
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
-      <div className="relative">
-        <div className="absolute top-3 right-3 z-10">
-          <ThemeToggle />
-        </div>
-        <ScanForm />
-      </div>
-      <QuickLog />
-      <PageFooter />
-    </div>
-  );
-}
+    <div classNa

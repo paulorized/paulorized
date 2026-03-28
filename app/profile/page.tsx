@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 
 const US_STATES = [
@@ -37,8 +37,18 @@ function getAge(dob: string): number {
   return age;
 }
 
-export default function ProfilePage() {
+export default function ProfilePageWrapper() {
+  return (
+    <Suspense>
+      <ProfilePage />
+    </Suspense>
+  );
+}
+
+function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isSetup = searchParams.get('setup') === '1';
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,6 +107,10 @@ export default function ProfilePage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!username.trim()) {
+      setError('A username is required to continue.');
+      return;
+    }
     setSaving(true);
     setError('');
     setSuccess('');
@@ -112,7 +126,7 @@ export default function ProfilePage() {
     const isFirstSave = !profile;
     setSuccess('Profile saved!');
     setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
-    if (isFirstSave) { router.push('/welcome'); } else { router.refresh(); }
+    if (isFirstSave) { router.push('/welcome'); } else if (isSetup) { router.push('/'); } else { router.refresh(); }
   }
 
   const maxDob = (() => {
@@ -130,6 +144,15 @@ export default function ProfilePage() {
   }
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
+
+      {/* Setup mode banner */}
+      {isSetup && (
+        <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-center">
+          <div className="text-2xl mb-1">👋</div>
+          <p className="text-sm font-semibold text-emerald-300">One last thing before you dive in</p>
+          <p className="mt-1 text-xs text-zinc-400">Pick a username so others can recognize you in the community.</p>
+        </div>
+      )}
 
       {/* Avatar section */}
       <div className="mb-8 flex flex-col items-center gap-4">
