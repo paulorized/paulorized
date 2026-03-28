@@ -60,8 +60,6 @@ export default function StrainSearchPage() {
   const [recent, setRecent] = useState<string[]>([]);
   const [logMatches, setLogMatches] = useState<LogMatch[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [locationError, setLocationError] = useState('');
-  const [nearbyLoading, setNearbyLoading] = useState(false);
 
   useEffect(() => { setRecent(getRecent()); }, []);
 
@@ -246,33 +244,29 @@ export default function StrainSearchPage() {
 
           {/* Nearby Dispensaries */}
           <div className="px-6 py-4 border-t border-zinc-800">
-            {!locationError && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (!navigator.geolocation) { setLocationError('Geolocation not supported'); return; }
-                  setNearbyLoading(true);
-                  navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                      const strainQuery = encodeURIComponent((result?.strain_name ?? '') + ' cannabis dispensary near me');
-                      const mapsUrl = `https://www.google.com/maps/search/${strainQuery}/@${pos.coords.latitude},${pos.coords.longitude},13z`;
-                      window.open(mapsUrl, '_blank');
-                      setNearbyLoading(false);
-                    },
-                    () => { setLocationError('Location access denied'); setNearbyLoading(false); }
-                  );
-                }}
-                disabled={nearbyLoading}
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-900/50 py-2.5 text-sm text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
+            <div className="flex gap-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-zinc-500">Find it near you</p>
+              <a
+                href={"https://weedmaps.com/search?q=" + encodeURIComponent(result?.strain_name ?? "") + "&storefront_type=dispensary"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/50 py-2.5 text-sm text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400"
               >
-                {nearbyLoading ? 'Finding your location...' : '📍 Find nearby dispensaries'}
-              </button>
-            )}
-            {locationError && <p className="text-xs text-rose-400 text-center py-2">{locationError}</p>}
-          </div>
-        </div>
-      )}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                Weedmaps
+              </a>
+              <a
+                href={"https://www.leafly.com/search?q=" + encodeURIComponent(result?.strain_name ?? "") + "&typefilter=dispensary"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900/50 py-2.5 text-sm text-zinc-400 transition hover:border-purple-500/40 hover:text-purple-400"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="shrink-0"><path d="M12 2C9.5 2 7.5 3.5 6.8 5.7 5.2 5.3 3.5 6.2 2.8 7.8c-.8 1.8 0 3.9 1.7 4.8C3.8 14.8 5.2 16 7 16h1v4a1 1 0 0 0 2 0v-4h2v4a1 1 0 0 0 2 0v-4h1c1.8 0 3.2-1.2 3.5-3.4 1.7-.9 2.5-3 1.7-4.8-.7-1.6-2.4-2.5-4-2.1C15.5 3.5 13.8 2 12 2z"/></svg>
+                Leafly
+              </a>
+            </div>
 
+          </div>
       {!result && !loading && recent.length > 0 && (
         <div className="mt-4">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-600">Recent searches</p>
