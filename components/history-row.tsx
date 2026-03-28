@@ -47,6 +47,8 @@ export function HistoryRow({ log }: { log: ProductLog }) {
   const [expanded, setExpanded] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [duplicated, setDuplicated] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const badgeClass = strainTypeBadge[log.strain_type ?? 'unknown'] ?? strainTypeBadge.unknown;
   const date = new Date(log.created_at).toLocaleDateString('en-US', {
@@ -73,6 +75,16 @@ export function HistoryRow({ log }: { log: ProductLog }) {
     finally { setDuplicating(false); }
   };
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/delete-log?id=${log.id}`, { method: 'DELETE' });
+      if (res.ok) router.refresh();
+    } catch {}
+    finally { setDeleting(false); setConfirmDelete(false); }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
       <button
@@ -92,13 +104,9 @@ export function HistoryRow({ log }: { log: ProductLog }) {
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
-              {log.weight && <span className="text-zinc-600">·</span>}
-              {log.weight && <span>{log.weight}</span>}
+              {log.weight && <><span className="text-zinc-600">·</span><span>{log.weight}</span></>}
               {log.strain_name && (
-                <>
-                  <span className="text-zinc-600">·</span>
-                  <span className="italic text-zinc-400">{log.strain_name}</span>
-                </>
+                <><span className="text-zinc-600">·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
               )}
             </div>
             {(thc || cbd) && (
@@ -119,8 +127,12 @@ export function HistoryRow({ log }: { log: ProductLog }) {
               </a>
             )}
           </div>
+
+          {/* Right column: date, actions */}
           <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
             <span className="text-xs text-zinc-500">{date}</span>
+
+            {/* Log again */}
             <button
               type="button"
               onClick={handleDuplicate}
@@ -131,8 +143,39 @@ export function HistoryRow({ log }: { log: ProductLog }) {
                   : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
               }`}
             >
-              {duplicated ? '✓' : duplicating ? '...' : '⊕ Log again'}
+              {duplicated ? '✓ Logged' : duplicating ? '...' : '⊕ Log again'}
             </button>
+
+            {/* Delete with inline confirm */}
+            {!confirmDelete ? (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+                className="rounded-lg px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-800 hover:text-rose-400 transition"
+              >
+                Remove
+              </button>
+            ) : (
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <span className="text-xs text-zinc-500">Sure?</span>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="rounded-lg bg-rose-500/20 px-2.5 py-1 text-xs font-medium text-rose-400 hover:bg-rose-500/30 transition"
+                >
+                  {deleting ? '...' : 'Yes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
+                  className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-400 hover:bg-zinc-700 transition"
+                >
+                  No
+                </button>
+              </div>
+            )}
+
             <span className="text-xs text-zinc-600">{expanded ? '▴' : '▾'}</span>
           </div>
         </div>
