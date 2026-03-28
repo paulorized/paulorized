@@ -2,12 +2,24 @@ import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
-import SignOutButton from '@/components/sign-out-button';
 
 export const metadata: Metadata = {
   title: 'CannaBaseAI',
   description: 'Scan cannabis product labels, track your collection, and log your experience.',
 };
+
+const BUBBLE_COLORS = [
+  'bg-emerald-600', 'bg-purple-600', 'bg-yellow-500', 'bg-sky-600',
+  'bg-rose-600', 'bg-orange-500', 'bg-teal-600', 'bg-indigo-600',
+];
+
+function getBubbleColor(userId: string): string {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = (hash * 31 + userId.charCodeAt(i)) & 0xffffffff;
+  }
+  return BUBBLE_COLORS[Math.abs(hash) % BUBBLE_COLORS.length];
+}
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let userId: string | null = null;
@@ -33,7 +45,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     // Not logged in
   }
 
-  const displayName = username ? ('@' + username) : 'Profile';
+  const bubbleColor = userId ? getBubbleColor(userId) : 'bg-zinc-700';
 
   return (
     <html lang="en">
@@ -48,7 +60,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
               </span>
             </Link>
-            <nav className="flex items-center gap-0.5 overflow-x-auto">
+            <nav className="flex items-center gap-0.5">
               {userId ? (
                 <>
                   <Link href="/" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">
@@ -63,22 +75,22 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                   <Link href="/strain-search" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
                     <span className="text-yellow-300 font-semibold">StrainAI</span>
                   </Link>
-                  <Link href="/profile" className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 shrink-0">
+                  <Link href="/profile" className="ml-1 flex shrink-0 items-center rounded-full transition hover:opacity-80">
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
                         alt={username ?? 'avatar'}
                         referrerPolicy="no-referrer"
-                        className="h-6 w-6 rounded-full bg-zinc-800 object-cover shrink-0"
+                        className="h-8 w-8 rounded-full bg-zinc-800 object-cover ring-2 ring-zinc-700 hover:ring-emerald-500 transition"
                       />
                     ) : (
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-xs">
-                        &#128100;
+                      <span className={"flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-2 ring-zinc-700 hover:ring-emerald-500 transition " + bubbleColor}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white">
+                          <path d="M12 2C9.5 2 7.5 3.5 6.8 5.7 5.2 5.3 3.5 6.2 2.8 7.8c-.8 1.8 0 3.9 1.7 4.8C3.8 14.8 5.2 16 7 16h1v4a1 1 0 0 0 2 0v-4h2v4a1 1 0 0 0 2 0v-4h1c1.8 0 3.2-1.2 3.5-3.4 1.7-.9 2.5-3 1.7-4.8-.7-1.6-2.4-2.5-4-2.1C15.5 3.5 13.8 2 12 2z"/>
+                        </svg>
                       </span>
                     )}
-                    <span className="hidden sm:inline truncate max-w-24">{displayName}</span>
                   </Link>
-                  <SignOutButton />
                 </>
               ) : (
                 <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">

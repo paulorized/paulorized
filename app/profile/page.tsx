@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createBrowserSupabaseClient } from '@/lib/supabase';
 
 const US_STATES = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
@@ -265,6 +266,18 @@ export default function ProfilePage() {
         </div>
         <span className="ml-auto text-indigo-400 text-lg">→</span>
       </a>
+
+      {/* Sign out */}
+      <button
+        type="button"
+        onClick={async () => {
+          const supabase = createBrowserSupabaseClient();
+          await supabase.auth.signOut();
+          router.push('/login');
+          router.refresh();
+        }}
+        className="mt-4 w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
+        Sign out
+      </button>
     </main>
-  );
-}
+  )
