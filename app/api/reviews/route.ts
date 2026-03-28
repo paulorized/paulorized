@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase.server';
+import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      product_log_id, user_id, rating, would_buy_again, notes, effects, flavors,
+      product_log_id, rating, would_buy_again, notes, effects, flavors,
       burn_speed, canoeing, clogging,
       edible_dose_mg, edible_onset, edible_peak_duration, edible_total_duration,
       edible_effect_type, edible_feelings, edible_taste_rating, edible_dose_feedback,
@@ -38,6 +38,14 @@ export async function POST(request: NextRequest) {
     if (!product_log_id) {
       return NextResponse.json({ error: 'product_log_id is required.' }, { status: 400 });
     }
+
+    // Get authenticated user server-side (never trust client-supplied user_id)
+    let authedUserId: string | null = null;
+    try {
+      const auth = await createAuthServerClient();
+      const { data: { user } } = await auth.auth.getUser();
+      authedUserId = user?.id ?? null;
+    } catch {}
 
     const edibleFields = {
       edible_dose_mg: edible_dose_mg ?? null,
@@ -63,12 +71,12 @@ export async function POST(request: NextRequest) {
     if (existing?.id) {
       ({ error } = await supabase
         .from('reviews')
-        .update({ rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields, updated_at: new Date().toISOString() })
+        .update({ user_id: authedUserId, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields, updated_at: new Date().toISOString() })
         .eq('id', existing.id));
     } else {
       ({ error } = await supabase
         .from('reviews')
-        .insert({ product_log_id, user_id: user_id || null, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields }));
+        .insert({ product_log_id, user_id: authedUserId, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields }));
     }
 
     if (error) {
