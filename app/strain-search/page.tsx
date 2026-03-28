@@ -256,6 +256,6 @@ export default function StrainSearchPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

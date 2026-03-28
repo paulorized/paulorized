@@ -429,6 +429,6 @@ export default function DashboardPage() {
       )}
 
       <div className="pb-8" />
-    </main>
+    </div>
   );
 }
