@@ -14,6 +14,12 @@ const US_STATES = [
   'Wisconsin','Wyoming','Washington D.C.',
 ];
 
+const CA_PROVINCES = [
+  'Alberta','British Columbia','Manitoba','New Brunswick',
+  'Newfoundland and Labrador','Northwest Territories','Nova Scotia','Nunavut',
+  'Ontario','Prince Edward Island','Quebec','Saskatchewan','Yukon',
+];
+
 interface Profile {
   username: string;
   date_of_birth: string;
