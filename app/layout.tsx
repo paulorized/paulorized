@@ -64,11 +64,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     <Link href="/" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
                     <Link href="/history" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
                     <Link href="/dashboard" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
+                    <Link href="/wishlist" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
+                      <span className="text-purple-400 font-semibold">Wishlist</span>
+                    </Link>
                     <Link href="/strain-search" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
                       <span className="text-yellow-300 font-semibold">StrainAI</span>
-                    </Link>
-                    <Link href="/wishlist" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
-                      <span className="text-amber-400 font-semibold">&#x1F4D5;</span>
                     </Link>
                     <Link href="/profile" className="ml-1 flex shrink-0 items-center rounded-full transition hover:opacity-80">
                       {avatarUrl ? (

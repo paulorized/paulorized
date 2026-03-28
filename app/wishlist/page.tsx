@@ -167,13 +167,26 @@ export default function WishlistPage() {
 
       {/* Grid */}
       {!loading && items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {items.map(item => (
-            <div key={item.id} className={removing === item.id ? 'opacity-50 pointer-events-none' : ''}>
-              <StrainCard item={item} onRemove={handleRemove} />
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {items.map(item => (
+              <div key={item.id} className={removing === item.id ? 'opacity-50 pointer-events-none' : ''}>
+                <StrainCard item={item} onRemove={handleRemove} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-6">
+            <Link
+              href="/strain-search"
+              className="w-full flex items-center justify-center gap-2 rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-3 text-sm font-semibold text-purple-400 transition hover:bg-purple-500/20"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add More Strains
+            </Link>
+          </div>
+        </>
       )}
 
     </div>

@@ -287,11 +287,11 @@ function StrainSearchInner() {
           )}
 
           {/* Wishlist */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 flex gap-2">
             <button
               onClick={toggleWishlist}
               disabled={wishlistLoading}
-              className={`w-full rounded-xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2 ${
+              className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold transition disabled:opacity-50 flex items-center justify-center gap-2 ${
                 wishlisted
                   ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
                   : 'border-zinc-700 bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
@@ -302,6 +302,12 @@ function StrainSearchInner() {
               </svg>
               {wishlistLoading ? 'Saving...' : wishlisted ? 'Saved to Wishlist' : 'Add to Wishlist'}
             </button>
+            <Link
+              href="/wishlist"
+              className="rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-3 text-sm font-semibold text-purple-400 transition hover:bg-purple-500/20 whitespace-nowrap"
+            >
+              View Wishlist
+            </Link>
           </div>
 
         </div>
