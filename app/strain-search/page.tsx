@@ -49,8 +49,7 @@ export default function StrainSearchPage() {
   const [error, setError] = useState('');
   const [listening, setListening] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
