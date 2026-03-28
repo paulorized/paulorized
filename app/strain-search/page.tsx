@@ -29,16 +29,14 @@ const strainTypeBadge: Record<string, string> = {
 const RECENT_KEY = 'strain_search_recent';
 
 function getRecent(): string[] {
-  try {
-    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]');
-  } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]'); }
+  catch { return []; }
 }
 
 function saveRecent(query: string) {
   try {
     const existing = getRecent().filter(q => q.toLowerCase() !== query.toLowerCase());
-    const updated = [query, ...existing].slice(0, 8);
-    localStorage.setItem(RECENT_KEY, JSON.stringify(updated));
+    localStorage.setItem(RECENT_KEY, JSON.stringify([query, ...existing].slice(0, 8)));
   } catch {}
 }
 
@@ -47,14 +45,10 @@ export default function StrainSearchPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<StrainResult | null>(null);
   const [error, setError] = useState('');
-  const [listening, setListening] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
-  const recognitionRef = useRef<{ stop: () => void } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setRecent(getRecent());
-  }, []);
+  useEffect(() => { setRecent(getRecent()); }, []);
 
   const doSearch = async (q: string) => {
     const trimmed = q.trim();
@@ -87,41 +81,7 @@ export default function StrainSearchPage() {
     doSearch(query);
   };
 
-  const startVoice = () => {
-    const SpeechRecognition = (window as Window & { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition
-      ?? (window as Window & { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setError('Voice search is not supported in this browser. Try Chrome or Safari.');
-      return;
-    }
-
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => { setListening(false); setError('Voice recognition failed. Please try again.'); };
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = event.results[0][0].transcript;
-      setQuery(transcript);
-      doSearch(transcript);
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-  };
-
-  const thcDisplay = (min: number | null, max: number | null) => {
+  const thcRange = (min: number | null, max: number | null) => {
     if (min == null && max == null) return null;
     if (min != null && max != null) return `${min}–${max}%`;
     return `${min ?? max}%`;
@@ -131,7 +91,7 @@ export default function StrainSearchPage() {
     <main className="mx-auto max-w-lg px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-100">Strain Search</h1>
-        <p className="mt-1 text-sm text-zinc-500">Look up any cannabis strain — type it or say it out loud.</p>
+        <p className="mt-1 text-sm text-zinc-500">Look up any cannabis strain — type a name and search.</p>
       </div>
 
       {/* Search form */}
@@ -146,44 +106,18 @@ export default function StrainSearchPage() {
             className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 pr-10 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
           />
           {query && (
-            <button type="button" onClick={() => { setQuery(''); setResult(null); setError(''); inputRef.current?.focus(); }}
+            <button type="button"
+              onClick={() => { setQuery(''); setResult(null); setError(''); inputRef.current?.focus(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">
               ✕
             </button>
           )}
         </div>
-
-        {/* Voice button */}
-        <button
-          type="button"
-          onClick={startVoice}
-          className={`rounded-xl border px-3 py-3 text-lg transition ${
-            listening
-              ? 'animate-pulse border-rose-500/50 bg-rose-500/20 text-rose-400'
-              : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-emerald-500 hover:text-emerald-400'
-          }`}
-          title={listening ? 'Stop listening' : 'Search by voice'}
-        >
-          🎤
-        </button>
-
-        {/* Search button */}
-        <button
-          type="submit"
-          disabled={loading || !query.trim()}
-          className="rounded-xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading || !query.trim()}
+          className="rounded-xl bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 disabled:opacity-50">
           {loading ? '...' : 'Search'}
         </button>
       </form>
-
-      {/* Voice listening indicator */}
-      {listening && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3">
-          <span className="animate-pulse text-rose-400">●</span>
-          <span className="text-sm text-rose-300">Listening… say a strain name</span>
-        </div>
-      )}
 
       {/* Error */}
       {error && (
@@ -216,7 +150,6 @@ export default function StrainSearchPage() {
       {/* Result card */}
       {result && !result.not_found && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 divide-y divide-zinc-800">
-
           {/* Header */}
           <div className="px-6 py-5 flex items-start justify-between gap-3">
             <div>
@@ -238,16 +171,16 @@ export default function StrainSearchPage() {
           )}
 
           {/* Potency */}
-          {(thcDisplay(result.thc_min, result.thc_max) || thcDisplay(result.cbd_min, result.cbd_max)) && (
+          {(thcRange(result.thc_min, result.thc_max) || thcRange(result.cbd_min, result.cbd_max)) && (
             <div className="px-6 py-4 flex gap-3 flex-wrap">
-              {thcDisplay(result.thc_min, result.thc_max) && (
+              {thcRange(result.thc_min, result.thc_max) && (
                 <span className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-medium text-emerald-400">
-                  THC {thcDisplay(result.thc_min, result.thc_max)}
+                  THC {thcRange(result.thc_min, result.thc_max)}
                 </span>
               )}
-              {thcDisplay(result.cbd_min, result.cbd_max) && (
+              {thcRange(result.cbd_min, result.cbd_max) && (
                 <span className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-medium text-sky-400">
-                  CBD {thcDisplay(result.cbd_min, result.cbd_max)}
+                  CBD {thcRange(result.cbd_min, result.cbd_max)}
                 </span>
               )}
               <span className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-500">~ estimated avg</span>
