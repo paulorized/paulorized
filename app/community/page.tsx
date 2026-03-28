@@ -30,6 +30,8 @@ interface FeedItem {
   is_mine: boolean;
 }
 
+const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
+
 const strainColors: Record<string, string> = {
   indica:  'bg-purple-500/20 text-purple-300 border-purple-500/30',
   sativa:  'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
@@ -37,18 +39,30 @@ const strainColors: Record<string, string> = {
   unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
 };
 
-const BUBBLE_COLORS = [
-  'bg-emerald-600','bg-purple-600','bg-yellow-500','bg-sky-600',
-  'bg-rose-600','bg-orange-500','bg-teal-600','bg-indigo-600',
-];
+const BUBBLE_COLORS = ['bg-emerald-600','bg-purple-600','bg-yellow-500','bg-sky-600','bg-rose-600','bg-orange-500','bg-teal-600','bg-indigo-600'];
+
 function getBubbleColor(userId: string) {
+  if (!userId) return BUBBLE_COLORS[0];
   let hash = 0;
   for (let i = 0; i < userId.length; i++) hash = (hash * 31 + userId.charCodeAt(i)) & 0xffffffff;
   return BUBBLE_COLORS[Math.abs(hash) % BUBBLE_COLORS.length];
 }
 
+function timeAgo(dateStr: string) {
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return days + 'd ago';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+
 function Stars({ rating }: { rating: number | null }) {
-  if (!rating) return null;
+  if (!rating || rating < 1) return null;
   return (
     <div className="flex gap-0.5">
       {[1,2,3,4,5].map(i => (
@@ -63,38 +77,21 @@ function Stars({ rating }: { rating: number | null }) {
   );
 }
 
-function Avatar({ item }: { item: FeedItem }) {
-  const bubbleColor = getBubbleColor(item.user_id);
-  return (
-    <div className="relative shrink-0">
-      {item.avatar_url ? (
-        <img src={item.avatar_url} alt={item.username} referrerPolicy="no-referrer"
-          className="h-10 w-10 rounded-full object-cover border border-zinc-700" />
-      ) : (
-        <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${bubbleColor}`}>
-          {item.username.charAt(0).toUpperCase()}
-        </div>
-      )}
-      <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={item.tier.label}>
-        {item.tier.emoji}
-      </span>
-    </div>
-  );
-}
-
 function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted: boolean) => void }) {
   const [voting, setVoting] = useState(false);
-  const [localVoted, setLocalVoted] = useState(item.i_voted);
-  const [localCount, setLocalCount] = useState(item.helpful_count);
-  const canVote = !!item.notes?.trim() && !item.is_mine;
+  const [localVoted, setLocalVoted] = useState(!!item.i_voted);
+  const [localCount, setLocalCount] = useState(item.helpful_count ?? 0);
+  const canVote = !!(item.notes?.trim()) && !item.is_mine;
+  const tier = item.tier ?? DEFAULT_TIER;
+  const bubbleColor = getBubbleColor(item.user_id ?? '');
+  const strainType = (item.strain_type ?? 'unknown').toLowerCase();
 
   const handleVote = async () => {
     if (!canVote || voting) return;
     setVoting(true);
-    const method = localVoted ? 'DELETE' : 'POST';
     try {
       const res = await fetch('/api/review-helpful', {
-        method,
+        method: localVoted ? 'DELETE' : 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ review_id: item.id }),
@@ -102,44 +99,43 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
       const data = await res.json();
       if (res.ok) {
         setLocalVoted(!localVoted);
-        setLocalCount(data.helpful_count);
+        setLocalCount(data.helpful_count ?? localCount);
         onVote(item.id, !localVoted);
       }
-    } finally {
-      setVoting(false);
-    }
-  };
-
-  const timeAgo = (dateStr: string) => {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return mins + 'm ago';
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return hrs + 'h ago';
-    const days = Math.floor(hrs / 24);
-    if (days < 7) return days + 'd ago';
-    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch {}
+    setVoting(false);
   };
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
-        <Avatar item={item} />
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          {item.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.avatar_url} alt={item.username} referrerPolicy="no-referrer"
+              className="h-10 w-10 rounded-full object-cover border border-zinc-700" />
+          ) : (
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${bubbleColor}`}>
+              {(item.username ?? '?').charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={tier.label}>{tier.emoji}</span>
+        </div>
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm text-zinc-100">{item.username}</span>
-            <span className={`text-xs font-medium ${item.tier.color}`}>{item.tier.emoji} {item.tier.label}</span>
+            <span className="font-semibold text-sm text-zinc-100">{item.username ?? 'Anonymous'}</span>
+            <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
             <span className="text-xs text-zinc-600 ml-auto shrink-0">{timeAgo(item.created_at)}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-zinc-200">{item.strain_name || item.brand}</span>
-            {item.brand && item.strain_name && (
-              <span className="text-xs text-zinc-500">{item.brand}</span>
-            )}
-            {item.strain_type && (
-              <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${strainColors[item.strain_type] ?? strainColors.unknown}`}>
-                {item.strain_type}
+            <span className="text-sm font-semibold text-zinc-200">{item.strain_name || item.brand || 'Unknown'}</span>
+            {item.brand && item.strain_name && <span className="text-xs text-zinc-500">{item.brand}</span>}
+            {strainType && strainType !== 'unknown' && (
+              <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${strainColors[strainType] ?? strainColors.unknown}`}>
+                {strainType}
               </span>
             )}
             {item.product_type && (
@@ -153,10 +149,10 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
       </div>
 
       {/* Rating */}
-      {(item.rating || item.would_buy_again !== null) && (
+      {(item.rating != null || item.would_buy_again != null) && (
         <div className="px-4 pb-2 flex items-center gap-3">
           <Stars rating={item.rating} />
-          {item.would_buy_again !== null && (
+          {item.would_buy_again != null && (
             <span className={`text-xs font-medium ${item.would_buy_again ? 'text-emerald-400' : 'text-rose-400'}`}>
               {item.would_buy_again ? '✓ Would buy again' : '✗ Would not buy again'}
             </span>
@@ -172,12 +168,12 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
       )}
 
       {/* Tags */}
-      {(item.effects?.length > 0 || item.flavors?.length > 0) && (
+      {((item.effects?.length ?? 0) > 0 || (item.flavors?.length ?? 0) > 0) && (
         <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-          {item.effects?.slice(0,5).map(e => (
+          {(item.effects ?? []).slice(0,5).map(e => (
             <span key={e} className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-300">{e}</span>
           ))}
-          {item.flavors?.slice(0,3).map(f => (
+          {(item.flavors ?? []).slice(0,3).map(f => (
             <span key={f} className="rounded-full border border-amber-500/25 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-300">{f}</span>
           ))}
         </div>
@@ -188,11 +184,7 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
         <button
           onClick={handleVote}
           disabled={!canVote || voting}
-          title={
-            item.is_mine ? 'Your own review' :
-            !item.notes?.trim() ? 'Only reviews with notes can be marked helpful' :
-            localVoted ? 'Remove helpful vote' : 'Mark as helpful'
-          }
+          title={item.is_mine ? 'Your own review' : !item.notes?.trim() ? 'Only reviews with notes can be marked helpful' : localVoted ? 'Remove vote' : 'Mark as helpful'}
           className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition
             ${!canVote
               ? 'text-zinc-600 cursor-default'
@@ -207,7 +199,8 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
           </svg>
-          Helpful{localCount > 0 && <span className={`ml-0.5 ${localVoted ? 'text-emerald-400' : 'text-zinc-500'}`}>{localCount}</span>}
+          Helpful
+          {localCount > 0 && <span className={`ml-0.5 ${localVoted ? 'text-emerald-400' : 'text-zinc-500'}`}>{localCount}</span>}
         </button>
         {item.is_mine && <span className="text-xs text-zinc-600 italic">Your review</span>}
       </div>
@@ -232,8 +225,8 @@ export default function CommunityPage() {
 
   useEffect(() => {
     loadFeed()
-      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor); setLoading(false); })
-      .catch(err => { setError(err.message); setLoading(false); });
+      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); })
+      .catch(err => { setError(String(err?.message ?? err)); setLoading(false); });
   }, [loadFeed]);
 
   const handleLoadMore = async () => {
@@ -242,8 +235,9 @@ export default function CommunityPage() {
     try {
       const data = await loadFeed(nextCursor);
       setFeed(prev => [...prev, ...(data.feed ?? [])]);
-      setNextCursor(data.next_cursor);
-    } finally { setLoadingMore(false); }
+      setNextCursor(data.next_cursor ?? null);
+    } catch {}
+    setLoadingMore(false);
   };
 
   const handleVote = useCallback((id: string, voted: boolean) => {
@@ -279,7 +273,13 @@ export default function CommunityPage() {
         <div className="space-y-4">
           {[1,2,3].map(i => (
             <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3 animate-pulse">
-              <div className="flex gap-3"><div className="h-10 w-10 rounded-full bg-zinc-800" /><div className="space-y-2 flex-1"><div className="h-3 w-24 rounded bg-zinc-800" /><div className="h-3 w-40 rounded bg-zinc-800" /></div></div>
+              <div className="flex gap-3">
+                <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-3 w-24 rounded bg-zinc-800" />
+                  <div className="h-3 w-40 rounded bg-zinc-800" />
+                </div>
+              </div>
               <div className="h-3 w-full rounded bg-zinc-800" />
               <div className="h-3 w-4/5 rounded bg-zinc-800" />
             </div>
