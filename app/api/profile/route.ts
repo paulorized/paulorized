@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Preserve existing avatar_url — don't overwrite it when saving profile details
-    const { data: existing } = await supabase
+    const { data: currentProfile } = await supabase
       .from('profiles')
       .select('avatar_url')
       .eq('id', user.id)
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
         date_of_birth,
         state: state ?? null,
         sex: sex ?? null,
-        avatar_url: existing?.avatar_url ?? null,
+        avatar_url: currentProfile?.avatar_url ?? null,
         updated_at: new Date().toISOString(),
       });
 

@@ -1,4 +1,4 @@
-﻿import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
 import { QuickLog } from '@/components/quick-log';
@@ -22,4 +22,15 @@ export default async function HomePage() {
   if (!profile.username) redirect('/profile?setup=1');
 
   return (
-    <div classNa
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
+      <div className="relative">
+        <div className="absolute top-3 right-3 z-10">
+          <ThemeToggle />
+        </div>
+        <ScanForm />
+      </div>
+      <QuickLog />
+      <PageFooter />
+    </div>
+  );
+}
