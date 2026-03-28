@@ -202,8 +202,13 @@ export default function ProfilePage() {
             <label className="text-xs font-medium text-zinc-400">State</label>
             <select value={state} onChange={e => setState(e.target.value)}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none">
-              <option value="">Select your state…</option>
-              {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              <option value="">Select your region…</option>
+              <optgroup label="🇺🇸 United States">
+                {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </optgroup>
+              <optgroup label="🇨🇦 Canada">
+                {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+              </optgroup>
             </select>
           </div>
 
