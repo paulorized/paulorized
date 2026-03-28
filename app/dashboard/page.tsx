@@ -76,11 +76,11 @@ function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | '
   return (
     <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1 w-fit">
       <button type="button" onClick={() => onChange('me')}
-        className={ounded-lg px-4 py-1.5 text-sm font-medium transition }>
+        className={view === 'me' ? 'rounded-lg px-4 py-1.5 text-sm font-medium transition bg-emerald-400 text-zinc-950' : 'rounded-lg px-4 py-1.5 text-sm font-medium transition text-zinc-400 hover:text-zinc-200'}>
         Me
       </button>
       <button type="button" onClick={() => onChange('all')}
-        className={ounded-lg px-4 py-1.5 text-sm font-medium transition }>
+        className={view === 'all' ? 'rounded-lg px-4 py-1.5 text-sm font-medium transition bg-emerald-400 text-zinc-950' : 'rounded-lg px-4 py-1.5 text-sm font-medium transition text-zinc-400 hover:text-zinc-200'}>
         All Users
       </button>
     </div>
