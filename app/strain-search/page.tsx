@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -165,7 +165,7 @@ export default function StrainSearchPage() {
                 <p className="mt-0.5 text-xs text-zinc-600">Also known as: {result.also_known_as.join(', ')}</p>
               )}
             </div>
-            <span className={shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize }>
+            <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${strainTypeBadge[result.strain_type] ?? strainTypeBadge.unknown}`}>
               {result.strain_type}
             </span>
           </div>
@@ -218,31 +218,27 @@ export default function StrainSearchPage() {
           )}
 
           {logMatches.length > 0 && (
-            <div className="px-6 py-4 rounded-b-2xl bg-emerald-500/5">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-semibold uppercase tracking-widest text-emerald-400">✓ In your log</span>
-                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-400">{logMatches.length}</span>
+            <Link href="/history" className="block px-6 py-4 rounded-b-2xl bg-emerald-500/5 hover:bg-emerald-500/10 transition">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-400 text-sm">✓</span>
+                  <span className="text-sm font-medium text-emerald-300">Previously scanned</span>
+                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs text-emerald-400">
+                    {logMatches.length}x
+                  </span>
+                </div>
+                <span className="text-xs text-zinc-500 flex items-center gap-1">
+                  View in History <span className="text-emerald-400">→</span>
+                </span>
               </div>
-              <div className="space-y-2">
-                {logMatches.map(match => (
-                  <Link key={match.id} href="/history"
-                    className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-zinc-900 px-3 py-2.5 transition hover:border-emerald-500/40 hover:bg-zinc-800">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-zinc-200 truncate">{match.brand || match.strain_name}</p>
-                      <p className="text-xs text-zinc-500">
-                        {match.product_type && <span>{match.product_type}</span>}
-                        {match.thc_percent != null && <span> · {match.thc_percent}% THC</span>}
-                        {match.thc_mg != null && !match.thc_percent && <span> · {match.thc_mg}mg THC</span>}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className="text-xs text-zinc-600">{formatDate(match.created_at)}</span>
-                      <span className="text-emerald-400 text-sm">→</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+              {logMatches[0] && (
+                <p className="mt-1 text-xs text-zinc-600">
+                  Last scanned {formatDate(logMatches[0].created_at)}
+                  {logMatches[0].brand ? ` · ${logMatches[0].brand}` : ""}
+                  {logMatches[0].product_type ? ` · ${logMatches[0].product_type}` : ""}
+                </p>
+              )}
+            </Link>
           )}
         </div>
       )}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -22,6 +22,18 @@ type DashboardData = {
   thcDistribution: { range: string; count: number }[];
   scansOverTime: { month: string; count: number }[];
   topStrains: { name: string; count: number }[];
+};
+
+type CommunityData = {
+  totalScans: number;
+  isFallback: boolean;
+  avgThc: number | null;
+  strainTypeCounts: Record<string, number>;
+  topStrains: { name: string; count: number }[];
+  topBrands: { name: string; count: number }[];
+  topProductTypes: { name: string; count: number }[];
+  topEffects: { name: string; count: number }[];
+  topFlavors: { name: string; count: number }[];
 };
 
 const STRAIN_COLORS: Record<string, string> = {
@@ -60,18 +72,54 @@ function Empty({ msg }: { msg: string }) {
   );
 }
 
+function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | 'all') => void }) {
+  return (
+    <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1 w-fit">
+      <button type="button" onClick={() => onChange('me')}
+        className={ounded-lg px-4 py-1.5 text-sm font-medium transition }>
+        Me
+      </button>
+      <button type="button" onClick={() => onChange('all')}
+        className={ounded-lg px-4 py-1.5 text-sm font-medium transition }>
+        All Users
+      </button>
+    </div>
+  );
+}
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'me' | 'all'>('me');
+  const [myData, setMyData] = useState<DashboardData | null>(null);
+  const [communityData, setCommunityData] = useState<CommunityData | null>(null);
+  const [loadingMe, setLoadingMe] = useState(true);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [fetchedAll, setFetchedAll] = useState(false);
 
   useEffect(() => {
     fetch('/api/dashboard')
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(d => { setMyData(d); setLoadingMe(false); })
+      .catch(() => setLoadingMe(false));
   }, []);
 
-  if (loading) {
+  const handleViewChange = (v: 'me' | 'all') => {
+    setView(v);
+    if (v === 'all' && !fetchedAll) {
+      setLoadingAll(true);
+      fetch('/api/community')
+        .then(r => r.json())
+        .then(d => { setCommunityData(d); setLoadingAll(false); setFetchedAll(true); })
+        .catch(() => setLoadingAll(false));
+    }
+  };
+
+  const loading = view === 'me' ? loadingMe : loadingAll;
+
+  const monthLabel = (m: string) => {
+    const [y, mo] = m.split('-');
+    return new Date(Number(y), Number(mo) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+  };
+
+  if (loadingMe) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-8 space-y-6">
         <div className="animate-pulse space-y-4">
@@ -80,17 +128,16 @@ export default function DashboardPage() {
             {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-2xl bg-zinc-800" />)}
           </div>
           <div className="h-48 rounded-2xl bg-zinc-800" />
-          <div className="h-48 rounded-2xl bg-zinc-800" />
         </div>
       </main>
     );
   }
 
-  if (!data || data.totalScans === 0) {
+  if (!myData || myData.totalScans === 0) {
     return (
       <main className="mx-auto max-w-2xl px-4 py-16 text-center space-y-3">
         <p className="text-4xl">📊</p>
-        <h1 className="text-xl font-bold text-zinc-100">Your dashboard is empty</h1>
+        <h1 className="text-xl font-bold text-zinc-100">Your stats are empty</h1>
         <p className="text-sm text-zinc-500">Start scanning products to see your personal stats here.</p>
         <Link href="/" className="inline-block mt-4 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
           Scan something →
@@ -99,189 +146,286 @@ export default function DashboardPage() {
     );
   }
 
-  const strainPieData = Object.entries(data.strainTypeCounts)
+  const strainPieData = Object.entries(myData.strainTypeCounts)
     .filter(([, v]) => v > 0)
     .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }));
-
-  const productPieData = Object.entries(data.productTypeCounts)
+  const productPieData = Object.entries(myData.productTypeCounts)
     .filter(([, v]) => v > 0)
     .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }));
-
-  const monthLabel = (m: string) => {
-    const [y, mo] = m.split('-');
-    return new Date(Number(y), Number(mo) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
-  };
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100">My Dashboard</h1>
-        <p className="text-sm text-zinc-500 mt-1">A look at everything you&#39;ve logged</p>
+      {/* Header + Toggle */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Stats</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            {view === 'me' ? 'A look at everything you\u2019ve logged' : 'Trends across all CannaBaseAI users'}
+          </p>
+        </div>
+        <Toggle view={view} onChange={handleViewChange} />
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Total Scans" value={data.totalScans} />
-        <StatCard label="Reviews" value={data.totalReviews} />
-        <StatCard label="Avg THC" value={data.avgThc != null ? `${data.avgThc}%` : '—'} />
-        <StatCard label="Avg Rating" value={data.avgRating != null ? `${data.avgRating}/5` : '—'}
-          sub={data.wbaPct != null ? `${data.wbaPct}% would buy again` : undefined} />
-      </div>
-
-      {/* Scans over time */}
-      {data.scansOverTime.length > 1 && (
-        <Section title="Scans over time">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <ResponsiveContainer width="100%" height={180}>
-              <LineChart data={data.scansOverTime.map(d => ({ ...d, month: monthLabel(d.month) }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                <XAxis dataKey="month" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Scans" />
-              </LineChart>
-            </ResponsiveContainer>
+      {loading && (
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-2xl bg-zinc-800" />)}
           </div>
-        </Section>
+          <div className="h-48 rounded-2xl bg-zinc-800" />
+        </div>
       )}
 
-      {/* Strain type + Product type */}
-      <div className="grid grid-cols-2 gap-4">
-        <Section title="Strain types">
-          {strainPieData.length === 0 ? <Empty msg="No data yet" /> : (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={strainPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
+      {/* ===== ME VIEW ===== */}
+      {view === 'me' && !loading && (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard label="Total Scans" value={myData.totalScans} />
+            <StatCard label="Reviews" value={myData.totalReviews} />
+            <StatCard label="Avg THC" value={myData.avgThc != null ? myData.avgThc + '%' : '—'} />
+            <StatCard label="Avg Rating" value={myData.avgRating != null ? myData.avgRating + '/5' : '—'}
+              sub={myData.wbaPct != null ? myData.wbaPct + '% would buy again' : undefined} />
+          </div>
+
+          {myData.scansOverTime.length > 1 && (
+            <Section title="Scans over time">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={myData.scansOverTime.map(d => ({ ...d, month: monthLabel(d.month) }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                    <XAxis dataKey="month" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Scans" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Section title="Strain types">
+              {strainPieData.length === 0 ? <Empty msg="No data yet" /> : (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={strainPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
+                        {strainPieData.map((entry, i) => (
+                          <Cell key={i} fill={STRAIN_COLORS[entry.name.toLowerCase()] ?? COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={TT.contentStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-wrap justify-center gap-2 mt-2">
                     {strainPieData.map((entry, i) => (
-                      <Cell key={i} fill={STRAIN_COLORS[entry.name.toLowerCase()] ?? COLORS[i % COLORS.length]} />
+                      <span key={i} className="flex items-center gap-1 text-xs text-zinc-400">
+                        <span className="inline-block h-2 w-2 rounded-full" style={{ background: STRAIN_COLORS[entry.name.toLowerCase()] ?? COLORS[i % COLORS.length] }} />
+                        {entry.name} ({entry.value})
+                      </span>
                     ))}
-                  </Pie>
-                  <Tooltip contentStyle={TT.contentStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {strainPieData.map((entry, i) => (
-                  <span key={i} className="flex items-center gap-1 text-xs text-zinc-400">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: STRAIN_COLORS[entry.name.toLowerCase()] ?? COLORS[i % COLORS.length] }} />
-                    {entry.name} ({entry.value})
+                  </div>
+                </div>
+              )}
+            </Section>
+            <Section title="Product types">
+              {productPieData.length === 0 ? <Empty msg="No data yet" /> : (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <PieChart>
+                      <Pie data={productPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
+                        {productPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip contentStyle={TT.contentStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                    {productPieData.map((entry, i) => (
+                      <span key={i} className="flex items-center gap-1 text-xs text-zinc-400">
+                        <span className="inline-block h-2 w-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                        {entry.name} ({entry.value})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Section>
+          </div>
+
+          <Section title="THC % distribution">
+            {myData.thcDistribution.some(d => d.count > 0) ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={myData.thcDistribution} barSize={28}>
+                    <XAxis dataKey="range" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#10b981" radius={[6, 6, 0, 0]} name="Products" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : <Empty msg="Scan products with THC % to see distribution" />}
+          </Section>
+
+          {myData.topStrains.length > 0 && (
+            <Section title="Your top strains">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={Math.max(160, myData.topStrains.length * 36)}>
+                  <BarChart data={myData.topStrains} layout="vertical" barSize={18}>
+                    <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Times logged" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
+          {myData.topBrands.length > 0 && (
+            <Section title="Top brands">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={Math.max(160, myData.topBrands.length * 36)}>
+                  <BarChart data={myData.topBrands} layout="vertical" barSize={18}>
+                    <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Times scanned" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
+          {myData.topDispensaries.length > 0 && (
+            <Section title="Your dispensaries">
+              <div className="space-y-2">
+                {myData.topDispensaries.map((d, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3">
+                    <span className="text-sm font-medium text-zinc-100 flex-1">📍 {d.name}</span>
+                    <span className="text-xs text-zinc-500">{d.count} visit{d.count !== 1 ? 's' : ''}</span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {myData.topEffects.length > 0 && (
+            <Section title="Most common effects">
+              <div className="flex flex-wrap gap-2">
+                {myData.topEffects.map((e, i) => (
+                  <span key={i} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                    {e.name} <span className="text-emerald-600">×{e.count}</span>
                   </span>
                 ))}
               </div>
-            </div>
+            </Section>
           )}
-        </Section>
 
-        <Section title="Product types">
-          {productPieData.length === 0 ? <Empty msg="No data yet" /> : (
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-              <ResponsiveContainer width="100%" height={160}>
-                <PieChart>
-                  <Pie data={productPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value">
-                    {productPieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip contentStyle={TT.contentStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {productPieData.map((entry, i) => (
-                  <span key={i} className="flex items-center gap-1 text-xs text-zinc-400">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                    {entry.name} ({entry.value})
+          {myData.topFlavors.length > 0 && (
+            <Section title="Most common flavors">
+              <div className="flex flex-wrap gap-2">
+                {myData.topFlavors.map((f, i) => (
+                  <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+                    {f.name} <span className="text-amber-600">×{f.count}</span>
                   </span>
                 ))}
               </div>
+            </Section>
+          )}
+        </>
+      )}
+
+      {/* ===== ALL USERS VIEW ===== */}
+      {view === 'all' && !loading && communityData && (
+        <>
+          {communityData.isFallback && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+              Community data is still growing — showing your personal stats for now.
             </div>
           )}
-        </Section>
-      </div>
 
-      {/* THC Distribution */}
-      <Section title="THC % distribution">
-        {data.thcDistribution.some(d => d.count > 0) ? (
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={data.thcDistribution} barSize={28}>
-                <XAxis dataKey="range" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                <Bar dataKey="count" fill="#10b981" radius={[6, 6, 0, 0]} name="Products" />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatCard label="Total Scans" value={communityData.totalScans} />
+            <StatCard label="Avg THC" value={communityData.avgThc != null ? communityData.avgThc + '%' : '—'} />
+            <StatCard label="Strains tracked" value={communityData.topStrains.length + '+'} />
           </div>
-        ) : <Empty msg="Scan products with THC % to see distribution" />}
-      </Section>
 
-      {/* Top Strains */}
-      {data.topStrains.length > 0 && (
-        <Section title="Your top strains">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <ResponsiveContainer width="100%" height={Math.max(160, data.topStrains.length * 36)}>
-              <BarChart data={data.topStrains} layout="vertical" barSize={18}>
-                <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
-                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Times logged" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Section>
-      )}
-
-      {/* Top Brands */}
-      {data.topBrands.length > 0 && (
-        <Section title="Top brands">
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-            <ResponsiveContainer width="100%" height={Math.max(160, data.topBrands.length * 36)}>
-              <BarChart data={data.topBrands} layout="vertical" barSize={18}>
-                <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
-                <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Times scanned" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Section>
-      )}
-
-      {/* Top Dispensaries */}
-      {data.topDispensaries.length > 0 && (
-        <Section title="Your dispensaries">
-          <div className="space-y-2">
-            {data.topDispensaries.map((d, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3">
-                <span className="text-sm font-medium text-zinc-100 flex-1">📍 {d.name}</span>
-                <span className="text-xs text-zinc-500">{d.count} visit{d.count !== 1 ? 's' : ''}</span>
+          {Object.keys(communityData.strainTypeCounts).length > 0 && (
+            <Section title="Strain type breakdown">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
+                {Object.entries(communityData.strainTypeCounts).filter(([,v]) => v > 0).map(([name, count]) => {
+                  const total = Object.values(communityData.strainTypeCounts).reduce((a, b) => a + b, 0);
+                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                  return (
+                    <div key={name}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="capitalize text-zinc-300">{name}</span>
+                        <span className="text-zinc-500">{pct}%</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-zinc-800">
+                        <div className="h-2 rounded-full transition-all" style={{ width: pct + '%', background: STRAIN_COLORS[name] ?? '#52525b' }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </Section>
-      )}
+            </Section>
+          )}
 
-      {/* Effects */}
-      {data.topEffects.length > 0 && (
-        <Section title="Most common effects">
-          <div className="flex flex-wrap gap-2">
-            {data.topEffects.map((e, i) => (
-              <span key={i} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                {e.name} <span className="text-emerald-600">×{e.count}</span>
-              </span>
-            ))}
-          </div>
-        </Section>
-      )}
+          {communityData.topStrains.length > 0 && (
+            <Section title="Most scanned strains">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topStrains.length * 36)}>
+                  <BarChart data={communityData.topStrains} layout="vertical" barSize={18}>
+                    <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Scans" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
 
-      {/* Flavors */}
-      {data.topFlavors.length > 0 && (
-        <Section title="Most common flavors">
-          <div className="flex flex-wrap gap-2">
-            {data.topFlavors.map((f, i) => (
-              <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
-                {f.name} <span className="text-amber-600">×{f.count}</span>
-              </span>
-            ))}
-          </div>
-        </Section>
+          {communityData.topBrands.length > 0 && (
+            <Section title="Top brands">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topBrands.length * 36)}>
+                  <BarChart data={communityData.topBrands} layout="vertical" barSize={18}>
+                    <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Scans" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
+          {communityData.topEffects.length > 0 && (
+            <Section title="Most common effects">
+              <div className="flex flex-wrap gap-2">
+                {communityData.topEffects.map((e, i) => (
+                  <span key={i} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                    {e.name} <span className="text-emerald-600">×{e.count}</span>
+                  </span>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {communityData.topFlavors.length > 0 && (
+            <Section title="Most common flavors">
+              <div className="flex flex-wrap gap-2">
+                {communityData.topFlavors.map((f, i) => (
+                  <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+                    {f.name} <span className="text-amber-600">×{f.count}</span>
+                  </span>
+                ))}
+              </div>
+            </Section>
+          )}
+        </>
       )}
 
       <div className="pb-8" />

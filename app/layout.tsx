@@ -50,16 +50,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     Scan
                   </Link>
                   <Link href="/history" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    My Log
+                    History
                   </Link>
                   <Link href="/dashboard" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    My Stats
+                    Stats
                   </Link>
-                  <Link href="/community" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    Community
-                  </Link>
-                  <Link href="/strain-search" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    Strains
+                  <Link href="/strain-search" className="rounded-lg px-3 py-1.5 text-sm transition hover:bg-zinc-800">
+                    <span className="text-yellow-300 font-semibold">StrainAI</span>
                   </Link>
                   <Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
                     {avatarUrl ? (
