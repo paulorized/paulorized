@@ -32,7 +32,7 @@ const strainTypeBadge: Record<string, string> = {
 function thcDisplay(log: ProductLog): string {
   if (log.thc_percent != null) return `${log.thc_percent}% THC`;
   if (log.thc_mg != null) {
-    const perPiece = log.mg_per_piece != null ? ` · ${log.mg_per_piece}mg/pc` : '';
+    const perPiece = log.mg_per_piece != null ? ` Â· ${log.mg_per_piece}mg/pc` : '';
     return `${log.thc_mg}mg THC${perPiece}`;
   }
   return null as unknown as string;
@@ -97,7 +97,7 @@ export function HistoryRow({ log }: { log: ProductLog }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-zinc-100 truncate">{log.brand || '—'}</span>
+              <span className="font-semibold text-zinc-100 truncate">{log.brand || 'â€”'}</span>
               {log.strain_type && (
                 <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${badgeClass}`}>
                   {log.strain_type}
@@ -106,9 +106,9 @@ export function HistoryRow({ log }: { log: ProductLog }) {
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
-              {log.weight && <><span className="text-zinc-600">·</span><span>{log.weight}</span></>}
+              {log.weight && <><span className="text-zinc-600">Â·</span><span>{log.weight}</span></>}
               {log.strain_name && (
-                <><span className="text-zinc-600">·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
+                <><span className="text-zinc-600">Â·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
               )}
             </div>
             {(thc || cbd) && (
@@ -125,7 +125,7 @@ export function HistoryRow({ log }: { log: ProductLog }) {
                 onClick={(e) => e.stopPropagation()}
                 className="mt-2 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-emerald-400 transition"
               >
-                📍 {log.dispensary_name}
+                ðŸ“ {log.dispensary_name}
               </a>
             )}
           </div>
@@ -139,13 +139,9 @@ export function HistoryRow({ log }: { log: ProductLog }) {
               type="button"
               onClick={handleDuplicate}
               disabled={duplicating || duplicated}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
-                duplicated
-                  ? 'bg-emerald-500/20 text-emerald-400'
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
-              }`}
+              className={duplicated ? 'rounded-lg px-3 py-1 text-xs font-semibold transition bg-emerald-500/20 text-emerald-400' : 'rounded-lg px-3 py-1 text-xs font-semibold transition bg-emerald-400 text-zinc-950 hover:bg-emerald-300 active:scale-95'}
             >
-              {duplicated ? '✓ Logged' : duplicating ? '...' : '⊕ Log again'}
+              {duplicated ? '&#10003; Logged' : duplicating ? '...' : '+ Log'}
             </button>
 
             {/* Delete with inline confirm */}
@@ -178,14 +174,14 @@ export function HistoryRow({ log }: { log: ProductLog }) {
               </div>
             )}
 
-            <span className="text-xs text-zinc-600">{expanded ? '▴' : '▾'}</span>
+            <span className="text-xs text-zinc-600">{expanded ? 'â–´' : 'â–¾'}</span>
           </div>
         </div>
       </button>
 
       {expanded && (
         <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5 space-y-6">
-          {/* NugShot — only for flower / concentrate / wax types */}
+          {/* NugShot â€” only for flower / concentrate / wax types */}
           {(() => {
             const t = (log.product_type ?? '').toLowerCase();
             const showNugShot =
