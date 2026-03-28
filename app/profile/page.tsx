@@ -43,7 +43,6 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState('');
   const [avatarError, setAvatarError] = useState('');
 
-  // Form fields
   const [username, setUsername] = useState('');
   const [dob, setDob] = useState('');
   const [state, setState] = useState('');
@@ -70,19 +69,12 @@ export default function ProfilePage() {
   async function handleAvatarChange(file: File) {
     setAvatarError('');
     setAvatarUploading(true);
-
     const form = new FormData();
     form.append('avatar', file);
-
     const res = await fetch('/api/profile/avatar', { method: 'POST', body: form });
     const data = await res.json();
     setAvatarUploading(false);
-
-    if (!res.ok) {
-      setAvatarError(data.error ?? 'Upload failed.');
-      return;
-    }
-
+    if (!res.ok) { setAvatarError(data.error ?? 'Upload failed.'); return; }
     setAvatarUrl(data.avatar_url);
     router.refresh();
   }
@@ -92,38 +84,21 @@ export default function ProfilePage() {
     setSaving(true);
     setError('');
     setSuccess('');
-
     const res = await fetch('/api/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, date_of_birth: dob, state, sex }),
     });
-
     const data = await res.json();
     setSaving(false);
-
-    if (res.status === 403) {
-      // Underage â€” redirect to blocked page
-      window.location.href = '/blocked';
-      return;
-    }
-
-    if (!res.ok) {
-      setError(data.error ?? 'Something went wrong.');
-      return;
-    }
-
+    if (res.status === 403) { window.location.href = '/blocked'; return; }
+    if (!res.ok) { setError(data.error ?? 'Something went wrong.'); return; }
     const isFirstSave = !profile;
     setSuccess('Profile saved!');
     setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
-    if (isFirstSave) {
-      router.push('/welcome');
-    } else {
-      router.refresh();
-    }
+    if (isFirstSave) { router.push('/welcome'); } else { router.refresh(); }
   }
 
-  // Max DOB â€” must be 21+
   const maxDob = (() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 21);
@@ -133,11 +108,10 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="text-zinc-500 text-sm">Loadingâ€¦</div>
+        <div className="text-zinc-500 text-sm">Loading…</div>
       </main>
     );
   }
-
   return (
     <main className="mx-auto max-w-lg px-4 py-10">
 
@@ -152,54 +126,33 @@ export default function ProfilePage() {
             />
           ) : (
             <div className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-600 bg-zinc-800 flex items-center justify-center">
-              <span className="text-3xl">ðŸ‘¤</span>
+              <span className="text-3xl">👤</span>
             </div>
           )}
           {avatarUploading && (
             <div className="absolute inset-0 rounded-full bg-zinc-950/70 flex items-center justify-center">
-              <span className="text-xs text-zinc-300">Uploadingâ€¦</span>
+              <span className="text-xs text-zinc-300">Uploading…</span>
             </div>
           )}
         </div>
 
-        {/* Upload / Camera buttons */}
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => uploadInputRef.current?.click()}
-            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
-          >
-            ðŸ–¼ï¸ Upload photo
+          <button type="button" onClick={() => uploadInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400">
+            🖼️ Upload photo
           </button>
-          <button
-            type="button"
-            onClick={() => cameraInputRef.current?.click()}
-            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
-          >
-            ðŸ“· Take photo
+          <button type="button" onClick={() => cameraInputRef.current?.click()}
+            className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400">
+            📷 Take photo
           </button>
         </div>
 
-        {/* Hidden file inputs */}
-        <input
-          ref={uploadInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          className="hidden"
-          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }}
-        />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="user"
-          className="hidden"
-          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }}
-        />
+        <input ref={uploadInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden"
+          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }} />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden"
+          onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }} />
 
-        {avatarError && (
-          <p className="text-xs text-rose-400">{avatarError}</p>
-        )}
+        {avatarError && <p className="text-xs text-rose-400">{avatarError}</p>}
 
         <div className="text-center">
           <h1 className="text-xl font-bold text-zinc-100">
@@ -219,52 +172,32 @@ export default function ProfilePage() {
 
           {/* Username */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">
-              Username <span className="text-rose-400">*</span>
-            </label>
+            <label className="text-xs font-medium text-zinc-400">Username <span className="text-rose-400">*</span></label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">@</span>
-              <input
-                type="text"
-                required
-                value={username}
+              <input type="text" required value={username}
                 onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                placeholder="your_username"
-                maxLength={20}
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-800 pl-8 pr-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none"
-              />
+                placeholder="your_username" maxLength={20}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-800 pl-8 pr-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none" />
             </div>
-            <p className="text-xs text-zinc-600">3-20 characters, letters, numbers, underscores only.</p>
+            <p className="text-xs text-zinc-600">3–20 characters, letters, numbers, underscores only.</p>
           </div>
 
           {/* Date of Birth */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">
-              Date of birth <span className="text-rose-400">*</span>
-            </label>
-            <input
-              type="date"
-              required
-              value={dob}
-              max={maxDob}
-              onChange={e => setDob(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
-            />
+            <label className="text-xs font-medium text-zinc-400">Date of birth <span className="text-rose-400">*</span></label>
+            <input type="date" required value={dob} max={maxDob} onChange={e => setDob(e.target.value)}
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none" />
             <p className="text-xs text-zinc-600">You must be 21 or older to use CannaBaseAI.</p>
           </div>
 
           {/* State */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-zinc-400">State</label>
-            <select
-              value={state}
-              onChange={e => setState(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
-            >
-              <option value="">Select your stateâ€¦</option>
-              {US_STATES.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+            <select value={state} onChange={e => setState(e.target.value)}
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none">
+              <option value="">Select your state…</option>
+              {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
@@ -277,16 +210,13 @@ export default function ProfilePage() {
                 { value: 'female', label: 'Female' },
                 { value: 'prefer_not_to_say', label: 'Prefer not to say' },
               ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
+                <button key={opt.value} type="button"
                   onClick={() => setSex(sex === opt.value ? '' : opt.value)}
                   className={`flex-1 rounded-xl border px-3 py-2.5 text-xs font-medium transition ${
                     sex === opt.value
                       ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
                       : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
-                  }`}
-                >
+                  }`}>
                   {opt.label}
                 </button>
               ))}
@@ -294,40 +224,35 @@ export default function ProfilePage() {
           </div>
 
           {error && (
-            <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">
-              {error}
-            </p>
+            <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>
           )}
-
           {success && (
-            <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">
-              {success}
-            </p>
+            <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50"
-          >
-            {saving ? 'Savingâ€¦' : 'Save profile'}
+          <button type="submit" disabled={saving}
+            className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save profile'}
           </button>
+
+          {/* Privacy blurb */}
+          <p className="text-center text-xs text-zinc-600 leading-relaxed">
+            🔐 Your data is private and never shared. Scan photos are discarded after AI processing and never stored.
+            Product photos you upload are stored securely in your account.{' '}
+            <span className="text-zinc-500">You can delete any entry at any time.</span>
+          </p>
         </form>
       </div>
 
       {/* Discord community card */}
-      <a
-        href="https://discord.gg/MTNvDM4MS"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10"
-      >
-        <span className="text-2xl">ðŸ’¬</span>
+      <a href="https://discord.gg/MTNvDM4MS" target="_blank" rel="noopener noreferrer"
+        className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10">
+        <span className="text-2xl">💬</span>
         <div>
           <p className="font-medium text-indigo-300 text-sm">Join our Discord community</p>
           <p className="text-xs text-zinc-500 mt-0.5">Share feedback, chat with other users, and get updates</p>
         </div>
-        <span className="ml-auto text-indigo-500 text-lg">â€º</span>
+        <span className="ml-auto text-indigo-400 text-lg">→</span>
       </a>
     </main>
   );

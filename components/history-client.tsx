@@ -18,6 +18,7 @@ type ProductLog = {
   weight: string;
   dispensary_name: string | null;
   created_at: string;
+  headshot_url: string | null;
 };
 
 export function HistoryClient({ logs }: { logs: ProductLog[] }) {

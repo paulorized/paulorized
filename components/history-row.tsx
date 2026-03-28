@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReviewForm } from './review-form';
+import { NugShot } from './nug-shot';
 
 type ProductLog = {
   id: string;
@@ -18,6 +19,7 @@ type ProductLog = {
   weight: string;
   dispensary_name: string | null;
   created_at: string;
+  headshot_url: string | null;
 };
 
 const strainTypeBadge: Record<string, string> = {
