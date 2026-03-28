@@ -52,44 +52,48 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <ThemeProvider>
           <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
-            <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
-              <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">
-                <span className="text-lg font-bold tracking-tight">
-                  <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
-                </span>
-              </Link>
-              <nav className="flex items-center gap-0.5">
+            <div className="mx-auto w-full max-w-2xl px-4">
+              {/* Row 1: Logo + Avatar */}
+              <div className="flex items-center justify-between py-2.5">
+                <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">
+                  <span className="text-lg font-bold tracking-tight">
+                    <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
+                  </span>
+                </Link>
                 {userId ? (
-                  <>
-                    <Link href="/" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
-                    <Link href="/history" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
-                    <Link href="/dashboard" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
-                    <Link href="/community" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
-                      <span className="text-teal-400 font-semibold">Community</span>
-                    </Link>
-                    <Link href="/wishlist" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
-                      <span className="text-purple-400 font-semibold">Wishlist</span>
-                    </Link>
-                    <Link href="/strain-search" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
-                      <span className="text-yellow-300 font-semibold">StrainAI</span>
-                    </Link>
-                    <Link href="/profile" className="ml-1 flex shrink-0 items-center rounded-full transition hover:opacity-80">
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
-                          className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
-                      ) : (
-                        <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
-                            <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
-                          </svg>
-                        </div>
-                      )}
-                    </Link>
-                  </>
+                  <Link href="/profile" className="flex shrink-0 items-center rounded-full transition hover:opacity-80">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
+                        className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
+                    ) : (
+                      <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
+                          <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
+                        </svg>
+                      </div>
+                    )}
+                  </Link>
                 ) : (
                   <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">Sign In</Link>
                 )}
-              </nav>
+              </div>
+              {/* Row 2: Nav links (only when logged in) */}
+              {userId && (
+                <nav className="flex items-center justify-between border-t border-zinc-800/40 pb-1.5 pt-1">
+                  <Link href="/" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
+                  <Link href="/history" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
+                  <Link href="/dashboard" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
+                  <Link href="/community" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-teal-400 font-semibold">Community</span>
+                  </Link>
+                  <Link href="/wishlist" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-purple-400 font-semibold">Wishlist</span>
+                  </Link>
+                  <Link href="/strain-search" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-yellow-300 font-semibold">StrainAI</span>
+                  </Link>
+                </nav>
+              )}
             </div>
           </header>
           <div className="w-full">{children}</div>
