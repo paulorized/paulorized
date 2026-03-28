@@ -28,8 +28,14 @@ export async function GET() {
       }
     }
 
-    const top5 = Array.from(counts.values())
-      .sort((a, b) => b.count - a.count)
+    const sorted = Array.from(counts.values())
+      .sort((a, b) => b.count - a.count);
+
+    // Prefer products scanned 2+ times; fall back to all if not enough repeats
+    const repeats = sorted.filter(v => v.count >= 2);
+    const pool = repeats.length >= 5 ? repeats : repeats.length > 0 ? repeats : sorted;
+
+    const top5 = pool
       .slice(0, 5)
       .map(({ count, product }) => ({ count, ...product }));
 
