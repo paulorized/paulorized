@@ -1,6 +1,7 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ReviewForm } from './review-form';
 
 type ProductLog = {
@@ -42,7 +43,10 @@ function cbdDisplay(log: ProductLog): string | null {
 }
 
 export function HistoryRow({ log }: { log: ProductLog }) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [duplicated, setDuplicated] = useState(false);
 
   const badgeClass = strainTypeBadge[log.strain_type ?? 'unknown'] ?? strainTypeBadge.unknown;
   const date = new Date(log.created_at).toLocaleDateString('en-US', {
@@ -52,16 +56,31 @@ export function HistoryRow({ log }: { log: ProductLog }) {
   const thc = thcDisplay(log);
   const cbd = cbdDisplay(log);
 
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDuplicating(true);
+    try {
+      const res = await fetch('/api/duplicate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_log_id: log.id }),
+      });
+      if (res.ok) {
+        setDuplicated(true);
+        setTimeout(() => { setDuplicated(false); router.refresh(); }, 1500);
+      }
+    } catch {}
+    finally { setDuplicating(false); }
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
-      {/* Card main area */}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
         className="w-full text-left px-4 py-4 transition hover:bg-zinc-800/50 active:bg-zinc-800"
       >
         <div className="flex items-start justify-between gap-3">
-          {/* Left: brand + product info */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-semibold text-zinc-100 truncate">{log.brand || '—'}</span>
@@ -71,7 +90,6 @@ export function HistoryRow({ log }: { log: ProductLog }) {
                 </span>
               )}
             </div>
-
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
               {log.weight && <span className="text-zinc-600">·</span>}
@@ -83,24 +101,12 @@ export function HistoryRow({ log }: { log: ProductLog }) {
                 </>
               )}
             </div>
-
-            {/* Potency row */}
             {(thc || cbd) && (
               <div className="mt-2 flex flex-wrap gap-2">
-                {thc && (
-                  <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-emerald-400">
-                    {thc}
-                  </span>
-                )}
-                {cbd && (
-                  <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-sky-400">
-                    {cbd}
-                  </span>
-                )}
+                {thc && <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-emerald-400">{thc}</span>}
+                {cbd && <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-sky-400">{cbd}</span>}
               </div>
             )}
-
-            {/* Dispensary */}
             {log.dispensary_name && (
               <a
                 href={`https://www.google.com/maps/search/${encodeURIComponent(log.dispensary_name + ' dispensary')}`}
@@ -113,16 +119,25 @@ export function HistoryRow({ log }: { log: ProductLog }) {
               </a>
             )}
           </div>
-
-          {/* Right: date + chevron */}
-          <div className="flex shrink-0 flex-col items-end gap-1 pt-0.5">
+          <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
             <span className="text-xs text-zinc-500">{date}</span>
+            <button
+              type="button"
+              onClick={handleDuplicate}
+              disabled={duplicating || duplicated}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                duplicated
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+              }`}
+            >
+              {duplicated ? '✓' : duplicating ? '...' : '⊕ Log again'}
+            </button>
             <span className="text-xs text-zinc-600">{expanded ? '▴' : '▾'}</span>
           </div>
         </div>
       </button>
 
-      {/* Expanded review panel */}
       {expanded && (
         <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>
