@@ -18,9 +18,8 @@ export async function GET(request: Request) {
 
     const db = createServerSupabaseClient();
 
-    // Fetch reviews joined with product_logs and profiles
-    // Only show reviews - but include ones without notes too
-    let query = db
+    // Step 1: fetch reviews with product_log join (FK exists)
+    let reviewQuery = db
       .from('reviews')
       .select(`
         id,
@@ -38,46 +37,48 @@ export async function GET(request: Request) {
           strain_name,
           strain_type,
           product_type,
-          thc_percent,
-          thc_mg
-        ),
-        profiles!inner (
-          username,
-          avatar_url
+          thc_percent
         )
       `)
       .order('created_at', { ascending: false })
       .limit(limit);
 
     if (cursor) {
-      query = query.lt('created_at', cursor);
+      reviewQuery = reviewQuery.lt('created_at', cursor);
     }
 
-    const { data: reviews, error } = await query;
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const { data: reviews, error } = await reviewQuery;
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
     const rows = reviews ?? [];
-
-    // Get helpful_count totals per author (for tier calculation)
-    // We need sum of helpful_count across all their reviews
-    const authorIds = [...new Set(rows.map(r => r.user_id))];
-    let authorPoints: Record<string, number> = {};
-    if (authorIds.length > 0) {
-      const { data: pointRows } = await db
-        .from('reviews')
-        .select('user_id, helpful_count')
-        .in('user_id', authorIds);
-      for (const row of pointRows ?? []) {
-        authorPoints[row.user_id] = (authorPoints[row.user_id] ?? 0) + (row.helpful_count ?? 0);
-      }
+    if (rows.length === 0) {
+      return NextResponse.json({ feed: [], next_cursor: null });
     }
 
-    // Get which reviews current user has voted on
+    // Step 2: fetch profiles separately by user_id list (no FK, manual join)
+    const userIds = [...new Set(rows.map(r => r.user_id))];
+    const { data: profileRows } = await db
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', userIds);
+    const profileMap: Record<string, { username: string; avatar_url: string | null }> = {};
+    for (const p of profileRows ?? []) {
+      profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url };
+    }
+
+    // Step 3: total helpful points per author for tier
+    const { data: pointRows } = await db
+      .from('reviews')
+      .select('user_id, helpful_count')
+      .in('user_id', userIds);
+    const authorPoints: Record<string, number> = {};
+    for (const row of pointRows ?? []) {
+      authorPoints[row.user_id] = (authorPoints[row.user_id] ?? 0) + (row.helpful_count ?? 0);
+    }
+
+    // Step 4: which reviews has current user voted on
     let myVotes = new Set<string>();
-    if (currentUserId && rows.length > 0) {
+    if (currentUserId) {
       const reviewIds = rows.map(r => r.id);
       const { data: votes } = await db
         .from('review_helpful')
@@ -89,15 +90,14 @@ export async function GET(request: Request) {
 
     const feed = rows.map(r => {
       const log = Array.isArray(r.product_logs) ? r.product_logs[0] : r.product_logs;
-      const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
+      const profile = profileMap[r.user_id];
       const totalPoints = authorPoints[r.user_id] ?? 0;
-      const tier = getTier(totalPoints);
       return {
         id: r.id,
-        user_id: r.user_id, // needed for vote dedup only, not shown in UI
+        user_id: r.user_id,
         username: profile?.username ?? 'Anonymous',
         avatar_url: profile?.avatar_url ?? null,
-        tier,
+        tier: getTier(totalPoints),
         brand: log?.brand ?? '',
         strain_name: log?.strain_name ?? '',
         strain_type: log?.strain_type ?? 'unknown',
