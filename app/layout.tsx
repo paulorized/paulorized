@@ -68,15 +68,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     )}
                     <span>{username ? `@${username}` : 'Profile'}</span>
                   </Link>
-                  <a
-                    href="https://discord.gg/MTNvDM4MS"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-lg px-3 py-1.5 text-sm text-indigo-400 transition hover:bg-zinc-800 hover:text-indigo-300"
-                    title="Join our Discord"
-                  >
-                    Discord
-                  </a>
                   <SignOutButton />
                 </>
               ) : (

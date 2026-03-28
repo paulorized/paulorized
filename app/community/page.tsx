@@ -12,6 +12,8 @@ type CommunityData = {
   topProductTypes: { name: string; count: number }[];
   topEffects: { name: string; count: number }[];
   topFlavors: { name: string; count: number }[];
+  isFallback: boolean;
+  totalCommunityScans: number;
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
