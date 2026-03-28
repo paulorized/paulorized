@@ -39,7 +39,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
           <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
             <Link href="/?reset=1" className="flex items-center gap-2">
-              <span className="text-lg font-bold tracking-tight text-emerald-400">CannaBaseAI</span>
+              <span className="text-lg font-bold tracking-tight">
+                <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
+              </span>
             </Link>
             <nav className="flex items-center gap-1">
               {userId ? (
