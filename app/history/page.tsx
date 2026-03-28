@@ -1,4 +1,4 @@
-﻿import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { HistoryClient } from '@/components/history-client';
 

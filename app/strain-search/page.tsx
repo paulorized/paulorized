@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -113,7 +113,7 @@ export default function StrainSearchPage() {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <main className="mx-auto max-w-lg px-4 py-8">
+    <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-100">Strain Search</h1>
         <p className="mt-1 text-sm text-zinc-500">Look up any cannabis strain by name.</p>

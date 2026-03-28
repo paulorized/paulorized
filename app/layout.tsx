@@ -38,42 +38,45 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="en">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
-      <body className="bg-zinc-950 text-zinc-100 antialiased">
+      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
-            <Link href="/?reset=1" className="flex items-center gap-2">
+            <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">
               <span className="text-lg font-bold tracking-tight">
                 <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
               </span>
             </Link>
-            <nav className="flex items-center gap-1">
+            <nav className="flex items-center gap-0.5 overflow-x-auto">
               {userId ? (
                 <>
-                  <Link href="/" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
+                  <Link href="/" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">
                     Scan
                   </Link>
-                  <Link href="/history" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
+                  <Link href="/history" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">
                     History
                   </Link>
-                  <Link href="/dashboard" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
+                  <Link href="/dashboard" className="rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">
                     Stats
                   </Link>
-                  <Link href="/strain-search" className="rounded-lg px-3 py-1.5 text-sm transition hover:bg-zinc-800">
+                  <Link href="/strain-search" className="rounded-lg px-2.5 py-1.5 text-sm transition hover:bg-zinc-800 whitespace-nowrap">
                     <span className="text-yellow-300 font-semibold">StrainAI</span>
                   </Link>
-                  <Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
+                  <Link href="/profile" className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 shrink-0">
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
                         alt={username ?? 'avatar'}
-                        className="h-6 w-6 rounded-full bg-zinc-800 object-cover"
+                        referrerPolicy="no-referrer"
+                        className="h-6 w-6 rounded-full bg-zinc-800 object-cover shrink-0"
                       />
                     ) : (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700 text-xs">??</span>
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-700 text-xs">
+                        &#128100;
+                      </span>
                     )}
-                    <span className="hidden sm:inline">{displayName}</span>
+                    <span className="hidden sm:inline truncate max-w-24">{displayName}</span>
                   </Link>
                   <SignOutButton />
                 </>
@@ -85,9 +88,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </nav>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-2xl px-4 py-6">
+        <div className="w-full">
           {children}
-        </main>
+        </div>
       </body>
     </html>
   );

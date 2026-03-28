@@ -1,4 +1,4 @@
-﻿import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
 import { QuickLog } from '@/components/quick-log';
@@ -20,10 +20,10 @@ export default async function HomePage() {
   if (!profile) redirect('/profile');
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
       <ScanForm />
       <QuickLog />
       <PageFooter />
-    </main>
+    </div>
   );
 }

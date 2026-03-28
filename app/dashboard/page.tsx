@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -121,7 +121,7 @@ export default function DashboardPage() {
 
   if (loadingMe) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-8 space-y-6">
+      <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-6">
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-48 rounded-xl bg-zinc-800" />
           <div className="grid grid-cols-2 gap-3">
@@ -129,20 +129,20 @@ export default function DashboardPage() {
           </div>
           <div className="h-48 rounded-2xl bg-zinc-800" />
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!myData || myData.totalScans === 0) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-16 text-center space-y-3">
+      <div className="mx-auto w-full max-w-2xl px-4 py-16 text-center space-y-3">
         <p className="text-4xl">📊</p>
         <h1 className="text-xl font-bold text-zinc-100">Your stats are empty</h1>
         <p className="text-sm text-zinc-500">Start scanning products to see your personal stats here.</p>
         <Link href="/" className="inline-block mt-4 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
           Scan something →
         </Link>
-      </main>
+      </div>
     );
   }
 
@@ -154,7 +154,7 @@ export default function DashboardPage() {
     .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }));
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-8 space-y-8">
+    <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-8">
       {/* Header + Toggle */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>

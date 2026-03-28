@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -119,7 +119,7 @@ export default function ProfilePage() {
     );
   }
   return (
-    <main className="mx-auto max-w-lg px-4 py-10">
+    <div className="mx-auto w-full max-w-2xl px-4 py-8">
 
       {/* Avatar section */}
       <div className="mb-8 flex flex-col items-center gap-4">
