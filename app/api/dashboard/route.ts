@@ -11,7 +11,7 @@ export async function GET() {
 
     const { data: logs } = await db
       .from('product_logs')
-      .select('id, brand, product_type, strain_type, strain_name, thc_percent, cbd_percent, dispensary_name, created_at')
+      .select('id, brand, product_type, strain_type, strain_name, thc_percent, cbd_percent, dispensary_name, created_at, weight')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
@@ -107,8 +107,20 @@ export async function GET() {
       .sort((a, b) => b[1] - a[1]).slice(0, 8)
       .map(([name, count]) => ({ name, count }));
 
+    // Parse and sum all weights (handles "3.5g", "1oz", "1g", "28g", etc.)
+    let totalGrams = 0;
+    for (const log of logs ?? []) {
+      const w = (log.weight ?? '').toString().toLowerCase().trim();
+      if (!w) continue;
+      const ozMatch = w.match(/([\d.]+)\s*oz/);
+      const gMatch = w.match(/([\d.]+)\s*g/);
+      if (ozMatch) totalGrams += parseFloat(ozMatch[1]) * 28.3495;
+      else if (gMatch) totalGrams += parseFloat(gMatch[1]);
+    }
+    totalGrams = Math.round(totalGrams * 10) / 10;
+
     return NextResponse.json({
-      totalScans, totalReviews,
+      totalScans, totalReviews, totalGrams,
       avgThc: avgThc != null ? Math.round(avgThc * 10) / 10 : null,
       avgRating: avgRating != null ? Math.round(avgRating * 10) / 10 : null,
       wbaPct,

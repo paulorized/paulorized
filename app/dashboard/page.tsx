@@ -1,7 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { WeightWidget } from '@/components/weight-widget';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -10,6 +11,7 @@ import {
 type DashboardData = {
   totalScans: number;
   totalReviews: number;
+  totalGrams: number;
   avgThc: number | null;
   avgRating: number | null;
   wbaPct: number | null;
@@ -185,6 +187,8 @@ export default function DashboardPage() {
             <StatCard label="Avg Rating" value={myData.avgRating != null ? myData.avgRating + '/5' : '—'}
               sub={myData.wbaPct != null ? myData.wbaPct + '% would buy again' : undefined} />
           </div>
+
+          <WeightWidget totalGrams={myData.totalGrams ?? 0} />
 
           {myData.scansOverTime.length > 1 && (
             <Section title="Scans over time">
