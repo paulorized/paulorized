@@ -432,10 +432,7 @@ export function ScanForm() {
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
-            <h2 className="font-semibold text-zinc-100">How would you like to log?</h2>
-          </div>
+          <h2 className="font-semibold text-zinc-100 mb-1">How would you like to log?</h2>
 
           {/* Upload photo */}
           <label className="cursor-pointer block">
@@ -444,10 +441,14 @@ export function ScanForm() {
                 const selected = Array.from(e.target.files || []);
                 if (selected.length > 0) { setFiles(selected); setMode('upload'); }
               }} />
-            <div className="flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99]">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-2xl">📁</span>
+            <div className="flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/40 hover:bg-zinc-800/60 active:scale-[0.99]">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </span>
               <div>
-                <p className="font-medium text-zinc-100 text-sm">Upload a photo</p>
+                <p className="font-semibold text-zinc-100 text-sm">Upload a photo</p>
                 <p className="text-xs text-zinc-500 mt-0.5">Choose from your gallery or files</p>
               </div>
               <span className="ml-auto text-zinc-600 text-lg">›</span>
@@ -456,10 +457,14 @@ export function ScanForm() {
 
           {/* Camera */}
           <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
-            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-2xl">📷</span>
+            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-yellow-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+            </span>
             <div>
-              <p className="font-medium text-zinc-100 text-sm">Scan with camera</p>
+              <p className="font-semibold text-zinc-100 text-sm">Scan with camera</p>
               <p className="text-xs text-zinc-500 mt-0.5">Point at the label to capture it live</p>
             </div>
             <span className="ml-auto text-zinc-600 text-lg">›</span>
@@ -467,10 +472,14 @@ export function ScanForm() {
 
           {/* Manual entry */}
           <button type="button" onClick={() => setMode('manual')}
-            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/50 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-2xl">✏️</span>
+            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-purple-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/15">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </span>
             <div>
-              <p className="font-medium text-zinc-100 text-sm">Enter manually</p>
+              <p className="font-semibold text-zinc-100 text-sm">Enter manually</p>
               <p className="text-xs text-zinc-500 mt-0.5">Type in product details yourself</p>
             </div>
             <span className="ml-auto text-zinc-600 text-lg">›</span>
