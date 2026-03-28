@@ -51,7 +51,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     My Log
                   </Link>
                   <Link href="/dashboard" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
-                    Stats
+                    My Stats
+                  </Link>
+                  <Link href="/community" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
+                    Community
                   </Link>
                   <Link href="/profile" className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
                     {avatarUrl ? (
