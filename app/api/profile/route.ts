@@ -77,6 +77,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'That username is already taken.' }, { status: 409 });
     }
 
+    // Preserve existing avatar_url — don't overwrite it when saving profile details
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
     // Upsert profile
     const { error: upsertError } = await supabase
       .from('profiles')
@@ -86,6 +93,7 @@ export async function POST(request: NextRequest) {
         date_of_birth,
         state: state ?? null,
         sex: sex ?? null,
+        avatar_url: existing?.avatar_url ?? null,
         updated_at: new Date().toISOString(),
       });
 

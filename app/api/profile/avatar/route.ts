@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
     const avatarUrl = `${publicUrl}?t=${Date.now()}`;
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
-      .eq('id', user.id);
+      .upsert({ id: user.id, avatar_url: avatarUrl, updated_at: new Date().toISOString() });
 
     if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
 
