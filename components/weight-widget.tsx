@@ -40,7 +40,7 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
           </p>
           <p className="text-xs text-zinc-500 mt-0.5">across all your logs</p>
         </div>
-        <span className="text-3xl">&#x1F33F;</span>
+        <span className="text-3xl">🌿</span>
       </div>
 
       {revealed && comparison ? (
@@ -52,7 +52,7 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
             disabled={loading}
             className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition disabled:opacity-50"
           >
-            {loading ? 'thinking...' : '&#x21BA; Try another'}
+            {loading ? 'thinking...' : '↺ Try another'}
           </button>
         </div>
       ) : (
@@ -62,7 +62,7 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
           disabled={loading}
           className="mt-4 w-full rounded-xl bg-emerald-500/20 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/30 active:scale-95 disabled:opacity-50"
         >
-          {loading ? '&#x1F914; thinking...' : '&#x2728; What does this weigh as much as?'}
+          {loading ? '🤔 thinking...' : '✨ What does this weigh as much as?'}
         </button>
       )}
     </div>
