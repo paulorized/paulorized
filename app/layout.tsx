@@ -1,4 +1,4 @@
-﻿import './globals.css';
+import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
@@ -33,11 +33,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     // Not logged in
   }
 
+  const displayName = username ? ('@' + username) : 'Profile';
+
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <body className="bg-zinc-950 text-zinc-100 antialiased">
         <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
-          <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+          <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
             <Link href="/?reset=1" className="flex items-center gap-2">
               <span className="text-lg font-bold tracking-tight">
                 <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
@@ -66,21 +71,23 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                         className="h-6 w-6 rounded-full bg-zinc-800 object-cover"
                       />
                     ) : (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700 text-xs">👤</span>
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-700 text-xs">??</span>
                     )}
-                    <span>{username ? `@${username}` : 'Profile'}</span>
+                    <span className="hidden sm:inline">{displayName}</span>
                   </Link>
                   <SignOutButton />
                 </>
               ) : (
-                <Link href="/auth" className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/20">
+                <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">
                   Sign in
                 </Link>
               )}
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+        <main className="mx-auto w-full max-w-2xl px-4 py-6">
+          {children}
+        </main>
       </body>
     </html>
   );
