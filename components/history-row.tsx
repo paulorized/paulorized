@@ -184,9 +184,31 @@ export function HistoryRow({ log }: { log: ProductLog }) {
       </button>
 
       {expanded && (
-        <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>
-          <ReviewForm productLogId={log.id} productType={log.product_type} />
+        <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5 space-y-6">
+          {/* NugShot — only for flower / concentrate / wax types */}
+          {(() => {
+            const t = (log.product_type ?? '').toLowerCase();
+            const showNugShot =
+              t.includes('flower') ||
+              t.includes('concentrate') ||
+              t.includes('wax') ||
+              t.includes('shatter') ||
+              t.includes('rosin') ||
+              t.includes('resin') ||
+              t.includes('hash') ||
+              t.includes('dab');
+            return showNugShot ? (
+              <div>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">NugShot</p>
+                <NugShot logId={log.id} initialUrl={log.headshot_url} />
+              </div>
+            ) : null;
+          })()}
+
+          <div>
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>
+            <ReviewForm productLogId={log.id} productType={log.product_type} />
+          </div>
         </div>
       )}
     </div>
