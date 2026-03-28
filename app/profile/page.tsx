@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -103,7 +103,7 @@ export default function ProfilePage() {
     setSaving(false);
 
     if (res.status === 403) {
-      // Underage — redirect to blocked page
+      // Underage â€” redirect to blocked page
       window.location.href = '/blocked';
       return;
     }
@@ -117,13 +117,13 @@ export default function ProfilePage() {
     setSuccess('Profile saved!');
     setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
     if (isFirstSave) {
-      router.push('/');
+      router.push('/welcome');
     } else {
       router.refresh();
     }
   }
 
-  // Max DOB — must be 21+
+  // Max DOB â€” must be 21+
   const maxDob = (() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 21);
@@ -133,7 +133,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="text-zinc-500 text-sm">Loading…</div>
+        <div className="text-zinc-500 text-sm">Loadingâ€¦</div>
       </main>
     );
   }
@@ -152,12 +152,12 @@ export default function ProfilePage() {
             />
           ) : (
             <div className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-600 bg-zinc-800 flex items-center justify-center">
-              <span className="text-3xl">👤</span>
+              <span className="text-3xl">ðŸ‘¤</span>
             </div>
           )}
           {avatarUploading && (
             <div className="absolute inset-0 rounded-full bg-zinc-950/70 flex items-center justify-center">
-              <span className="text-xs text-zinc-300">Uploading…</span>
+              <span className="text-xs text-zinc-300">Uploadingâ€¦</span>
             </div>
           )}
         </div>
@@ -169,14 +169,14 @@ export default function ProfilePage() {
             onClick={() => uploadInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
           >
-            🖼️ Upload photo
+            ðŸ–¼ï¸ Upload photo
           </button>
           <button
             type="button"
             onClick={() => cameraInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400"
           >
-            📷 Take photo
+            ðŸ“· Take photo
           </button>
         </div>
 
@@ -261,7 +261,7 @@ export default function ProfilePage() {
               onChange={e => setState(e.target.value)}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none"
             >
-              <option value="">Select your state…</option>
+              <option value="">Select your stateâ€¦</option>
               {US_STATES.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
@@ -310,7 +310,7 @@ export default function ProfilePage() {
             disabled={saving}
             className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50"
           >
-            {saving ? 'Saving…' : 'Save profile'}
+            {saving ? 'Savingâ€¦' : 'Save profile'}
           </button>
         </form>
       </div>
@@ -322,12 +322,12 @@ export default function ProfilePage() {
         rel="noopener noreferrer"
         className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10"
       >
-        <span className="text-2xl">💬</span>
+        <span className="text-2xl">ðŸ’¬</span>
         <div>
           <p className="font-medium text-indigo-300 text-sm">Join our Discord community</p>
           <p className="text-xs text-zinc-500 mt-0.5">Share feedback, chat with other users, and get updates</p>
         </div>
-        <span className="ml-auto text-indigo-500 text-lg">›</span>
+        <span className="ml-auto text-indigo-500 text-lg">â€º</span>
       </a>
     </main>
   );

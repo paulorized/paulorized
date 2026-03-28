@@ -469,31 +469,27 @@ export function ScanForm() {
               </div>
             </div>
           ) : fileCount > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-1">
               <p className="text-sm text-emerald-400">{fileCount} photo{fileCount > 1 ? 's' : ''} captured ✓</p>
-              <p className="text-xs text-zinc-500">💡 For best results, snap all visible sides of the package — especially the potency label.</p>
-              <div className="flex gap-3">
-                <button type="button" onClick={openCamera}
-                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-400 hover:bg-zinc-800 transition">
-                  + Add more
-                </button>
-                <button type="button" onClick={() => setFiles([])}
-                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-xs text-zinc-600 hover:text-zinc-400 transition">
-                  Clear
-                </button>
-              </div>
+              <p className="text-xs text-zinc-500">💡 Snap all visible sides — especially the potency label — for best results.</p>
             </div>
           ) : null}
 
           {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
 
           {fileCount > 0 && !cameraOpen && (
-            <form onSubmit={handleScan}>
-              <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
-                type="submit" disabled={isScanning}>
-                {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
-              </button>
-              {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
+            <form onSubmit={handleScan} className="space-y-2">
+              <div className="flex gap-2">
+                <button type="button" onClick={openCamera}
+                  className="flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 py-4 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-800 active:scale-[0.99]">
+                  📷 Add more photos
+                </button>
+                <button className="flex-[2] rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
+                  type="submit" disabled={isScanning}>
+                  {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+                </button>
+              </div>
+              {error && <p className="text-sm text-rose-400">{error}</p>}
             </form>
           )}
         </div>
