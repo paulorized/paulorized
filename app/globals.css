@@ -9,3 +9,28 @@
 body {
   @apply min-h-screen bg-zinc-950 text-zinc-50;
 }
+
+/* Light mode overrides — header stays dark always */
+html.light-mode {
+  color-scheme: light;
+}
+
+html.light-mode body {
+  @apply bg-zinc-100 text-zinc-900;
+}
+
+html.light-mode .light-card {
+  @apply bg-white border-zinc-200 text-zinc-900;
+}
+
+html.light-mode .light-surface {
+  @apply bg-zinc-50 text-zinc-800;
+}
+
+html.light-mode .light-muted {
+  @apply text-zinc-500;
+}
+
+html.light-mode .light-input {
+  @apply bg-white border-zinc-300 text-zinc-900;
+}

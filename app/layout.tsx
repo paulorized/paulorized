@@ -1,4 +1,4 @@
-import './globals.css';
+﻿import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
@@ -53,6 +53,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+        <ThemeProvider>
         <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-4 py-3">
             <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">

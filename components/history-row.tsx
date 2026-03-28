@@ -32,7 +32,7 @@ const strainTypeBadge: Record<string, string> = {
 function thcDisplay(log: ProductLog): string {
   if (log.thc_percent != null) return `${log.thc_percent}% THC`;
   if (log.thc_mg != null) {
-    const perPiece = log.mg_per_piece != null ? ` Â· ${log.mg_per_piece}mg/pc` : '';
+    const perPiece = log.mg_per_piece != null ? ` · ${log.mg_per_piece}mg/pc` : '';
     return `${log.thc_mg}mg THC${perPiece}`;
   }
   return null as unknown as string;
@@ -97,7 +97,7 @@ export function HistoryRow({ log }: { log: ProductLog }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-zinc-100 truncate">{log.brand || 'â€”'}</span>
+              <span className="font-semibold text-zinc-100 truncate">{log.brand || '—'}</span>
               {log.strain_type && (
                 <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${badgeClass}`}>
                   {log.strain_type}
@@ -106,9 +106,9 @@ export function HistoryRow({ log }: { log: ProductLog }) {
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
-              {log.weight && <><span className="text-zinc-600">Â·</span><span>{log.weight}</span></>}
+              {log.weight && <><span className="text-zinc-600">·</span><span>{log.weight}</span></>}
               {log.strain_name && (
-                <><span className="text-zinc-600">Â·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
+                <><span className="text-zinc-600">·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
               )}
             </div>
             {(thc || cbd) && (
@@ -174,14 +174,14 @@ export function HistoryRow({ log }: { log: ProductLog }) {
               </div>
             )}
 
-            <span className="text-xs text-zinc-600">{expanded ? 'â–´' : 'â–¾'}</span>
+            <span className="text-xs text-zinc-600">{expanded ? '▴' : '▾'}</span>
           </div>
         </div>
       </button>
 
       {expanded && (
         <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5 space-y-6">
-          {/* NugShot â€” only for flower / concentrate / wax types */}
+          {/* NugShot — only for flower / concentrate / wax types */}
           {(() => {
             const t = (log.product_type ?? '').toLowerCase();
             const showNugShot =
