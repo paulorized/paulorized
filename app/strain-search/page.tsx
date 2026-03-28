@@ -72,8 +72,6 @@ export default function StrainSearchPage() {
     setError('');
     setResult(null);
     setLogMatches([]);
-    setNearbyDispensaries([]);
-    setLocationSummary('');
     setLocationError('');
     try {
       const res = await fetch('/api/strain-search', {
