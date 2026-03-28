@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
+import { ReviewForm } from './review-form';
 
 const PRODUCT_TYPES = [
   'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
@@ -37,6 +38,9 @@ export function ScanForm() {
   const [error, setError] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [savedLogId, setSavedLogId] = useState<string | null>(null);
+  const [aiEffects, setAiEffects] = useState<string[]>([]);
+  const [aiFlavors, setAiFlavors] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>('idle');
   const [showJson, setShowJson] = useState(false);
 // Manual entry search state
@@ -172,7 +176,21 @@ export function ScanForm() {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || 'Save failed.');
+      setSavedLogId(payload.id ?? null);
       setStage('saved');
+      // Fire AI strain lookup in background for effects/flavors pre-fill
+      if (result.strain_name?.trim()) {
+        fetch('/api/strain-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: result.strain_name }),
+        }).then(r => r.json()).then(data => {
+          if (data.result && !data.result.not_found && (data.result.confidence ?? 0) >= 0.4) {
+            if (data.result.typical_effects?.length) setAiEffects(data.result.typical_effects);
+            if (data.result.typical_flavors?.length) setAiFlavors(data.result.typical_flavors);
+          }
+        }).catch(() => {});
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Save failed.');
     } finally {
@@ -188,6 +206,9 @@ export function ScanForm() {
     setDispensaryName('');
     setMode('choose');
     setCameraOpen(false);
+    setSavedLogId(null);
+    setAiEffects([]);
+    setAiFlavors([]);
     setManualBrand('');
     setManualStrain('');
     setLookupError('');
@@ -269,6 +290,24 @@ export function ScanForm() {
             </a>
           </div>
         </div>
+
+        {/* Inline review with AI pre-fill */}
+        {savedLogId && (
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-zinc-100">Leave a review</p>
+              {(aiEffects.length > 0 || aiFlavors.length > 0) && (
+                <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs text-purple-300">✦ AI pre-filled</span>
+              )}
+            </div>
+            <ReviewForm
+              productLogId={savedLogId}
+              productType={result.product_type}
+              suggestedEffects={aiEffects}
+              suggestedFlavors={aiFlavors}
+            />
+          </div>
+        )}
       </div>
     );
   }

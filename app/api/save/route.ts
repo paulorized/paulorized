@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { type ExtractedProduct } from '@/types/product';
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Use service role client to do the actual inserts
     const supabase = createServerSupabaseClient();
 
-    const { error: dbError } = await supabase.from('product_logs').insert({
+    const { data: newLog, error: dbError } = await supabase.from('product_logs').insert({
       user_id: userId,
       brand: extractedData.brand ?? '',
       product_type: extractedData.product_type ?? '',
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       extraction_confidence: extractedData.confidence ?? null,
       extracted_data_json: extractedData,
       dispensary_name: dispensaryName?.trim() || null,
-    });
+    }).select('id').single();
 
     if (dbError) {
       return NextResponse.json({ error: `Database error: ${dbError.message}` }, { status: 500 });
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, id: newLog?.id ?? null });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unexpected error.';
     return NextResponse.json({ error: message }, { status: 500 });

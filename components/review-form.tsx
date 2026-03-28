@@ -84,6 +84,13 @@ export function ReviewForm({ productLogId, productType, userId }: Props) {
             edible_taste_rating: data.review.edible_taste_rating ?? null,
             edible_dose_feedback: data.review.edible_dose_feedback ?? null,
           });
+        } else if (suggestedEffects?.length || suggestedFlavors?.length) {
+          // Pre-populate with AI suggestions for new reviews only
+          setReview(prev => ({
+            ...prev,
+            effects: suggestedEffects?.filter(e => EFFECTS.includes(e)) ?? [],
+            flavors: suggestedFlavors?.filter(f => FLAVORS.includes(f)) ?? [],
+          }));
         }
       } catch { } finally { setIsLoading(false); }
     };
