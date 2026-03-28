@@ -45,9 +45,9 @@ const emptyReview: Review = {
   edible_dose_feedback: null,
 };
 
-type Props = { productLogId: string; productType?: string; userId?: string; };
+type Props = { productLogId: string; productType?: string; userId?: string; suggestedEffects?: string[]; suggestedFlavors?: string[]; };
 
-export function ReviewForm({ productLogId, productType, userId }: Props) {
+export function ReviewForm({ productLogId, productType, userId, suggestedEffects, suggestedFlavors }: Props) {
   const [review, setReview] = useState<Review>(emptyReview);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -95,7 +95,7 @@ export function ReviewForm({ productLogId, productType, userId }: Props) {
       } catch { } finally { setIsLoading(false); }
     };
     load();
-  }, [productLogId]);
+  }, [productLogId, suggestedEffects, suggestedFlavors]);
 
   const toggleTag = (list: 'effects' | 'flavors' | 'edible_feelings', tag: string) => {
     setReview((prev) => ({ ...prev, [list]: prev[list].includes(tag) ? prev[list].filter((t) => t !== tag) : [...prev[list], tag] }));
@@ -305,4 +305,4 @@ export function ReviewForm({ productLogId, productType, userId }: Props) {
       </div>
     </div>
   );
-}
+}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
