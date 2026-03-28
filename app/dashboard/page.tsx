@@ -135,15 +135,12 @@ export default function DashboardPage() {
     );
   }
 
-  if (!myData || myData.totalScans === 0) {
+  if (!myData) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-16 text-center space-y-3">
         <p className="text-4xl">📊</p>
-        <h1 className="text-xl font-bold text-zinc-100">Your stats are empty</h1>
-        <p className="text-sm text-zinc-500">Start scanning products to see your personal stats here.</p>
-        <Link href="/" className="inline-block mt-4 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
-          Scan something →
-        </Link>
+        <h1 className="text-xl font-bold text-zinc-100">Could not load stats</h1>
+        <p className="text-sm text-zinc-500">Try refreshing the page.</p>
       </div>
     );
   }
@@ -273,12 +270,12 @@ export default function DashboardPage() {
           {myData.topStrains.length > 0 && (
             <Section title="Your top strains">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <ResponsiveContainer width="100%" height={Math.max(160, myData.topStrains.length * 36)}>
-                  <BarChart data={myData.topStrains} layout="vertical" barSize={18}>
+                <ResponsiveContainer width="100%" height={Math.max(160, myData.topStrains.length * 32)}>
+                  <BarChart data={myData.topStrains} layout="vertical" barSize={16}>
                     <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                     <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Times logged" />
+                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Scans" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -288,27 +285,14 @@ export default function DashboardPage() {
           {myData.topBrands.length > 0 && (
             <Section title="Top brands">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <ResponsiveContainer width="100%" height={Math.max(160, myData.topBrands.length * 36)}>
-                  <BarChart data={myData.topBrands} layout="vertical" barSize={18}>
+                <ResponsiveContainer width="100%" height={Math.max(160, myData.topBrands.length * 32)}>
+                  <BarChart data={myData.topBrands} layout="vertical" barSize={16}>
                     <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                     <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                    <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Times scanned" />
+                    <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Scans" />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </Section>
-          )}
-
-          {myData.topDispensaries.length > 0 && (
-            <Section title="Your dispensaries">
-              <div className="space-y-2">
-                {myData.topDispensaries.map((d, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3">
-                    <span className="text-sm font-medium text-zinc-100 flex-1">📍 {d.name}</span>
-                    <span className="text-xs text-zinc-500">{d.count} visit{d.count !== 1 ? 's' : ''}</span>
-                  </div>
-                ))}
               </div>
             </Section>
           )}
@@ -317,8 +301,8 @@ export default function DashboardPage() {
             <Section title="Most common effects">
               <div className="flex flex-wrap gap-2">
                 {myData.topEffects.map((e, i) => (
-                  <span key={i} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                    {e.name} <span className="text-emerald-600">×{e.count}</span>
+                  <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
+                    {e.name} <span className="text-emerald-600">{e.count}x</span>
                   </span>
                 ))}
               </div>
@@ -329,12 +313,23 @@ export default function DashboardPage() {
             <Section title="Most common flavors">
               <div className="flex flex-wrap gap-2">
                 {myData.topFlavors.map((f, i) => (
-                  <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
-                    {f.name} <span className="text-amber-600">×{f.count}</span>
+                  <span key={i} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+                    {f.name} <span className="text-amber-600">{f.count}x</span>
                   </span>
                 ))}
               </div>
             </Section>
+          )}
+
+          {myData.totalScans === 0 && (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 py-12 text-center space-y-3">
+              <p className="text-4xl">📊</p>
+              <p className="text-sm font-medium text-zinc-300">No personal stats yet</p>
+              <p className="text-sm text-zinc-500">Start scanning products to see your data here.</p>
+              <Link href="/" className="inline-block mt-2 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
+                Scan something →
+              </Link>
+            </div>
           )}
         </>
       )}
@@ -342,47 +337,47 @@ export default function DashboardPage() {
       {/* ===== ALL USERS VIEW ===== */}
       {view === 'all' && !loading && communityData && (
         <>
-          {communityData.isFallback && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
-              Community data is still growing — showing your personal stats for now.
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard label="Total Scans" value={communityData.totalScans} />
+            <StatCard label="Total Scans" value={communityData.totalScans} sub="across all users" />
             <StatCard label="Avg THC" value={communityData.avgThc != null ? communityData.avgThc + '%' : '—'} />
-            <StatCard label="Strains tracked" value={communityData.topStrains.length + '+'} />
+            <StatCard label="Users" value={(communityData as {totalUsers?: number}).totalUsers ?? '—'} sub="have scanned" />
           </div>
 
-          {Object.keys(communityData.strainTypeCounts).length > 0 && (
-            <Section title="Strain type breakdown">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-2">
-                {Object.entries(communityData.strainTypeCounts).filter(([,v]) => v > 0).map(([name, count]) => {
-                  const total = Object.values(communityData.strainTypeCounts).reduce((a, b) => a + b, 0);
-                  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-                  return (
-                    <div key={name}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="capitalize text-zinc-300">{name}</span>
-                        <span className="text-zinc-500">{pct}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-zinc-800">
-                        <div className="h-2 rounded-full transition-all" style={{ width: pct + '%', background: STRAIN_COLORS[name] ?? '#52525b' }} />
-                      </div>
-                    </div>
-                  );
-                })}
+          <Section title="Strain type breakdown">
+            {Object.values(communityData.strainTypeCounts).some(v => v > 0) ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie
+                      data={Object.entries(communityData.strainTypeCounts).filter(([,v]) => v > 0).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }))}
+                      cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={3} dataKey="value"
+                    >
+                      {Object.entries(communityData.strainTypeCounts).filter(([,v]) => v > 0).map(([name], i) => (
+                        <Cell key={i} fill={STRAIN_COLORS[name] ?? COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={TT.contentStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                  {Object.entries(communityData.strainTypeCounts).filter(([,v]) => v > 0).map(([name, val], i) => (
+                    <span key={i} className="flex items-center gap-1 text-xs text-zinc-400">
+                      <span className="inline-block h-2 w-2 rounded-full" style={{ background: STRAIN_COLORS[name] ?? COLORS[i % COLORS.length] }} />
+                      {name.charAt(0).toUpperCase() + name.slice(1)} ({val})
+                    </span>
+                  ))}
+                </div>
               </div>
-            </Section>
-          )}
+            ) : <Empty msg="No data yet" />}
+          </Section>
 
           {communityData.topStrains.length > 0 && (
-            <Section title="Most scanned strains">
+            <Section title="Most popular strains">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topStrains.length * 36)}>
-                  <BarChart data={communityData.topStrains} layout="vertical" barSize={18}>
+                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topStrains.length * 32)}>
+                  <BarChart data={communityData.topStrains} layout="vertical" barSize={16}>
                     <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                     <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                     <Bar dataKey="count" fill="#8b5cf6" radius={[0, 6, 6, 0]} name="Scans" />
                   </BarChart>
@@ -392,12 +387,12 @@ export default function DashboardPage() {
           )}
 
           {communityData.topBrands.length > 0 && (
-            <Section title="Top brands">
+            <Section title="Most scanned brands">
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topBrands.length * 36)}>
-                  <BarChart data={communityData.topBrands} layout="vertical" barSize={18}>
+                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topBrands.length * 32)}>
+                  <BarChart data={communityData.topBrands} layout="vertical" barSize={16}>
                     <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#d4d4d8', fontSize: 11 }} axisLine={false} tickLine={false} width={120} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                     <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
                     <Bar dataKey="count" fill="#f59e0b" radius={[0, 6, 6, 0]} name="Scans" />
                   </BarChart>
@@ -406,12 +401,27 @@ export default function DashboardPage() {
             </Section>
           )}
 
+          {communityData.topProductTypes.length > 0 && (
+            <Section title="Most popular product types">
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <ResponsiveContainer width="100%" height={Math.max(160, communityData.topProductTypes.length * 32)}>
+                  <BarChart data={communityData.topProductTypes} layout="vertical" barSize={16}>
+                    <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
+                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
+                    <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} name="Scans" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Section>
+          )}
+
           {communityData.topEffects.length > 0 && (
-            <Section title="Most common effects">
+            <Section title="Most reported effects">
               <div className="flex flex-wrap gap-2">
                 {communityData.topEffects.map((e, i) => (
-                  <span key={i} className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                    {e.name} <span className="text-emerald-600">×{e.count}</span>
+                  <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
+                    {e.name} <span className="text-emerald-600">{e.count}x</span>
                   </span>
                 ))}
               </div>
@@ -419,11 +429,11 @@ export default function DashboardPage() {
           )}
 
           {communityData.topFlavors.length > 0 && (
-            <Section title="Most common flavors">
+            <Section title="Most reported flavors">
               <div className="flex flex-wrap gap-2">
                 {communityData.topFlavors.map((f, i) => (
-                  <span key={i} className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
-                    {f.name} <span className="text-amber-600">×{f.count}</span>
+                  <span key={i} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
+                    {f.name} <span className="text-amber-600">{f.count}x</span>
                   </span>
                 ))}
               </div>
@@ -432,7 +442,10 @@ export default function DashboardPage() {
         </>
       )}
 
-      <div className="pb-8" />
+      {view === 'all' && !loading && !communityData && (
+        <Empty msg="Could not load community data." />
+      )}
+
     </div>
   );
 }
