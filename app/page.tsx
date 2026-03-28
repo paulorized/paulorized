@@ -2,6 +2,7 @@
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
 import { QuickLog } from '@/components/quick-log';
+import { PageFooter } from '@/components/page-footer';
 
 export default async function HomePage() {
   const supabase = await createAuthServerClient();
@@ -22,6 +23,7 @@ export default async function HomePage() {
     <main className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
       <ScanForm />
       <QuickLog />
+      <PageFooter />
     </main>
   );
 }
