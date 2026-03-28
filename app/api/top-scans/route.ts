@@ -28,14 +28,21 @@ export async function GET() {
       }
     }
 
-    const sorted = Array.from(counts.values())
-      .sort((a, b) => b.count - a.count);
+    // Sort by count desc. If the most recent scan is a brand new item (count=1),
+    // exclude it so it doesn't immediately hijack the list — unless everything is count=1.
+    const sorted = Array.from(counts.values()).sort((a, b) => b.count - a.count);
+    const mostRecentKey = data && data[0]
+      ? `${(data[0].brand ?? '').toLowerCase()}__${(data[0].strain_name ?? '').toLowerCase()}__${(data[0].product_type ?? '').toLowerCase()}`
+      : null;
+    const allSingleScans = sorted.every(v => v.count === 1);
+    const filtered = (!allSingleScans && mostRecentKey && counts.get(mostRecentKey)?.count === 1)
+      ? sorted.filter(v => {
+          const k = `${(v.product.brand ?? '').toLowerCase()}__${(v.product.strain_name ?? '').toLowerCase()}__${(v.product.product_type ?? '').toLowerCase()}`;
+          return k !== mostRecentKey;
+        })
+      : sorted;
 
-    // Prefer products scanned 2+ times; fall back to all if not enough repeats
-    const repeats = sorted.filter(v => v.count >= 2);
-    const pool = repeats.length >= 5 ? repeats : repeats.length > 0 ? repeats : sorted;
-
-    const top5 = pool
+    const top5 = filtered
       .slice(0, 5)
       .map(({ count, product }) => ({ count, ...product }));
 
