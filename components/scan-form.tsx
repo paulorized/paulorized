@@ -49,6 +49,8 @@ export function ScanForm() {
   const [isLooking, setIsLooking] = useState(false);
   const [lookupError, setLookupError] = useState('');
   const [lookupDone, setLookupDone] = useState(false);
+  const [strainMatches, setStrainMatches] = useState<Array<{ id: string; brand: string; strain_name: string; strain_type: string; product_type: string; thc_percent: number | null }>>([]);
+  const [showPicker, setShowPicker] = useState(false);
 
   // Reset form when ?reset=1 is in the URL (logo click)
   useEffect(() => {
@@ -64,6 +66,8 @@ export function ScanForm() {
       setManualStrain('');
       setLookupError('');
       setLookupDone(false);
+      setStrainMatches([]);
+      setShowPicker(false);
     }
   }, [searchParams]);
 
@@ -213,13 +217,49 @@ export function ScanForm() {
     setManualStrain('');
     setLookupError('');
     setLookupDone(false);
+    setStrainMatches([]);
+    setShowPicker(false);
   };
 
   const handleStrainLookup = async () => {
     if (!manualBrand.trim() && !manualStrain.trim()) return;
     setIsLooking(true);
     setLookupError('');
+    setShowPicker(false);
+    setStrainMatches([]);
     try {
+      // If strain name given but no brand — check community history for matches first
+      if (manualStrain.trim() && !manualBrand.trim()) {
+        const matchRes = await fetch('/api/strain-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strain_name: manualStrain.trim() }),
+        });
+        const matchData = await matchRes.json();
+        const matches = matchData.matches ?? [];
+        if (matches.length > 1) {
+          setStrainMatches(matches);
+          setShowPicker(true);
+          setIsLooking(false);
+          return;
+        }
+        // Single match — auto-pick it
+        if (matches.length === 1) {
+          const m = matches[0];
+          setResult((prev) => ({
+            ...prev,
+            brand: m.brand ?? prev.brand,
+            strain_name: m.strain_name ?? prev.strain_name,
+            strain_type: m.strain_type ?? prev.strain_type,
+            product_type: m.product_type ?? prev.product_type,
+            thc_percent: m.thc_percent ?? prev.thc_percent,
+          }));
+          setLookupDone(true);
+          setIsLooking(false);
+          return;
+        }
+      }
+      // No community matches (or brand was supplied) — fall back to AI lookup
       const res = await fetch('/api/strain-lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -234,6 +274,20 @@ export function ScanForm() {
     } finally {
       setIsLooking(false);
     }
+  };
+
+  const handlePickMatch = (m: typeof strainMatches[0]) => {
+    setResult((prev) => ({
+      ...prev,
+      brand: m.brand ?? prev.brand,
+      strain_name: m.strain_name ?? prev.strain_name,
+      strain_type: m.strain_type ?? prev.strain_type,
+      product_type: m.product_type ?? prev.product_type,
+      thc_percent: m.thc_percent ?? prev.thc_percent,
+    }));
+    setShowPicker(false);
+    setStrainMatches([]);
+    setLookupDone(true);
   };
 
   const handleFieldChange = (key: keyof ExtractedProduct, value: string) => {
@@ -626,7 +680,62 @@ export function ScanForm() {
               </label>
             </div>
             {lookupError && <p className="text-xs text-rose-400">{lookupError}</p>}
-            {lookupDone && <p className="text-xs text-emerald-400">✓ Fields pre-filled — review and adjust below.</p>}
+            {lookupDone && !showPicker && <p className="text-xs text-emerald-400">✓ Fields pre-filled — review and adjust below.</p>}
+
+            {/* Strain picker — shown when multiple community matches found */}
+            {showPicker && strainMatches.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-amber-400 font-medium">Multiple versions found — pick the right one:</p>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                  {strainMatches.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => handlePickMatch(m)}
+                      className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-left transition hover:border-purple-500/50 hover:bg-purple-500/10"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-zinc-100">{m.strain_name}</span>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold capitalize
+                          ${m.strain_type === 'indica' ? 'bg-purple-500/20 text-purple-300' :
+                            m.strain_type === 'sativa' ? 'bg-yellow-500/20 text-yellow-300' :
+                            m.strain_type === 'hybrid' ? 'bg-emerald-500/20 text-emerald-300' :
+                            'bg-zinc-700 text-zinc-400'}`}>
+                          {m.strain_type ?? 'unknown'}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-500">
+                        {m.brand && <span>{m.brand}</span>}
+                        {m.product_type && <span className="capitalize">{m.product_type}</span>}
+                        {m.thc_percent != null && <span className="text-emerald-500">THC {m.thc_percent}%</span>}
+                      </div>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setShowPicker(false);
+                      setStrainMatches([]);
+                      setIsLooking(true);
+                      try {
+                        const res = await fetch('/api/strain-lookup', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ brand: manualBrand.trim(), strain: manualStrain.trim() }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) { setResult((prev) => ({ ...prev, ...data.product })); setLookupDone(true); }
+                      } catch {}
+                      setIsLooking(false);
+                    }}
+                    className="w-full rounded-xl border border-dashed border-zinc-700 px-3 py-2 text-xs text-zinc-500 transition hover:border-zinc-500 hover:text-zinc-300"
+                  >
+                    None of these — search AI instead
+                  </button>
+                </div>
+              </div>
+            )}
+
             <button
               type="button"
               onClick={handleStrainLookup}
