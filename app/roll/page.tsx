@@ -178,7 +178,7 @@ export default function RollPage() {
 
       {/* Header */}
       <div className="mb-6 text-center">
-        <p className="text-2xl font-bold text-zinc-100">Let's Roll One 🌿</p>
+        <p className="text-2xl font-bold text-zinc-100">Let&apos;s Roll One 🌿</p>
         <p className="mt-1 text-xs text-zinc-500">A sacred ritual in 4 steps</p>
       </div>
 
@@ -417,7 +417,7 @@ export default function RollPage() {
               <p className="text-xs text-zinc-400 animate-pulse">licking the seal…</p>
             )}
             {lit && (
-              <p className="text-xs text-emerald-400 animate-pulse">she's lit 🔥</p>
+              <p className="text-xs text-emerald-400 animate-pulse">she&apos;s lit 🔥</p>
             )}
           </div>
         </div>
@@ -433,7 +433,7 @@ export default function RollPage() {
 
           <div className="text-5xl">🚬</div>
           <div>
-            <p className="text-xl font-bold text-emerald-300">That's a wrap.</p>
+            <p className="text-xl font-bold text-emerald-300">That&apos;s a wrap.</p>
             <p className="mt-2 text-sm text-zinc-400 italic">{compliment}</p>
           </div>
 
