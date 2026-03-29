@@ -322,6 +322,7 @@ export function ScanForm() {
                 <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-xs text-purple-300">✦ AI pre-filled</span>
               )}
             </div>
+            <p className="text-xs text-zinc-600">Reviews posted to community earn you helpful votes — votes level up your rank 🌿→🌳</p>
             <ReviewForm
               productLogId={savedLogId}
               productType={result.product_type}

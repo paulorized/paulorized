@@ -265,23 +265,26 @@ export default function CommunityPage() {
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-100">Community</h1>
-        <p className="mt-1 text-sm text-zinc-500">See what others are scanning and smoking.</p>
+        <p className="mt-1 text-sm text-zinc-500">See what others are scanning and smoking. Write reviews to earn helpful votes and level up your rank.</p>
       </div>
 
       {/* Tier legend */}
-      <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 flex flex-wrap gap-x-5 gap-y-2">
-        {[
-          { emoji: '🌿', label: 'Seedling',   sub: '0+ votes',  color: 'text-zinc-400' },
-          { emoji: '🌱', label: 'Grower',      sub: '5+ votes',  color: 'text-lime-400' },
-          { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
-          { emoji: '🌳', label: 'Legend',      sub: '50+ votes', color: 'text-yellow-400' },
-        ].map(t => (
-          <div key={t.label} className="flex items-center gap-1.5">
-            <span>{t.emoji}</span>
-            <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
-            <span className="text-xs text-zinc-600">{t.sub}</span>
-          </div>
-        ))}
+      <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 space-y-2">
+        <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
+        <div className="flex flex-wrap gap-x-5 gap-y-2">
+          {[
+            { emoji: '🌿', label: 'Seedling',   sub: '0+ votes',  color: 'text-zinc-400' },
+            { emoji: '🌱', label: 'Grower',      sub: '5+ votes',  color: 'text-lime-400' },
+            { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
+            { emoji: '🌳', label: 'Legend',      sub: '50+ votes', color: 'text-yellow-400' },
+          ].map(t => (
+            <div key={t.label} className="flex items-center gap-1.5">
+              <span>{t.emoji}</span>
+              <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
+              <span className="text-xs text-zinc-600">{t.sub}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {error && <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">{error}</div>}
