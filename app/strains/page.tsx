@@ -165,7 +165,7 @@ function StrainsInner() {
       {/* Results count */}
       {!loading && query && results.length > 0 && (
         <p className="mb-4 text-xs text-zinc-500">
-          {total} strain{total !== 1 ? 's' : ''} matching <span className="text-zinc-300">"{query}"</span>
+          {total} strain{total !== 1 ? 's' : ''} matching <span className="text-zinc-300">&quot;{query}&quot;</span>
         </p>
       )}
 
@@ -200,7 +200,7 @@ function StrainsInner() {
       {!loading && query && results.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
           <div className="text-3xl mb-2">🔍</div>
-          <p className="text-sm font-medium text-zinc-300">No strains found for "{query}"</p>
+          <p className="text-sm font-medium text-zinc-300">No strains found for &quot;{query}&quot;</p>
           <p className="text-xs text-zinc-500 mt-1">Try a different name or check the spelling.</p>
         </div>
       )}
