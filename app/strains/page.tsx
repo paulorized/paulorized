@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -10,56 +10,137 @@ interface StrainHit {
   strain_type: string | null;
   thc_min: number | null;
   thc_max: number | null;
-  nugshot_url: string | null;
+  cbd_min: number | null;
+  cbd_max: number | null;
+  typical_effects?: string[];
+  typical_flavors?: string[];
 }
 
-const typeBadge: Record<string, string> = {
-  indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  hybrid: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-  unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
+const typeConfig: Record<string, { label: string; color: string; bg: string; bar: string; icon: string }> = {
+  indica:  { label: 'Indica',  color: 'text-purple-300', bg: 'bg-purple-500/10 border-purple-500/20', bar: 'bg-purple-500', icon: '🌙' },
+  sativa:  { label: 'Sativa',  color: 'text-yellow-300', bg: 'bg-yellow-500/10 border-yellow-500/20', bar: 'bg-yellow-400', icon: '☀️' },
+  hybrid:  { label: 'Hybrid',  color: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/20', bar: 'bg-emerald-500', icon: '⚡' },
+  unknown: { label: 'Unknown', color: 'text-zinc-400', bg: 'bg-zinc-800/50 border-zinc-700', bar: 'bg-zinc-600', icon: '🌿' },
 };
 
+// Mini bar chart for THC/CBD
+function PotencyBar({ label, min, max, maxVal, color }: {
+  label: string; min: number | null; max: number | null; maxVal: number; color: string;
+}) {
+  if (min == null && max == null) return null;
+  const lo = Math.min(min ?? max ?? 0, max ?? min ?? 0);
+  const hi = Math.max(min ?? max ?? 0, max ?? min ?? 0);
+  const loPct = (lo / maxVal) * 100;
+  const hiPct = (hi / maxVal) * 100;
+  const rangePct = hiPct - loPct;
+  const displayVal = lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+
+  return (
+    <div className="flex flex-col gap-1 min-w-0">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{label}</span>
+        <span className={`text-xs font-bold ${color}`}>{displayVal}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-zinc-800 w-full relative overflow-hidden">
+        {/* background fill up to lo */}
+        <div className="absolute inset-0 rounded-full bg-zinc-700/30" />
+        {/* range bar */}
+        <div
+          className={`absolute top-0 h-full rounded-full ${color.replace('text-', 'bg-').replace('-300', '-500').replace('-400', '-400')}`}
+          style={{ left: `${loPct}%`, width: `${Math.max(rangePct, 4)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Pill tags for effects/flavors
+function PillRow({ items, color }: { items?: string[]; color: string }) {
+  if (!items?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {items.slice(0, 4).map(item => (
+        <span key={item} className={`rounded-full px-2 py-0.5 text-[10px] font-medium border ${color}`}>
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function StrainCard({ strain }: { strain: StrainHit }) {
-  const badge = typeBadge[strain.strain_type ?? 'unknown'] ?? typeBadge.unknown;
-  const thc = strain.thc_min != null && strain.thc_max != null
-    ? strain.thc_min === strain.thc_max ? `${strain.thc_min}%` : `${strain.thc_min}–${strain.thc_max}%`
-    : strain.thc_max != null ? `${strain.thc_max}%` : null;
+  const type = typeConfig[strain.strain_type ?? 'unknown'] ?? typeConfig.unknown;
 
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className="group flex flex-col rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden hover:border-emerald-500/40 hover:bg-zinc-900 transition"
+      className={`group flex flex-col gap-3 rounded-2xl border p-4 transition hover:brightness-110 ${type.bg}`}
     >
-      {/* Nugshot */}
-      <div className="aspect-square bg-zinc-800 flex items-center justify-center overflow-hidden">
-        {strain.nugshot_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={strain.nugshot_url}
-            alt={strain.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <span className="text-4xl opacity-30">🌿</span>
-        )}
+      {/* Top row: name + type badge */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-lg leading-none">{type.icon}</span>
+          <p className="text-sm font-bold text-zinc-100 leading-snug truncate">{strain.name}</p>
+        </div>
+        <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${type.color} ${type.bg}`}>
+          {type.label}
+        </span>
       </div>
 
-      {/* Info */}
-      <div className="p-3 flex flex-col gap-1.5">
-        <p className="text-sm font-semibold text-zinc-100 leading-tight truncate">{strain.name}</p>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {strain.strain_type && strain.strain_type !== 'unknown' && (
-            <span className={`rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${badge}`}>
-              {strain.strain_type}
-            </span>
-          )}
-          {thc && (
-            <span className="text-xs text-emerald-500 font-medium">THC {thc}</span>
-          )}
+      {/* Potency bars */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+        <PotencyBar label="THC" min={strain.thc_min} max={strain.thc_max} maxVal={40} color={type.color} />
+        <PotencyBar label="CBD" min={strain.cbd_min} max={strain.cbd_max} maxVal={25} color="text-sky-400" />
+      </div>
+
+      {/* Effects */}
+      {strain.typical_effects && strain.typical_effects.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Effects</span>
+          <PillRow items={strain.typical_effects} color="border-zinc-700 text-zinc-400" />
+        </div>
+      )}
+
+      {/* Flavors */}
+      {strain.typical_flavors && strain.typical_flavors.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">Flavors</span>
+          <PillRow items={strain.typical_flavors} color="border-zinc-700/60 text-zinc-500" />
+        </div>
+      )}
+    </Link>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-full bg-zinc-800" />
+          <div className="h-4 w-28 rounded bg-zinc-800" />
+        </div>
+        <div className="h-4 w-14 rounded-full bg-zinc-800" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1.5">
+          <div className="h-2.5 w-full rounded bg-zinc-800" />
+          <div className="h-1.5 w-full rounded-full bg-zinc-800" />
+        </div>
+        <div className="space-y-1.5">
+          <div className="h-2.5 w-full rounded bg-zinc-800" />
+          <div className="h-1.5 w-full rounded-full bg-zinc-800" />
         </div>
       </div>
-    </Link>
+      <div className="space-y-1.5">
+        <div className="h-2.5 w-12 rounded bg-zinc-800" />
+        <div className="flex gap-1">
+          {[40, 52, 36, 48].map(w => (
+            <div key={w} className={`h-4 w-${w === 40 ? '10' : w === 52 ? '14' : w === 36 ? '9' : '12'} rounded-full bg-zinc-800`} />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -70,60 +151,34 @@ function StrainsInner() {
   const [inputVal, setInputVal] = useState(searchParams.get('q') ?? '');
   const [results, setResults] = useState<StrainHit[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const search = useCallback(async (q: string, p: number, append = false) => {
+  const search = useCallback(async (q: string) => {
     if (!q.trim()) return;
-    if (p === 0) setLoading(true); else setLoadingMore(true);
+    setLoading(true);
     try {
       const res = await fetch('/api/strain-results', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q.trim(), page: p, take: 20 }),
+        body: JSON.stringify({ query: q.trim(), page: 0, take: 20 }),
       });
       const data = await res.json();
-      if (append) {
-        setResults(prev => [...prev, ...(data.results ?? [])]);
-      } else {
-        setResults(data.results ?? []);
-      }
+      setResults(data.results ?? []);
       setTotal(data.total ?? 0);
-      setHasMore(data.has_more ?? false);
-      setPage(p);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   }, []);
 
-  // Initial search from URL param
   useEffect(() => {
     const q = searchParams.get('q');
     if (q) {
       setQuery(q);
       setInputVal(q);
-      search(q, 0);
+      search(q);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Infinite scroll via IntersectionObserver
-  useEffect(() => {
-    if (!hasMore || loadingMore) return;
-    const el = sentinelRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting) {
-        search(query, page + 1, true);
-      }
-    }, { threshold: 0.1 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [hasMore, loadingMore, page, query, search]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,17 +186,16 @@ function StrainsInner() {
     if (!q) return;
     setQuery(q);
     setResults([]);
-    setPage(0);
     router.replace(`/strains?q=${encodeURIComponent(q)}`);
-    search(q, 0);
+    search(q);
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-100">Strain Library</h1>
-        <p className="mt-1 text-sm text-zinc-500">Search thousands of real cannabis strains.</p>
+        <p className="mt-1 text-sm text-zinc-500">Search any cannabis strain for effects, potency, and flavors.</p>
       </div>
 
       {/* Search bar */}
@@ -169,32 +223,19 @@ function StrainsInner() {
         </p>
       )}
 
-      {/* Loading skeleton */}
+      {/* Skeleton */}
       {loading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden animate-pulse">
-              <div className="aspect-square bg-zinc-800" />
-              <div className="p-3 space-y-2">
-                <div className="h-3 w-3/4 rounded bg-zinc-800" />
-                <div className="h-3 w-1/2 rounded bg-zinc-800" />
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       )}
 
       {/* Results grid */}
       {!loading && results.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {results.map(s => <StrainCard key={s.slug} strain={s} />)}
         </div>
       )}
-
-      {/* Infinite scroll sentinel */}
-      {hasMore && <div ref={sentinelRef} className="h-16 flex items-center justify-center">
-        {loadingMore && <div className="text-xs text-zinc-600">Loading more...</div>}
-      </div>}
 
       {/* Empty state */}
       {!loading && query && results.length === 0 && (
@@ -209,7 +250,7 @@ function StrainsInner() {
       {!loading && !query && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
           <div className="text-3xl mb-2">🌿</div>
-          <p className="text-sm text-zinc-400">Type a strain name above to search the library.</p>
+          <p className="text-sm text-zinc-400">Type a strain name above to search.</p>
         </div>
       )}
     </div>
@@ -218,7 +259,7 @@ function StrainsInner() {
 
 export default function StrainsPage() {
   return (
-    <Suspense fallback={<div className="mx-auto w-full max-w-4xl px-4 py-8 text-zinc-500 text-sm">Loading...</div>}>
+    <Suspense fallback={<div className="mx-auto w-full max-w-3xl px-4 py-8 text-zinc-500 text-sm">Loading...</div>}>
       <StrainsInner />
     </Suspense>
   );
