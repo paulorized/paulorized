@@ -23,32 +23,26 @@ const typeConfig: Record<string, { label: string; color: string; bg: string; bar
   unknown: { label: 'Unknown', color: 'text-zinc-400', bg: 'bg-zinc-800/50 border-zinc-700', bar: 'bg-zinc-600', icon: '🌿' },
 };
 
-// Mini bar chart for THC/CBD
-function PotencyBar({ label, min, max, maxVal, color }: {
-  label: string; min: number | null; max: number | null; maxVal: number; color: string;
-}) {
+// THC bar — prominent visual range bar
+function ThcBar({ min, max, color }: { min: number | null; max: number | null; color: string }) {
   if (min == null && max == null) return null;
   const lo = Math.min(min ?? max ?? 0, max ?? min ?? 0);
   const hi = Math.max(min ?? max ?? 0, max ?? min ?? 0);
+  const maxVal = 40;
   const loPct = (lo / maxVal) * 100;
-  const hiPct = (hi / maxVal) * 100;
-  const rangePct = hiPct - loPct;
+  const rangePct = ((hi - lo) / maxVal) * 100;
   const displayVal = lo === hi ? `${lo}%` : `${lo}–${hi}%`;
+  const barColor = color.replace('text-', 'bg-').replace('-300', '-500').replace('-400', '-400');
 
   return (
-    <div className="flex flex-col gap-1 min-w-0">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">{label}</span>
+    <div className="flex flex-col gap-1.5 min-w-0">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">THC</span>
         <span className={`text-xs font-bold ${color}`}>{displayVal}</span>
       </div>
-      <div className="h-1.5 rounded-full bg-zinc-800 w-full relative overflow-hidden">
-        {/* background fill up to lo */}
-        <div className="absolute inset-0 rounded-full bg-zinc-700/30" />
-        {/* range bar */}
-        <div
-          className={`absolute top-0 h-full rounded-full ${color.replace('text-', 'bg-').replace('-300', '-500').replace('-400', '-400')}`}
-          style={{ left: `${loPct}%`, width: `${Math.max(rangePct, 4)}%` }}
-        />
+      <div className="h-2 rounded-full bg-zinc-800 w-full relative overflow-hidden">
+        <div className={`absolute top-0 h-full rounded-full ${barColor}`}
+          style={{ left: `${loPct}%`, width: `${Math.max(rangePct, 5)}%` }} />
       </div>
     </div>
   );
@@ -87,10 +81,23 @@ function StrainCard({ strain }: { strain: StrainHit }) {
         </span>
       </div>
 
-      {/* Potency bars */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        <PotencyBar label="THC" min={strain.thc_min} max={strain.thc_max} maxVal={40} color={type.color} />
-        <PotencyBar label="CBD" min={strain.cbd_min} max={strain.cbd_max} maxVal={25} color="text-sky-400" />
+      {/* Potency row */}
+      <div className="flex flex-col gap-2">
+        <ThcBar min={strain.thc_min} max={strain.thc_max} color={type.color} />
+        {/* CBD as inline stat — only show if notably high */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">CBD</span>
+          <span className="text-[10px] font-medium text-sky-400">
+            {strain.cbd_max != null && strain.cbd_max >= 1
+              ? `${strain.cbd_min ?? strain.cbd_max}–${strain.cbd_max}%`
+              : strain.cbd_max != null
+              ? `< 1%`
+              : '—'}
+          </span>
+          {strain.cbd_max != null && strain.cbd_max >= 5 && (
+            <span className="rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] px-1.5 py-0.5 font-medium">High CBD</span>
+          )}
+        </div>
       </div>
 
       {/* Effects */}
