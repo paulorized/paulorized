@@ -90,7 +90,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                     <span className="text-purple-400 font-semibold">Wishlist</span>
                   </Link>
                   <Link href="/strains" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
-                    <span className="text-yellow-300 font-semibold">Strains</span>
+                    <span className="text-yellow-300 font-semibold">StrainAI</span>
                   </Link>
                 </nav>
               )}
