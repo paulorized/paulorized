@@ -49,7 +49,7 @@ export function NugShot({ logId, initialUrl }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Headshot</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Nugg-Shot</p>
         {url && !confirmRemove && (
           <button
             type="button"
@@ -90,28 +90,41 @@ export function NugShot({ logId, initialUrl }: Props) {
       ) : (
         /* Upload prompt */
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-zinc-500">
-            Take or upload a photo of the product for your records.{' '}
-            <span className="text-zinc-600">Photos are stored privately and never used for scanning.</span>
-          </p>
+          <p className="text-xs text-zinc-600">Snap your product for your records — stored privately, never used for scanning.</p>
           <div className="flex gap-2">
             {/* Camera capture */}
             <button
               type="button"
               onClick={() => cameraRef.current?.click()}
               disabled={uploading}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 py-3 text-sm font-medium text-zinc-300 transition hover:border-emerald-500/40 hover:bg-zinc-800 disabled:opacity-50"
+              className="flex-1 flex items-center gap-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 transition hover:border-yellow-500/40 hover:bg-zinc-800/60 active:scale-[0.99] disabled:opacity-50"
             >
-              📷 Take photo
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                </svg>
+              </span>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-zinc-100">Take photo</p>
+                <p className="text-xs text-zinc-500">Use your camera</p>
+              </div>
             </button>
             {/* Gallery upload */}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 py-3 text-sm font-medium text-zinc-300 transition hover:border-emerald-500/40 hover:bg-zinc-800 disabled:opacity-50"
+              className="flex-1 flex items-center gap-3 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 transition hover:border-emerald-500/40 hover:bg-zinc-800/60 active:scale-[0.99] disabled:opacity-50"
             >
-              🖼️ Upload
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </span>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-zinc-100">Upload</p>
+                <p className="text-xs text-zinc-500">From your gallery</p>
+              </div>
             </button>
           </div>
           {uploading && <p className="text-xs text-emerald-400 text-center">Uploading…</p>}
@@ -126,7 +139,7 @@ export function NugShot({ logId, initialUrl }: Props) {
             type="button"
             onClick={() => cameraRef.current?.click()}
             disabled={uploading}
-            className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
+            className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:border-yellow-500/30 hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
           >
             📷 Retake
           </button>
@@ -134,7 +147,7 @@ export function NugShot({ logId, initialUrl }: Props) {
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
+            className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:border-emerald-500/30 hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
           >
             🖼️ Replace
           </button>
