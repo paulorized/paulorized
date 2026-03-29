@@ -8,6 +8,7 @@ interface FeedItem {
   username: string;
   avatar_url: string | null;
   tier: { label: string; emoji: string };
+  scan_count: number;
   brand: string;
   strain_name: string;
   strain_type: string;
@@ -104,6 +105,7 @@ export function CommunityPreview() {
                   )}
                   <span className="text-xs text-zinc-400 truncate">{item.username}</span>
                   <span className="text-[10px] text-zinc-600">{item.tier?.emoji}</span>
+                  <span className="text-[10px] text-zinc-600 shrink-0">{item.scan_count} logs</span>
                 </div>
                 <span className="text-[10px] text-zinc-600 shrink-0">{timeAgo(item.created_at)}</span>
               </div>

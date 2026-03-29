@@ -77,6 +77,16 @@ export async function GET(request: Request) {
       authorPoints[row.user_id] = (authorPoints[row.user_id] ?? 0) + (row.helpful_count ?? 0);
     }
 
+    // Step 3b: scan count per author
+    const { data: logCountRows } = await db
+      .from('product_logs')
+      .select('user_id')
+      .in('user_id', userIds);
+    const scanCounts: Record<string, number> = {};
+    for (const row of logCountRows ?? []) {
+      scanCounts[row.user_id] = (scanCounts[row.user_id] ?? 0) + 1;
+    }
+
     // Step 4: which reviews has current user voted on
     let myVotes = new Set<string>();
     if (currentUserId) {
@@ -99,6 +109,7 @@ export async function GET(request: Request) {
         username: profile?.username ?? 'Anonymous',
         avatar_url: profile?.avatar_url ?? null,
         tier: getTier(totalPoints),
+        scan_count: scanCounts[r.user_id] ?? 0,
         brand: log?.brand ?? '',
         strain_name: log?.strain_name ?? '',
         strain_type: log?.strain_type ?? 'unknown',
