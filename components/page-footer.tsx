@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 
 function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState('');
@@ -108,6 +109,15 @@ export function PageFooter() {
           <span>✏️</span>
           <span>Leave feedback for the developer</span>
         </button>
+
+        {/* Let's Roll One */}
+        <Link
+          href="/roll"
+          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-emerald-900/40 bg-emerald-950/20 px-5 py-3 text-xs text-emerald-600 transition hover:border-emerald-700/40 hover:text-emerald-400"
+        >
+          <span>🌿</span>
+          <span>Let&apos;s roll one</span>
+        </Link>
       </div>
 
       {showFeedback && <FeedbackModal onClose={() => setShowFeedback(false)} />}
