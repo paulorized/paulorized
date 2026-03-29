@@ -304,7 +304,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           {error && <span className="text-sm text-rose-400">{error}</span>}
           {review.rating === 0 && !saved && <span className="text-xs text-zinc-500">Add a star rating to save</span>}
         </div>
-        {!saved && <p className="text-xs text-zinc-600">Reviews with notes can be marked helpful by the community — helpful votes level up your rank 🌿→🌳</p>}
+        {!saved && <p className="text-xs text-emerald-400/70">Reviews with notes can be marked helpful by the community — helpful votes level up your rank 🌿→🌳</p>}
       </div>
     </div>
   );
