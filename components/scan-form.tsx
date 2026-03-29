@@ -54,6 +54,8 @@ export function ScanForm() {
   const [selectedStrain, setSelectedStrain] = useState<typeof strainResults[0] | null>(null);
   const [strainSearchQuery, setStrainSearchQuery] = useState('');
   const [isSearchingStrains, setIsSearchingStrains] = useState(false);
+  const [isWebSearching, setIsWebSearching] = useState(false);
+  const [webSearchDone, setWebSearchDone] = useState(false);
   const [showOzConverter, setShowOzConverter] = useState(false);
   const [ozInput, setOzInput] = useState('');
   const strainSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,6 +79,7 @@ export function ScanForm() {
       setStrainSearchQuery('');
       setShowOzConverter(false);
       setOzInput('');
+      setWebSearchDone(false);
     }
   }, [searchParams]);
 
@@ -231,6 +234,7 @@ export function ScanForm() {
     setStrainSearchQuery('');
     setShowOzConverter(false);
     setOzInput('');
+    setWebSearchDone(false);
   };
 
   const handleStrainLookup = async () => {
@@ -614,6 +618,7 @@ export function ScanForm() {
     const handleStrainSearch = (q: string) => {
       setStrainSearchQuery(q);
       setSelectedStrain(null);
+      setWebSearchDone(false);
       if (strainSearchTimer.current) clearTimeout(strainSearchTimer.current);
       if (!q.trim()) { setStrainResults([]); return; }
       strainSearchTimer.current = setTimeout(async () => {
@@ -631,15 +636,37 @@ export function ScanForm() {
       }, 400);
     };
 
+    const handleWebSearch = async () => {
+      const q = strainSearchQuery.trim();
+      if (!q) return;
+      setIsWebSearching(true);
+      setWebSearchDone(false);
+      try {
+        const res = await fetch('/api/strain-results-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q, force_web: true }),
+        });
+        const data = await res.json();
+        const results = data.results ?? [];
+        setStrainResults(results);
+        setWebSearchDone(true);
+        // Auto-select the first result if we only got one back
+        if (results.length === 1) setSelectedStrain(results[0]);
+      } catch { /* silent */ }
+      finally { setIsWebSearching(false); }
+    };
+
     const handlePopulate = async () => {
-      if (!selectedStrain) return;
+      const strainName = selectedStrain?.name ?? strainSearchQuery.trim();
+      if (!strainName) return;
       setIsLooking(true);
       setLookupError('');
       try {
         const res = await fetch('/api/strain-lookup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ strain: selectedStrain.name }),
+          body: JSON.stringify({ strain: strainName }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? 'Lookup failed.');
@@ -647,13 +674,17 @@ export function ScanForm() {
         setLookupDone(true);
       } catch (err) {
         // Fallback: use what we already have from the search results
-        setResult(prev => ({
-          ...prev,
-          strain_name: selectedStrain.name,
-          strain_type: selectedStrain.strain_type,
-          thc_percent: selectedStrain.thc_max ?? prev.thc_percent,
-          thc_estimated: true,
-        }));
+        if (selectedStrain) {
+          setResult(prev => ({
+            ...prev,
+            strain_name: selectedStrain.name,
+            strain_type: selectedStrain.strain_type,
+            thc_percent: selectedStrain.thc_max ?? prev.thc_percent,
+            thc_estimated: true,
+          }));
+        } else {
+          setResult(prev => ({ ...prev, strain_name: strainName }));
+        }
         setLookupDone(true);
         setLookupError(err instanceof Error ? err.message : 'Using search result data.');
       } finally {
@@ -669,7 +700,7 @@ export function ScanForm() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">1</span>
               <h2 className="font-semibold text-zinc-100">Enter product details</h2>
             </div>
-            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setStrainResults([]); setSelectedStrain(null); setStrainSearchQuery(''); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setStrainResults([]); setSelectedStrain(null); setStrainSearchQuery(''); setWebSearchDone(false); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
           </div>
 
           {/* STEP 1 — Strain search */}
@@ -724,14 +755,34 @@ export function ScanForm() {
               </div>
             )}
 
-            {selectedStrain && (
+            {/* Web search button — shown when user has typed something and search is done */}
+            {strainSearchQuery.trim() && !isSearchingStrains && (
+              <button
+                type="button"
+                onClick={handleWebSearch}
+                disabled={isWebSearching}
+                className="w-full rounded-xl border border-blue-500/30 bg-blue-500/10 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/20 disabled:opacity-50"
+              >
+                {isWebSearching ? '🌐 Searching the web…' : `🌐 Search the web for "${strainSearchQuery.trim()}"`}
+              </button>
+            )}
+            {webSearchDone && strainResults.length === 0 && (
+              <p className="text-xs text-zinc-500 text-center">No results found — try a different spelling or use Populate to fill manually.</p>
+            )}
+
+            {/* Populate button — works with or without a selected strain */}
+            {(selectedStrain || strainSearchQuery.trim()) && (
               <button
                 type="button"
                 onClick={handlePopulate}
                 disabled={isLooking}
                 className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
               >
-                {isLooking ? '⏳ Loading strain data…' : `✦ Populate details for ${selectedStrain.name}`}
+                {isLooking
+                  ? '⏳ Loading strain data…'
+                  : selectedStrain
+                    ? `✦ Populate details for ${selectedStrain.name}`
+                    : `✦ Populate details for "${strainSearchQuery.trim()}"`}
               </button>
             )}
             {lookupDone && !lookupError && <p className="text-xs text-emerald-400">✓ Fields pre-filled from StrainAI — review and adjust below.</p>}
