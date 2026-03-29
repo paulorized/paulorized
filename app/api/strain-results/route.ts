@@ -1,91 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase.server';
-
-// Search your strains index — returns paginated results
-// Falls back to live Leafly if index is empty
-
-const LEAFLY_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (compatible; CannaBaseAI/1.0)',
-  'Accept': 'application/json',
-};
-
-async function leaflySearch(query: string, page: number, take: number) {
-  const slug = query.toLowerCase().replace(/\s+/g, '-');
-  // Try both slug-contains and direct slug search
-  const url = `https://consumer-api.leafly.com/api/strain_playlists/v2?strain_slug=&page=${page}&take=${take}&strain_slug_contains=${encodeURIComponent(slug)}`;
-  try {
-    const res = await fetch(url, { headers: LEAFLY_HEADERS });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const hits = data?.data?.strains ?? [];
-    return hits.filter((h: { name: string }) =>
-      h.name.toLowerCase().includes(query.toLowerCase())
-    );
-  } catch { return []; }
-}
+import { claude } from '@/lib/claude';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { query, page = 0, take = 20 } = body;
+    const { query, page = 0 } = body;
 
     if (!query?.trim() || query.trim().length < 1) {
       return NextResponse.json({ results: [], total: 0, page, has_more: false });
     }
 
-    const q = query.trim();
-    const db = createServerSupabaseClient();
-
-    // Check if we have strains indexed
-    const { count } = await db
-      .from('strains')
-      .select('id', { count: 'exact', head: true });
-
-    if (count && count > 0) {
-      // Search our own index using trigram similarity
-      const from = page * take;
-      const { data, error, count: total } = await db
-        .from('strains')
-        .select('slug, name, strain_type, thc_min, thc_max, nugshot_url', { count: 'exact' })
-        .ilike('name', `%${q}%`)
-        .order('name')
-        .range(from, from + take - 1);
-
-      if (error) throw error;
-
-      return NextResponse.json({
-        results: data ?? [],
-        total: total ?? 0,
-        page,
-        has_more: (total ?? 0) > from + take,
-        source: 'index',
-      });
+    // Only fetch page 0 — Claude returns all relevant matches in one shot
+    if (page > 0) {
+      return NextResponse.json({ results: [], total: 0, page, has_more: false });
     }
 
-    // Fallback: live Leafly search (before index is seeded)
-    const hits = await leaflySearch(q, page, take);
-    const results = hits.map((s: {
-      strain_slug: string;
-      name: string;
-      category?: string;
-      nugshot?: { url: string };
-      strain_playlist_details?: { thc_min?: number; thc_max?: number };
-    }) => ({
-      slug: s.strain_slug,
-      name: s.name,
-      strain_type: (s.category ?? 'unknown').toLowerCase(),
-      thc_min: s.strain_playlist_details?.thc_min ?? null,
-      thc_max: s.strain_playlist_details?.thc_max ?? null,
-      nugshot_url: s.nugshot?.url ?? null,
-    }));
+    const q = query.trim();
+
+    const prompt = `You are a cannabis strain database. The user searched for: "${q}"
+
+Return a JSON array of cannabis strains that match or are closely related to this search term. Include the exact strain if it exists, plus any similar strains with that name or key term in the name.
+
+Rules:
+- If the query is a specific strain name, return that strain first, then up to 7 related strains that share that name or are closely related
+- If the query is a partial name (like "diesel" or "gelato"), return ALL strains that contain that word in their name, up to 12 results
+- If the query is a general type/effect (like "sleepy indica"), return up to 8 best matching strains
+- Always return at least 1 result — use your best judgment for the closest match
+- Results must be real, well-known cannabis strains
+
+Each object in the array must have EXACTLY these fields:
+- slug: string (lowercase hyphenated slug, e.g. "blue-dream")
+- name: string (properly capitalized official name)
+- strain_type: "indica" | "sativa" | "hybrid"
+- thc_min: number (e.g. 18)
+- thc_max: number (e.g. 24)
+- nugshot_url: null
+
+Return ONLY the JSON array. No markdown, no explanation, no code fences.`;
+
+    const msg = await claude.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    const text = msg.content[0].type === 'text' ? msg.content[0].text : '[]';
+    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+    const results = JSON.parse(cleaned);
+
+    if (!Array.isArray(results)) {
+      return NextResponse.json({ results: [], total: 0, page: 0, has_more: false });
+    }
 
     return NextResponse.json({
       results,
       total: results.length,
-      page,
-      has_more: results.length === take,
-      source: 'leafly',
+      page: 0,
+      has_more: false,
+      source: 'ai',
     });
+
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
