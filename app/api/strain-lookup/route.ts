@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { openai } from '@/lib/openai';
+import { claude } from '@/lib/claude';
 
-const LOOKUP_PROMPT = `You are a cannabis strain database. Given a brand name and/or strain name, return everything you know about this product in valid JSON.
+const LEAFLY_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; CannaBaseAI/1.0)',
+  'Accept': 'application/json',
+};
 
-Return ONLY a JSON object with this exact structure (no markdown, no explanation):
+async function fetchLeaflyStrain(strainName: string) {
+  const slug = strainName.toLowerCase().replace(/\s+/g, '-');
+  const url = `https://consumer-api.leafly.com/api/strain_playlists/v2?strain_slug=${encodeURIComponent(slug)}&page=0&take=1`;
+  try {
+    const res = await fetch(url, { headers: LEAFLY_HEADERS, next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.data?.strains?.[0] ?? null;
+  } catch { return null; }
+}
+
+const CLAUDE_LOOKUP_PROMPT = `You are a cannabis strain database. Given a brand name and/or strain name, return everything you know about this product in valid JSON.
+
+Return ONLY a JSON object — no markdown, no explanation:
 {
   "brand": "string or empty string",
-  "strain_name": "string or empty string",
+  "strain_name": "canonical strain name or empty string",
   "strain_type": "indica | sativa | hybrid | unknown",
-  "strain_bio": "string — 1-3 sentence description of the strain's effects, flavor, and origin. Empty string if unknown.",
+  "strain_bio": "1-3 sentence description of the strain. Empty string if unknown.",
   "thc_percent": number or null,
   "cbd_percent": number or null,
   "thc_mg": null,
@@ -17,15 +33,21 @@ Return ONLY a JSON object with this exact structure (no markdown, no explanation
   "weight": "",
   "product_type": "",
   "thc_estimated": true,
-  "confidence": number between 0 and 1
+  "confidence": number 0-1,
+  "typical_effects": ["up to 5 effects"],
+  "typical_flavors": ["up to 3 flavors"]
 }
 
 Rules:
-- For thc_percent and cbd_percent: use typical/average values if well-known, otherwise null. Set thc_estimated to true.
-- Never invent strain_bio — only include real, generally accepted info. If uncertain, return an empty string.
-- strain_type must be one of: indica, sativa, hybrid, unknown
-- Do not guess product_type or weight — always return empty string for those.
-- confidence: how confident you are this is a real/known strain (1.0 = very well known, 0.0 = never heard of it)`;
+- thc_percent: typical average %. Null only if truly unknown.
+- Never invent strain_bio — only real documented info. Empty string if uncertain.
+- strain_type must be: indica, sativa, hybrid, or unknown
+- Do not guess product_type or weight — always empty string.
+- confidence: 1.0=iconic, 0.7=well known, 0.4=moderately known, 0.2=lesser-known
+- When in doubt return low-confidence result rather than empty
+
+Effects: Relaxed, Happy, Euphoric, Uplifted, Creative, Focused, Sleepy, Hungry, Talkative, Energetic
+Flavors: Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint, Grape, Cheese`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,28 +58,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Brand or strain name is required.' }, { status: 400 });
     }
 
+    const strainName = (strain ?? '').trim();
+
+    // 1. Try Leafly first if we have a strain name
+    if (strainName) {
+      const leafly = await fetchLeaflyStrain(strainName);
+      if (leafly) {
+        const d = leafly.strain_playlist_details ?? {};
+        const strainType = (leafly.category ?? 'unknown').toLowerCase();
+        const product = {
+          brand: (brand ?? '').trim(),
+          strain_name: leafly.name,
+          strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : 'unknown',
+          strain_bio: d.description ?? '',
+          thc_percent: d.thc_max ?? null,
+          cbd_percent: d.cbd_max ?? null,
+          thc_mg: null,
+          cbd_mg: null,
+          mg_per_piece: null,
+          weight: '',
+          product_type: '',
+          thc_estimated: true,
+          confidence: 1.0,
+          typical_effects: d.top_reported_effects ?? [],
+          typical_flavors: d.top_reported_flavors ?? [],
+          source: 'leafly',
+        };
+        return NextResponse.json({ product });
+      }
+    }
+
+    // 2. Claude fallback
     const userPrompt = [
       brand ? `Brand: ${brand}` : '',
-      strain ? `Strain: ${strain}` : '',
+      strainName ? `Strain: ${strainName}` : '',
     ].filter(Boolean).join('\n');
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: LOOKUP_PROMPT },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.2,
-      max_tokens: 400,
+    const msg = await claude.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: `${CLAUDE_LOOKUP_PROMPT}\n\n${userPrompt}` }],
     });
 
-    const raw = completion.choices[0]?.message?.content ?? '';
+    const raw = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+    const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
 
     let product: Record<string, unknown>;
     try {
-      // Strip markdown code fences if present
-      const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
       product = JSON.parse(cleaned);
+      product.source = 'ai';
     } catch {
       return NextResponse.json({ error: 'Failed to parse strain data.' }, { status: 500 });
     }

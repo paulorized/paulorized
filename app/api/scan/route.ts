@@ -1,6 +1,111 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@/lib/openai';
+import { claude } from '@/lib/claude';
 import { type ExtractedProduct } from '@/types/product';
+
+// ── Leafly + Claude strain enrichment (mirrors strain-search route) ────────────
+
+const LEAFLY_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; CannaBaseAI/1.0)',
+  'Accept': 'application/json',
+};
+
+interface LeaflyStrain {
+  name: string;
+  category: string;
+  strain_playlist_details?: {
+    thc_max?: number;
+    thc_min?: number;
+    cbd_max?: number;
+    cbd_min?: number;
+    top_reported_effects?: string[];
+    top_reported_flavors?: string[];
+    description?: string;
+  };
+}
+
+async function fetchLeaflyStrain(strainName: string): Promise<LeaflyStrain | null> {
+  const slug = strainName.toLowerCase().replace(/\s+/g, '-');
+  const url = `https://consumer-api.leafly.com/api/strain_playlists/v2?strain_slug=${encodeURIComponent(slug)}&page=0&take=1`;
+  try {
+    const res = await fetch(url, { headers: LEAFLY_HEADERS, next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.data?.strains?.[0] ?? null;
+  } catch { return null; }
+}
+
+const CLAUDE_STRAIN_PROMPT = `You are a cannabis strain expert. Given a strain name, return strain details in valid JSON.
+
+Return ONLY a JSON object — no markdown, no explanation:
+{
+  "strain_type": "indica | sativa | hybrid | unknown",
+  "strain_bio": "2-4 sentences about the strain",
+  "typical_effects": ["up to 5 effects"],
+  "typical_flavors": ["up to 3 flavors"],
+  "thc_min": number or null,
+  "thc_max": number or null,
+  "cbd_min": number or null,
+  "cbd_max": number or null,
+  "confidence": number 0-1
+}
+
+Effects: Relaxed, Happy, Euphoric, Uplifted, Creative, Focused, Sleepy, Hungry, Talkative, Energetic
+Flavors: Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint, Grape, Cheese
+
+Rules:
+- thc_min/thc_max: typical % range. Null only if truly unknown.
+- cbd_min/cbd_max: null if negligible (<1%)
+- confidence: 1.0=iconic, 0.7=well known, 0.4=moderately known, 0.2=lesser-known but real
+- Never invent lineage. Only include genuinely documented info.`;
+
+async function claudeStrainFallback(strainName: string) {
+  const msg = await claude.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 500,
+    messages: [{ role: 'user', content: `${CLAUDE_STRAIN_PROMPT}\n\nStrain: ${strainName.trim()}` }],
+  });
+  const raw = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
+  const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+  return JSON.parse(cleaned);
+}
+
+async function enrichFromStrainName(strainName: string): Promise<Partial<ExtractedProduct> & { strain_enriched_source?: string }> {
+  // 1. Try Leafly first
+  const leafly = await fetchLeaflyStrain(strainName);
+  if (leafly) {
+    const d = leafly.strain_playlist_details ?? {};
+    const strainType = (leafly.category ?? '').toLowerCase();
+    return {
+      strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
+      strain_bio: d.description ?? '',
+      typical_effects: d.top_reported_effects ?? [],
+      typical_flavors: d.top_reported_flavors ?? [],
+      thc_min: d.thc_min ?? null,
+      thc_max: d.thc_max ?? null,
+      cbd_min: d.cbd_min ?? null,
+      cbd_max: d.cbd_max ?? null,
+      strain_enriched_source: 'leafly',
+    };
+  }
+
+  // 2. Claude fallback
+  try {
+    const result = await claudeStrainFallback(strainName);
+    const strainType = (result.strain_type ?? '').toLowerCase();
+    return {
+      strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
+      strain_bio: result.strain_bio ?? '',
+      typical_effects: result.typical_effects ?? [],
+      typical_flavors: result.typical_flavors ?? [],
+      thc_min: result.thc_min ?? null,
+      thc_max: result.thc_max ?? null,
+      cbd_min: result.cbd_min ?? null,
+      cbd_max: result.cbd_max ?? null,
+      strain_enriched_source: 'ai',
+    };
+  } catch { return {}; }
+}
 
 const EXTRACTION_PROMPT = `You are a cannabis product label parser. Extract the following fields from the product label image(s) provided and return ONLY valid JSON matching this exact structure:
 
@@ -91,72 +196,50 @@ export async function POST(request: NextRequest) {
     const rawStrainType = (extractedData.strain_type ?? '').toLowerCase().trim();
     extractedData.strain_type = REAL_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
 
-    // If strain_type is still blank and we have a strain name, look it up via GPT knowledge
-    if (!extractedData.strain_type && extractedData.strain_name) {
-      try {
-        const lookupCompletion = await openai.chat.completions.create({
-          model: 'gpt-4o',
-          messages: [
-            {
-              role: 'user',
-              content: `What is the strain type for the cannabis strain "${extractedData.strain_name}"? Reply with exactly one word: indica, sativa, or hybrid. No other words.`,
-            },
-          ],
-          max_tokens: 10,
-        });
-        const lookedUp = (lookupCompletion.choices[0]?.message?.content ?? '').toLowerCase().trim();
-        if (REAL_STRAIN_TYPES.includes(lookedUp)) {
-          extractedData.strain_type = lookedUp;
-        }
-      } catch {
-        // Best-effort — don't fail the scan if lookup errors
-      }
-    }
-
-    // If THC/CBD are missing and we have a strain name, look up averages via GPT knowledge
+    // If strain name is known and any key fields are missing, enrich via Leafly → Claude
     if (extractedData.strain_name) {
       const productTypeLower = (extractedData.product_type ?? '').toLowerCase();
       const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate');
-      const missingThc = isEdible
-        ? (extractedData.thc_mg == null)
-        : (extractedData.thc_percent == null);
 
-      if (missingThc) {
-        try {
-          const thcPrompt = isEdible
-            ? `What is the typical average THC content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for cannabis edibles. Reply with just a number (e.g. 100). Do not reply with null or text.`
-            : `What is the typical average THC percentage for the cannabis strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for ${extractedData.product_type ?? 'cannabis flower'}. Reply with just a number (e.g. 22). Do not reply with null or text.`;
+      const missingStrainType = !extractedData.strain_type;
+      const missingThc = isEdible ? extractedData.thc_mg == null : extractedData.thc_percent == null;
+      const missingBio = !extractedData.strain_bio;
 
-          const thcLookup = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [{ role: 'user', content: thcPrompt }],
-            max_tokens: 10,
-          });
-          const thcRaw = (thcLookup.choices[0]?.message?.content ?? '').trim();
-          const thcVal = parseFloat(thcRaw);
-          if (!isNaN(thcVal)) {
-            if (isEdible) extractedData.thc_mg = thcVal;
-            else extractedData.thc_percent = thcVal;
-            extractedData.thc_estimated = true;
+      if (missingStrainType || missingThc || missingBio) {
+        const enriched = await enrichFromStrainName(extractedData.strain_name);
+
+        if (missingStrainType && enriched.strain_type) {
+          extractedData.strain_type = enriched.strain_type;
+        }
+        if (missingBio && enriched.strain_bio) {
+          extractedData.strain_bio = enriched.strain_bio;
+        }
+        if (enriched.typical_effects) extractedData.typical_effects = enriched.typical_effects;
+        if (enriched.typical_flavors) extractedData.typical_flavors = enriched.typical_flavors;
+
+        // Fill in THC/CBD from strain averages only if the label didn't have them
+        if (missingThc) {
+          if (isEdible) {
+            if (extractedData.thc_mg == null && enriched.thc_max != null) {
+              extractedData.thc_mg = enriched.thc_max;
+              extractedData.thc_estimated = true;
+            }
+            if (extractedData.cbd_mg == null && enriched.cbd_max != null) {
+              extractedData.cbd_mg = enriched.cbd_max;
+            }
+          } else {
+            if (extractedData.thc_percent == null && enriched.thc_max != null) {
+              extractedData.thc_percent = enriched.thc_max;
+              extractedData.thc_estimated = true;
+            }
+            if (extractedData.cbd_percent == null && enriched.cbd_max != null) {
+              extractedData.cbd_percent = enriched.cbd_max;
+            }
           }
+        }
 
-          const cbdPrompt = isEdible
-            ? `What is the typical average CBD content in milligrams for a standard package of cannabis edibles made with the strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate. Reply with just a number (e.g. 5). Do not reply with null or text.`
-            : `What is the typical average CBD percentage for the cannabis strain "${extractedData.strain_name}"? If you don't know this exact strain, give a reasonable typical estimate for ${extractedData.product_type ?? 'cannabis flower'}. Reply with just a number (e.g. 0.5). Do not reply with null or text.`;
-
-          const cbdLookup = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [{ role: 'user', content: cbdPrompt }],
-            max_tokens: 10,
-          });
-          const cbdRaw = (cbdLookup.choices[0]?.message?.content ?? '').trim();
-          const cbdVal = parseFloat(cbdRaw);
-          if (!isNaN(cbdVal)) {
-            if (isEdible) extractedData.cbd_mg = cbdVal;
-            else extractedData.cbd_percent = cbdVal;
-          }
-        } catch {
-          // Best-effort — don't fail the scan if lookup errors
+        if (enriched.strain_enriched_source) {
+          extractedData.strain_enriched_source = enriched.strain_enriched_source;
         }
       }
     }

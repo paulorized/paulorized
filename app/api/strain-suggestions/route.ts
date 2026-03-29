@@ -17,9 +17,9 @@ interface LeaflyHit {
 }
 
 async function leaflySearch(query: string): Promise<LeaflyHit[]> {
-  // Leafly's autocomplete / name search endpoint
-  const encoded = encodeURIComponent(query.toLowerCase());
-  const url = `https://consumer-api.leafly.com/api/strain_playlists/v2?strain_slug=${encoded}&page=0&take=10`;
+  // Use Leafly's name search — searches across strain names, not just exact slug
+  const q = query.toLowerCase().trim();
+  const url = `https://consumer-api.leafly.com/api/strain_playlists/v2?strain_slug=&page=0&take=10&strain_slug_contains=${encodeURIComponent(q)}`;
   try {
     const res = await fetch(url, {
       headers: LEAFLY_HEADERS,
@@ -27,7 +27,9 @@ async function leaflySearch(query: string): Promise<LeaflyHit[]> {
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return data?.data?.strains ?? [];
+    const hits: LeaflyHit[] = data?.data?.strains ?? [];
+    // Filter client-side to only strains whose name contains the query
+    return hits.filter(h => h.name.toLowerCase().includes(q));
   } catch { return []; }
 }
 

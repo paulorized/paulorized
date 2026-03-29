@@ -12,6 +12,13 @@ export type ExtractedProduct = {
   mg_per_piece: number | null;
   confidence: number;
   thc_estimated?: boolean;
+  typical_effects?: string[];
+  typical_flavors?: string[];
+  thc_min?: number | null;
+  thc_max?: number | null;
+  cbd_min?: number | null;
+  cbd_max?: number | null;
+  strain_enriched_source?: string;
 };
 
 export const emptyProduct: ExtractedProduct = {
