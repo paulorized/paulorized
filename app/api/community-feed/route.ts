@@ -37,7 +37,8 @@ export async function GET(request: Request) {
           strain_name,
           strain_type,
           product_type,
-          thc_percent
+          thc_percent,
+          headshot_url
         )
       `)
       .order('created_at', { ascending: false })
@@ -103,6 +104,7 @@ export async function GET(request: Request) {
         strain_type: log?.strain_type ?? 'unknown',
         product_type: log?.product_type ?? '',
         thc_percent: log?.thc_percent ?? null,
+        nugshot_url: log?.headshot_url ?? null,
         rating: r.rating,
         notes: r.notes ?? null,
         effects: r.effects ?? [],

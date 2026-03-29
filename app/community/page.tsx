@@ -28,6 +28,7 @@ interface FeedItem {
   i_voted: boolean;
   created_at: string;
   is_mine: boolean;
+  nugshot_url: string | null;
 }
 
 const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
@@ -164,6 +165,18 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
       {item.notes?.trim() && (
         <div className="px-4 pb-3">
           <p className="text-sm text-zinc-300 leading-relaxed italic">&ldquo;{item.notes.trim()}&rdquo;</p>
+        </div>
+      )}
+
+      {/* NugShot */}
+      {item.nugshot_url && (
+        <div className="px-4 pb-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={item.nugshot_url}
+            alt={`${item.strain_name || 'Product'} nugshot`}
+            className="w-full max-h-64 rounded-xl object-cover border border-zinc-700/60"
+          />
         </div>
       )}
 
