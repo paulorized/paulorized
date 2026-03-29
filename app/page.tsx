@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
-import { QuickLog } from '@/components/quick-log';
+import { HomeStats } from '@/components/home-stats';
+import { CommunityPreview } from '@/components/community-preview';
 import { PageFooter } from '@/components/page-footer';
 import { ThemeToggle } from '@/components/theme-toggle';
 
@@ -29,7 +30,8 @@ export default async function HomePage() {
         </div>
         <ScanForm />
       </div>
-      <QuickLog />
+      <HomeStats />
+      <CommunityPreview />
       <PageFooter />
     </div>
   );
