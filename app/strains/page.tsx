@@ -10,8 +10,8 @@ interface StrainHit {
   strain_type: string | null;
   thc_min: number | null;
   thc_max: number | null;
-  cbd_min: number | null;
-  cbd_max: number | null;
+  cbd_min?: number | null;
+  cbd_max?: number | null;
   typical_effects?: string[];
   typical_flavors?: string[];
 }
@@ -84,20 +84,14 @@ function StrainCard({ strain }: { strain: StrainHit }) {
       {/* Potency row */}
       <div className="flex flex-col gap-2">
         <ThcBar min={strain.thc_min} max={strain.thc_max} color={type.color} />
-        {/* CBD as inline stat — only show if notably high */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">CBD</span>
-          <span className="text-[10px] font-medium text-sky-400">
-            {strain.cbd_max != null && strain.cbd_max >= 1
-              ? `${strain.cbd_min ?? strain.cbd_max}–${strain.cbd_max}%`
-              : strain.cbd_max != null
-              ? `< 1%`
-              : '—'}
-          </span>
-          {strain.cbd_max != null && strain.cbd_max >= 5 && (
+        {/* Only show CBD if it's notably high (5%+) */}
+        {strain.cbd_max != null && strain.cbd_max >= 5 && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">CBD</span>
+            <span className="text-[10px] font-medium text-sky-400">{strain.cbd_min ?? strain.cbd_max}–{strain.cbd_max}%</span>
             <span className="rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] px-1.5 py-0.5 font-medium">High CBD</span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Effects */}

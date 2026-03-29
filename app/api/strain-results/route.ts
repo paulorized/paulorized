@@ -34,8 +34,6 @@ Each object must have EXACTLY these fields:
 - strain_type: "indica" | "sativa" | "hybrid"
 - thc_min: number (typical min THC %)
 - thc_max: number (typical max THC %)
-- cbd_min: number (typical min CBD %, usually 0.1 for most strains)
-- cbd_max: number (typical max CBD %)
 - typical_effects: array of 3-5 strings (e.g. ["Relaxed", "Happy", "Euphoric"])
 - typical_flavors: array of 3-5 strings (e.g. ["Berry", "Sweet", "Earthy"])
 
