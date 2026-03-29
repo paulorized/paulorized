@@ -116,9 +116,8 @@ JSON array only, no markdown.`,
 
         // Cache results after streaming completes
         if (allResults.length > 0) {
-          db.from('strain_search_cache')
-            .upsert({ query: q, results: allResults as never, created_at: new Date().toISOString() })
-            .then(() => {}).catch(() => {});
+          void db.from('strain_search_cache')
+            .upsert({ query: q, results: allResults as never, created_at: new Date().toISOString() });
         }
       } catch (err) {
         controller.enqueue(encoder.encode(`data: [ERROR] ${err}\n\n`));
