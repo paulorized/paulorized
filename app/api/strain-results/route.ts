@@ -1,56 +1,82 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase.server';
 import { claude } from '@/lib/claude';
+
+// Normalize query for cache key: lowercase, trimmed, collapse spaces
+function normalizeQuery(q: string): string {
+  return q.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+async function askClaude(q: string) {
+  // Lean prompt — fewer tokens = faster response
+  const msg = await claude.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1200,
+    messages: [{
+      role: 'user',
+      content: `Cannabis strain search: "${q}"
+
+Return a JSON array of up to 10 matching real cannabis strains. If the query is a partial name like "diesel" or "gelato", include all strains with that word in the name. Each object:
+{"slug":"blue-dream","name":"Blue Dream","strain_type":"hybrid","thc_min":17,"thc_max":24,"typical_effects":["Relaxed","Happy","Creative"],"typical_flavors":["Berry","Sweet","Earthy"]}
+
+JSON array only, no markdown.`
+    }],
+  });
+
+  const text = msg.content[0].type === 'text' ? msg.content[0].text : '[]';
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  return JSON.parse(cleaned);
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { query, page = 0 } = body;
 
-    if (!query?.trim() || query.trim().length < 1) {
+    if (!query?.trim()) {
       return NextResponse.json({ results: [], total: 0, page, has_more: false });
     }
 
-    // Only fetch page 0 — Claude returns all relevant matches in one shot
     if (page > 0) {
       return NextResponse.json({ results: [], total: 0, page, has_more: false });
     }
 
-    const q = query.trim();
+    const q = normalizeQuery(query);
+    const db = createServerSupabaseClient();
 
-    const prompt = `You are a cannabis strain database. The user searched for: "${q}"
+    // 1. Check cache first
+    const { data: cached } = await db
+      .from('strain_search_cache')
+      .select('results')
+      .eq('query', q)
+      .single();
 
-Return a JSON array of cannabis strains that match or are closely related to this search term.
+    if (cached?.results) {
+      const results = cached.results as unknown[];
+      return NextResponse.json({
+        results,
+        total: results.length,
+        page: 0,
+        has_more: false,
+        source: 'cache',
+      });
+    }
 
-Rules:
-- If the query is a specific strain name, return that strain first, then up to 7 related strains
-- If the query is a partial name (like "diesel" or "gelato"), return ALL strains containing that word, up to 12 results
-- If the query is a general type/effect, return up to 8 best matching strains
-- Always return at least 1 result
-- Results must be real, well-known cannabis strains
+    // 2. Ask Claude (using Haiku — much faster than Sonnet)
+    let results: unknown[] = [];
+    try {
+      results = await askClaude(q);
+      if (!Array.isArray(results)) results = [];
+    } catch {
+      results = [];
+    }
 
-Each object must have EXACTLY these fields:
-- slug: string (lowercase hyphenated, e.g. "blue-dream")
-- name: string (properly capitalized)
-- strain_type: "indica" | "sativa" | "hybrid"
-- thc_min: number (typical min THC %)
-- thc_max: number (typical max THC %)
-- typical_effects: array of 3-5 strings (e.g. ["Relaxed", "Happy", "Euphoric"])
-- typical_flavors: array of 3-5 strings (e.g. ["Berry", "Sweet", "Earthy"])
-
-Return ONLY the JSON array. No markdown, no explanation, no code fences.`;
-
-    const msg = await claude.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const text = msg.content[0].type === 'text' ? msg.content[0].text : '[]';
-    const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-    const results = JSON.parse(cleaned);
-
-    if (!Array.isArray(results)) {
-      return NextResponse.json({ results: [], total: 0, page: 0, has_more: false });
+    // 3. Cache the result for next time (fire and forget)
+    if (results.length > 0) {
+      db.from('strain_search_cache')
+        .upsert({ query: q, results: results as never, created_at: new Date().toISOString() })
+        .then(() => {})
+        .catch(() => {});
     }
 
     return NextResponse.json({

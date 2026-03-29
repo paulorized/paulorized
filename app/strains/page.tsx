@@ -157,15 +157,56 @@ function StrainsInner() {
   const search = useCallback(async (q: string) => {
     if (!q.trim()) return;
     setLoading(true);
+    setResults([]);
+    setTotal(0);
+
     try {
-      const res = await fetch('/api/strain-results', {
+      const res = await fetch('/api/strain-results-stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q.trim(), page: 0, take: 20 }),
+        body: JSON.stringify({ query: q.trim() }),
       });
-      const data = await res.json();
-      setResults(data.results ?? []);
-      setTotal(data.total ?? 0);
+
+      if (!res.ok || !res.body) throw new Error('Stream failed');
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      let count = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+
+        const lines = buf.split('\n');
+        buf = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6).trim();
+          if (payload === '[DONE]' || payload.startsWith('[ERROR]')) break;
+          try {
+            const strain = JSON.parse(payload);
+            count++;
+            setResults(prev => [...prev, strain]);
+            setTotal(count);
+            if (count === 1) setLoading(false); // hide skeleton on first card
+          } catch { /* skip malformed */ }
+        }
+      }
+    } catch {
+      // fallback to regular endpoint
+      try {
+        const res = await fetch('/api/strain-results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q.trim(), page: 0 }),
+        });
+        const data = await res.json();
+        setResults(data.results ?? []);
+        setTotal(data.total ?? 0);
+      } catch { /* ignore */ }
     } finally {
       setLoading(false);
     }
