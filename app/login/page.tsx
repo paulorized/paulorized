@@ -95,7 +95,7 @@ function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-zinc-500">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-emerald-400 hover:underline">Sign up</Link>
+        <Link href="/welcome" className="text-emerald-400 hover:underline">See what&apos;s inside →</Link>
       </p>
     </div>
   );
