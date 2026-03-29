@@ -49,7 +49,6 @@ export function NugShot({ logId, initialUrl }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Nugg-Shot</p>
         {url && !confirmRemove && (
           <button
             type="button"

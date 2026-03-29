@@ -198,7 +198,7 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               t.includes('dab');
             return showNugShot ? (
               <div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">NugShot</p>
+                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">Nugg-Shot</p>
                 <NugShot logId={log.id} initialUrl={log.headshot_url} />
               </div>
             ) : null;
