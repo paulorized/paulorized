@@ -11,4 +11,5 @@ const getEnv = (key: string) => {
 export const env = {
     supabaseServiceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY'),
     openAIApiKey: getEnv('OPENAI_API_KEY'),
+    anthropicApiKey: getEnv('ANTHROPIC_API_KEY'),
 };

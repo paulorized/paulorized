@@ -17,6 +17,7 @@ interface StrainResult {
   best_for: string;
   also_known_as: string[];
   confidence: number;
+  source?: 'leafly' | 'ai';
   not_found?: boolean;
   message?: string;
 }
@@ -27,6 +28,7 @@ interface Suggestion {
   thc_min: number | null;
   thc_max: number | null;
   count: number;
+  source: 'leafly' | 'community';
 }
 
 interface LogMatch {
@@ -229,8 +231,12 @@ function StrainSearchInner() {
           {/* Suggestions dropdown */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
-              <div className="px-3 py-1.5 border-b border-zinc-800">
-                <span className="text-xs text-zinc-500">From the community — tap to search</span>
+              <div className="px-3 py-1.5 border-b border-zinc-800 flex items-center justify-between">
+                <span className="text-xs text-zinc-500">Strain suggestions — tap to search</span>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-xs text-emerald-600"><span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Leafly</span>
+                  <span className="flex items-center gap-1 text-xs text-zinc-500"><span className="inline-block w-1.5 h-1.5 rounded-full bg-zinc-500"></span>Community</span>
+                </div>
               </div>
               {suggestions.map((s) => {
                 const badgeColor = s.strain_type === 'indica' ? 'bg-purple-500/20 text-purple-300' :
@@ -244,13 +250,16 @@ function StrainSearchInner() {
                     onMouseDown={e => { e.preventDefault(); pickSuggestion(s); }}
                     className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-zinc-800 transition"
                   >
-                    <span className="text-sm text-zinc-100 font-medium">{s.strain_name}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`shrink-0 inline-block w-1.5 h-1.5 rounded-full ${s.source === 'leafly' ? 'bg-emerald-500' : 'bg-zinc-500'}`}></span>
+                      <span className="text-sm text-zinc-100 font-medium truncate">{s.strain_name}</span>
+                    </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {thc && <span className="text-xs text-emerald-500">THC {thc}</span>}
                       {s.strain_type && s.strain_type !== 'unknown' && (
                         <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${badgeColor}`}>{s.strain_type}</span>
                       )}
-                      <span className="text-xs text-zinc-600">{s.count}x</span>
+                      {s.source === 'community' && s.count > 0 && <span className="text-xs text-zinc-600">{s.count}x</span>}
                     </div>
                   </button>
                 );
@@ -293,6 +302,18 @@ function StrainSearchInner() {
               {result.also_known_as?.length > 0 && (
                 <p className="mt-0.5 text-xs text-zinc-600">Also known as: {result.also_known_as.join(', ')}</p>
               )}
+              <div className="mt-1.5">
+                {result.source === 'leafly' ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Verified by Leafly
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                    ⚠️ AI Estimate — may not be exact
+                  </span>
+                )}
+              </div>
             </div>
             <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold capitalize ${strainTypeBadge[result.strain_type] ?? strainTypeBadge.unknown}`}>
               {result.strain_type}
