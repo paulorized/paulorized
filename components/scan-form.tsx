@@ -470,8 +470,8 @@ export function ScanForm() {
                 </svg>
               </span>
               <div>
-                <p className="font-semibold text-zinc-100 text-sm">Upload a photo</p>
-                <p className="text-xs text-zinc-500 mt-0.5">Choose from your gallery or files</p>
+                <p className="font-semibold text-zinc-100 text-sm">Photo of your product label</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Include all sides with text — THC%, strain, brand. More photos = better results.</p>
               </div>
               <span className="ml-auto text-zinc-600 text-lg">›</span>
             </div>
@@ -487,7 +487,7 @@ export function ScanForm() {
             </span>
             <div>
               <p className="font-semibold text-zinc-100 text-sm">Scan with camera</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Point at the label to capture it live</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Capture front, back &amp; potency label. Multiple shots welcome — nothing saves to your camera roll.</p>
             </div>
             <span className="ml-auto text-zinc-600 text-lg">›</span>
           </button>
@@ -501,8 +501,8 @@ export function ScanForm() {
               </svg>
             </span>
             <div>
-              <p className="font-semibold text-zinc-100 text-sm">Enter manually</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Type in product details yourself</p>
+              <p className="font-semibold text-zinc-100 text-sm">Search &amp; enter manually</p>
+              <p className="text-xs text-zinc-500 mt-0.5">AI strain search auto-fills THC%, type &amp; effects — or type everything yourself.</p>
             </div>
             <span className="ml-auto text-zinc-600 text-lg">›</span>
           </button>
