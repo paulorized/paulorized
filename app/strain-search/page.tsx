@@ -29,6 +29,7 @@ interface Suggestion {
   thc_max: number | null;
   count: number;
   source: 'leafly' | 'community';
+  slug?: string;
 }
 
 interface LogMatch {
@@ -129,10 +130,14 @@ function StrainSearchInner() {
   }, [result]);
 
   const pickSuggestion = (s: Suggestion) => {
-    setQuery(s.strain_name);
     setShowSuggestions(false);
     setSuggestions([]);
-    doSearch(s.strain_name);
+    // If we have a slug (Leafly source), go to detail page; otherwise search
+    if (s.source === 'leafly' && s.slug) {
+      window.location.href = `/strains/${s.slug}`;
+    } else {
+      window.location.href = `/strains?q=${encodeURIComponent(s.strain_name)}`;
+    }
   };
 
   const doSearch = async (q: string) => {
@@ -176,7 +181,10 @@ function StrainSearchInner() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    doSearch(query);
+    const q = query.trim();
+    if (!q) return;
+    // Redirect to results grid page
+    window.location.href = `/strains?q=${encodeURIComponent(q)}`;
   };
 
   const toggleWishlist = async () => {

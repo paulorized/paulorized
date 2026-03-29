@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       thc_max: number | null;
       source: 'leafly' | 'community';
       count: number;
+      slug?: string;
     }>();
 
     // Leafly results first — these are authoritative
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
         thc_max: hit.strain_playlist_details?.thc_max ?? null,
         source: 'leafly',
         count: 0,
+        slug: hit.strain_slug,
       });
     }
 
