@@ -29,6 +29,7 @@ interface FeedItem {
   created_at: string;
   is_mine: boolean;
   nugshot_url: string | null;
+  scan_count: number;
 }
 
 const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
@@ -128,7 +129,7 @@ function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id:
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm text-zinc-100">{item.username ?? 'Anonymous'}</span>
-            <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
+            <span className="text-xs text-zinc-600">{item.scan_count ?? 0} logs</span>
             <span className="text-xs text-zinc-600 ml-auto shrink-0">{timeAgo(item.created_at)}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 flex-wrap">
@@ -216,6 +217,7 @@ function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id:
           Helpful
           {localCount > 0 && <span className={`ml-0.5 ${localVoted ? 'text-emerald-400' : 'text-zinc-500'}`}>{localCount}</span>}
         </button>
+        <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
         {item.is_mine && <span className="text-xs text-zinc-600 italic">Your review</span>}
       </div>
     </div>
