@@ -73,10 +73,8 @@ export async function POST(request: NextRequest) {
 
     // 3. Cache the result for next time (fire and forget)
     if (results.length > 0) {
-      db.from('strain_search_cache')
-        .upsert({ query: q, results: results as never, created_at: new Date().toISOString() })
-        .then(() => {})
-        .catch(() => {});
+      void db.from('strain_search_cache')
+        .upsert({ query: q, results: results as never, created_at: new Date().toISOString() });
     }
 
     return NextResponse.json({
