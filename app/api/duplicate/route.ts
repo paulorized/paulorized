@@ -35,8 +35,10 @@ export async function POST(request: NextRequest) {
         .single();
       if (rev) sourceReview = rev;
     } else if (product) {
-      // Duplicate from top-scans (no existing log id, no review to copy)
-      insertData = { ...product, user_id: user.id };
+      // Duplicate from top-scans — strip non-DB fields like `count` before insert
+      const { count: _count, ...productFields } = product;
+      void _count;
+      insertData = { ...productFields, user_id: user.id };
     } else {
       return NextResponse.json({ error: 'product_log_id or product required' }, { status: 400 });
     }

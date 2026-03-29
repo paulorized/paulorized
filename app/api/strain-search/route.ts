@@ -20,7 +20,9 @@ Return ONLY a JSON object with this exact structure (no markdown, no explanation
   "not_found": false
 }
 
-If the strain is not recognized or the query is too vague, return:
+Only return not_found if the query is clearly not a cannabis strain (e.g. gibberish, a food item with no known strain variant, a non-cannabis term). If it could plausibly be a real strain name — even a lesser-known or regional one — return your best knowledge with a lower confidence score rather than not_found.
+
+If truly unrecognizable, return:
 {
   "not_found": true,
   "message": "Brief explanation of what you couldn't find"
@@ -31,8 +33,9 @@ Rules:
 - typical_flavors: common flavor descriptors like Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint
 - thc_min/thc_max: typical percentage range (e.g. 18, 24). Null if truly unknown.
 - cbd_min/cbd_max: null if negligible (under 1%)
-- confidence: 1.0 = very well-known strain, 0.5 = moderately known, 0.0 = not recognized
-- Do NOT invent information. Only include what is generally accepted.`;
+- confidence: 1.0 = very well-known strain, 0.5 = moderately known, 0.2 = lesser-known but plausible
+- Do NOT invent information. Only include what is generally accepted.
+- When in doubt, return results with low confidence rather than not_found.`;
 
 export async function POST(request: NextRequest) {
   try {

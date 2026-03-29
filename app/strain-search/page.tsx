@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, Suspense } from 'react';
+import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -19,6 +19,14 @@ interface StrainResult {
   confidence: number;
   not_found?: boolean;
   message?: string;
+}
+
+interface Suggestion {
+  strain_name: string;
+  strain_type: string | null;
+  thc_min: number | null;
+  thc_max: number | null;
+  count: number;
 }
 
 interface LogMatch {
@@ -63,7 +71,41 @@ function StrainSearchInner() {
   const [logMatches, setLogMatches] = useState<LogMatch[]>([]);
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const suggestTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const fetchSuggestions = useCallback(async (q: string) => {
+    if (q.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
+    try {
+      const res = await fetch('/api/strain-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q.trim() }),
+      });
+      const data = await res.json();
+      const s = data.suggestions ?? [];
+      setSuggestions(s);
+      setShowSuggestions(s.length > 0);
+    } catch {}
+  }, []);
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val);
+    if (suggestTimerRef.current) clearTimeout(suggestTimerRef.current);
+    suggestTimerRef.current = setTimeout(() => fetchSuggestions(val), 300);
+  };
 
   useEffect(() => {
     setRecent(getRecent());
@@ -84,6 +126,13 @@ function StrainSearchInner() {
       .catch(() => {});
   }, [result]);
 
+  const pickSuggestion = (s: Suggestion) => {
+    setQuery(s.strain_name);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    doSearch(s.strain_name);
+  };
+
   const doSearch = async (q: string) => {
     const trimmed = q.trim();
     if (!trimmed) return;
@@ -92,6 +141,8 @@ function StrainSearchInner() {
     setResult(null);
     setLogMatches([]);
     setWishlisted(false);
+    setShowSuggestions(false);
+    setSuggestions([]);
     try {
       const res = await fetch('/api/strain-search', {
         method: 'POST',
@@ -165,13 +216,46 @@ function StrainSearchInner() {
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
-        <div className="relative flex-1">
-          <input ref={inputRef} type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder="e.g. Blue Dream, OG Kush, Gelato..."
+        <div className="relative flex-1" ref={formRef}>
+          <input ref={inputRef} type="text" value={query}
+            onChange={e => handleQueryChange(e.target.value)}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+            placeholder="e.g. Blue Dream, Cherry, Gelato..."
             className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 pr-10 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none" />
           {query && (
-            <button type="button" onClick={() => { setQuery(''); setResult(null); setError(''); setLogMatches([]); inputRef.current?.focus(); }}
+            <button type="button" onClick={() => { setQuery(''); setResult(null); setError(''); setLogMatches([]); setSuggestions([]); setShowSuggestions(false); inputRef.current?.focus(); }}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600 hover:text-zinc-400">&#x2715;</button>
+          )}
+          {/* Suggestions dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
+              <div className="px-3 py-1.5 border-b border-zinc-800">
+                <span className="text-xs text-zinc-500">From the community — tap to search</span>
+              </div>
+              {suggestions.map((s) => {
+                const badgeColor = s.strain_type === 'indica' ? 'bg-purple-500/20 text-purple-300' :
+                  s.strain_type === 'sativa' ? 'bg-yellow-500/20 text-yellow-300' :
+                  s.strain_type === 'hybrid' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-zinc-700 text-zinc-400';
+                const thc = s.thc_min != null && s.thc_max != null
+                  ? s.thc_min === s.thc_max ? `${s.thc_min}%` : `${s.thc_min}–${s.thc_max}%`
+                  : null;
+                return (
+                  <button key={s.strain_name} type="button"
+                    onMouseDown={e => { e.preventDefault(); pickSuggestion(s); }}
+                    className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-zinc-800 transition"
+                  >
+                    <span className="text-sm text-zinc-100 font-medium">{s.strain_name}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {thc && <span className="text-xs text-emerald-500">THC {thc}</span>}
+                      {s.strain_type && s.strain_type !== 'unknown' && (
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${badgeColor}`}>{s.strain_type}</span>
+                      )}
+                      <span className="text-xs text-zinc-600">{s.count}x</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
         <button type="submit" disabled={loading || !query.trim()}
