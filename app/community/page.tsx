@@ -78,7 +78,7 @@ function Stars({ rating }: { rating: number | null }) {
   );
 }
 
-function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted: boolean) => void }) {
+function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id: string, voted: boolean) => void; onImageClick: (url: string) => void }) {
   const [voting, setVoting] = useState(false);
   const [localVoted, setLocalVoted] = useState(!!item.i_voted);
   const [localCount, setLocalCount] = useState(item.helpful_count ?? 0);
@@ -175,7 +175,8 @@ function FeedCard({ item, onVote }: { item: FeedItem; onVote: (id: string, voted
           <img
             src={item.nugshot_url}
             alt={`${item.strain_name || 'Product'} nugshot`}
-            className="w-full max-h-64 rounded-xl object-cover border border-zinc-700/60"
+            onClick={() => onImageClick(item.nugshot_url!)}
+            className="w-full max-h-64 rounded-xl object-cover border border-zinc-700/60 cursor-zoom-in transition hover:brightness-110"
           />
         </div>
       )}
@@ -227,6 +228,7 @@ export default function CommunityPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const loadFeed = useCallback(async (cursor?: string) => {
     const url = '/api/community-feed' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '');
@@ -310,13 +312,38 @@ export default function CommunityPage() {
 
       {!loading && feed.length > 0 && (
         <div className="space-y-4">
-          {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} />)}
+          {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} />)}
           {nextCursor && (
             <button onClick={handleLoadMore} disabled={loadingMore}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">
               {loadingMore ? 'Loading...' : 'Load more'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 rounded-full bg-zinc-800/80 p-2 text-zinc-300 hover:text-white transition"
+            aria-label="Close"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxUrl}
+            alt="NugShot full view"
+            onClick={e => e.stopPropagation()}
+            className="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl"
+          />
         </div>
       )}
     </div>
