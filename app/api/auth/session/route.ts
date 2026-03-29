@@ -29,28 +29,22 @@ export async function POST(request: NextRequest) {
   return response;
 }
 
-// Called on sign-out to clear server-side session cookies
+// Called on sign-out to explicitly expire all Supabase auth cookies server-side
 export async function DELETE(request: NextRequest) {
   const response = NextResponse.json({ success: true });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
+  // Expire every sb-* cookie (Supabase auth cookies)
+  request.cookies.getAll().forEach((cookie) => {
+    if (cookie.name.startsWith('sb-')) {
+      response.cookies.set(cookie.name, '', {
+        maxAge: 0,
+        path: '/',
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      });
     }
-  );
-
-  await supabase.auth.signOut();
+  });
 
   return response;
 }
