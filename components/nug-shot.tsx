@@ -89,7 +89,7 @@ export function NugShot({ logId, initialUrl }: Props) {
       ) : (
         /* Upload prompt */
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-yellow-400/80">Show off your bud before it&apos;s gone — photos are yours privately, never used for scanning. 📸</p>
+          <p className="text-xs text-yellow-400/80">Show off your bud to the community — your nugg-shot gets posted with your review. 📸</p>
           <div className="flex gap-2">
             {/* Camera capture */}
             <button
