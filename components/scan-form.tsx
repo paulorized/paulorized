@@ -49,6 +49,14 @@ export function ScanForm() {
   const [isLooking, setIsLooking] = useState(false);
   const [lookupError, setLookupError] = useState('');
   const [lookupDone, setLookupDone] = useState(false);
+  // New manual entry state
+  const [strainResults, setStrainResults] = useState<Array<{slug:string;name:string;strain_type:string;thc_min:number|null;thc_max:number|null;typical_effects?:string[];typical_flavors?:string[]}>>([]);
+  const [selectedStrain, setSelectedStrain] = useState<typeof strainResults[0] | null>(null);
+  const [strainSearchQuery, setStrainSearchQuery] = useState('');
+  const [isSearchingStrains, setIsSearchingStrains] = useState(false);
+  const [showOzConverter, setShowOzConverter] = useState(false);
+  const [ozInput, setOzInput] = useState('');
+  const strainSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Reset form when ?reset=1 is in the URL (logo click)
   useEffect(() => {
@@ -64,6 +72,11 @@ export function ScanForm() {
       setManualStrain('');
       setLookupError('');
       setLookupDone(false);
+      setStrainResults([]);
+      setSelectedStrain(null);
+      setStrainSearchQuery('');
+      setShowOzConverter(false);
+      setOzInput('');
     }
   }, [searchParams]);
 
@@ -213,6 +226,11 @@ export function ScanForm() {
     setManualStrain('');
     setLookupError('');
     setLookupDone(false);
+    setStrainResults([]);
+    setSelectedStrain(null);
+    setStrainSearchQuery('');
+    setShowOzConverter(false);
+    setOzInput('');
   };
 
   const handleStrainLookup = async () => {
@@ -586,6 +604,63 @@ export function ScanForm() {
 
   // ── Manual entry mode ──
   if (mode === 'manual') {
+    const typeConfig: Record<string, {color: string; icon: string}> = {
+      indica:  { color: 'text-purple-300 border-purple-500/30 bg-purple-500/10', icon: '🌙' },
+      sativa:  { color: 'text-yellow-300 border-yellow-500/30 bg-yellow-500/10', icon: '☀️' },
+      hybrid:  { color: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10', icon: '⚡' },
+      unknown: { color: 'text-zinc-400 border-zinc-600 bg-zinc-800/50', icon: '🌿' },
+    };
+
+    const handleStrainSearch = (q: string) => {
+      setStrainSearchQuery(q);
+      setSelectedStrain(null);
+      if (strainSearchTimer.current) clearTimeout(strainSearchTimer.current);
+      if (!q.trim()) { setStrainResults([]); return; }
+      strainSearchTimer.current = setTimeout(async () => {
+        setIsSearchingStrains(true);
+        try {
+          const res = await fetch('/api/strain-results-stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: q.trim() }),
+          });
+          const data = await res.json();
+          setStrainResults(data.results ?? []);
+        } catch { setStrainResults([]); }
+        finally { setIsSearchingStrains(false); }
+      }, 400);
+    };
+
+    const handlePopulate = async () => {
+      if (!selectedStrain) return;
+      setIsLooking(true);
+      setLookupError('');
+      try {
+        const res = await fetch('/api/strain-lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ strain: selectedStrain.name }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? 'Lookup failed.');
+        setResult(prev => ({ ...prev, ...data.product }));
+        setLookupDone(true);
+      } catch (err) {
+        // Fallback: use what we already have from the search results
+        setResult(prev => ({
+          ...prev,
+          strain_name: selectedStrain.name,
+          strain_type: selectedStrain.strain_type,
+          thc_percent: selectedStrain.thc_max ?? prev.thc_percent,
+          thc_estimated: true,
+        }));
+        setLookupDone(true);
+        setLookupError(err instanceof Error ? err.message : 'Using search result data.');
+      } finally {
+        setIsLooking(false);
+      }
+    };
+
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
@@ -594,13 +669,78 @@ export function ScanForm() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">1</span>
               <h2 className="font-semibold text-zinc-100">Enter product details</h2>
             </div>
-            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setStrainResults([]); setSelectedStrain(null); setStrainSearchQuery(''); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
           </div>
 
-          {/* Brand + Strain search */}
-          <div className="space-y-3 rounded-xl border border-zinc-700/60 bg-zinc-950/50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Quick search</p>
-            <p className="text-xs text-zinc-500">Enter a brand and/or strain name to auto-fill details.</p>
+          {/* STEP 1 — Strain search */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Step 1 — Find your strain</p>
+            <div className="relative">
+              <input
+                className={inputClass}
+                type="text"
+                placeholder="Search strain name… e.g. Gelato, GMO, Diesel"
+                value={strainSearchQuery}
+                onChange={e => handleStrainSearch(e.target.value)}
+                autoComplete="off"
+              />
+              {isSearchingStrains && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-500 animate-pulse">Searching…</span>
+              )}
+            </div>
+
+            {/* Strain result cards — compact */}
+            {strainResults.length > 0 && (
+              <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-0.5">
+                {strainResults.map(s => {
+                  const tc = typeConfig[s.strain_type] ?? typeConfig.unknown;
+                  const isSelected = selectedStrain?.slug === s.slug;
+                  const thc = s.thc_min != null && s.thc_max != null
+                    ? `${s.thc_min}–${s.thc_max}%`
+                    : s.thc_max != null ? `~${s.thc_max}%` : null;
+                  return (
+                    <button
+                      key={s.slug}
+                      type="button"
+                      onClick={() => setSelectedStrain(isSelected ? null : s)}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
+                        isSelected
+                          ? 'border-emerald-500/50 bg-emerald-500/10'
+                          : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
+                      }`}
+                    >
+                      <span className="text-base leading-none">{tc.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-zinc-100">{s.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {thc && <span className="text-xs text-emerald-400 font-medium">{thc} THC</span>}
+                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize ${tc.color}`}>{s.strain_type}</span>
+                        {isSelected && <span className="text-emerald-400 text-sm">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {selectedStrain && (
+              <button
+                type="button"
+                onClick={handlePopulate}
+                disabled={isLooking}
+                className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
+              >
+                {isLooking ? '⏳ Loading strain data…' : `✦ Populate details for ${selectedStrain.name}`}
+              </button>
+            )}
+            {lookupDone && !lookupError && <p className="text-xs text-emerald-400">✓ Fields pre-filled from StrainAI — review and adjust below.</p>}
+            {lookupError && lookupDone && <p className="text-xs text-amber-400">⚠️ {lookupError}</p>}
+          </div>
+
+          {/* STEP 2 — Product type + Brand */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Step 2 — Product details</p>
             <div className="grid grid-cols-2 gap-3">
               <label>
                 <span className="mb-1.5 block text-xs text-zinc-500">Brand</span>
@@ -608,105 +748,116 @@ export function ScanForm() {
                   className={inputClass}
                   type="text"
                   placeholder="e.g. Cookies"
-                  value={manualBrand}
-                  onChange={(e) => setManualBrand(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleStrainLookup(); } }}
+                  value={String(result.brand ?? '')}
+                  onChange={e => handleFieldChange('brand', e.target.value)}
                 />
               </label>
               <label>
-                <span className="mb-1.5 block text-xs text-zinc-500">Strain name</span>
-                <input
+                <span className="mb-1.5 block text-xs text-zinc-500">Product type</span>
+                <select
                   className={inputClass}
-                  type="text"
-                  placeholder="e.g. Wedding Cake"
-                  value={manualStrain}
-                  onChange={(e) => setManualStrain(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleStrainLookup(); } }}
-                />
+                  value={result.product_type ?? ''}
+                  onChange={e => handleFieldChange('product_type', e.target.value)}
+                >
+                  <option value="">Select type…</option>
+                  {PRODUCT_TYPES.map(t => <option key={t} value={t.toLowerCase()}>{t}</option>)}
+                </select>
               </label>
             </div>
-            {lookupError && <p className="text-xs text-rose-400">{lookupError}</p>}
-            {lookupDone && <p className="text-xs text-emerald-400">✓ Fields pre-filled — review and adjust below.</p>}
-            <button
-              type="button"
-              onClick={handleStrainLookup}
-              disabled={isLooking || (!manualBrand.trim() && !manualStrain.trim())}
-              className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLooking ? '🔍 Searching…' : '🔍 Search & auto-fill'}
-            </button>
+
+            {/* Weight — locked to grams with oz converter */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-zinc-500">Weight <span className="text-zinc-600">(grams only)</span></span>
+                <button
+                  type="button"
+                  onClick={() => setShowOzConverter(v => !v)}
+                  className="text-[10px] text-emerald-500 hover:text-emerald-400 transition"
+                >
+                  {showOzConverter ? '✕ close converter' : '⚖️ oz → g converter'}
+                </button>
+              </div>
+              {showOzConverter && (
+                <div className="flex items-center gap-2 rounded-xl border border-zinc-700/60 bg-zinc-950/60 px-3 py-2">
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="oz"
+                    value={ozInput}
+                    onChange={e => {
+                      setOzInput(e.target.value);
+                      const oz = parseFloat(e.target.value);
+                      if (!isNaN(oz)) handleFieldChange('weight', String(Math.round(oz * 28.3495 * 100) / 100));
+                    }}
+                    className="w-20 rounded-lg border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none focus:border-emerald-500/50"
+                  />
+                  <span className="text-xs text-zinc-500">oz</span>
+                  <span className="text-zinc-600">→</span>
+                  <span className="text-sm font-semibold text-emerald-400">
+                    {ozInput && !isNaN(parseFloat(ozInput))
+                      ? `${Math.round(parseFloat(ozInput) * 28.3495 * 100) / 100}g`
+                      : '—'}
+                  </span>
+                  <span className="text-xs text-zinc-500">grams</span>
+                </div>
+              )}
+              <input
+                className={inputClass}
+                type="number"
+                step="0.01"
+                placeholder="e.g. 3.5"
+                value={String(result.weight ?? '')}
+                onChange={e => handleFieldChange('weight', e.target.value)}
+              />
+            </div>
           </div>
 
-          {/* Full form */}
-          {sections.map(({ title, keys }) => (
-            <div key={title} className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{title}</p>
-              <div className="grid grid-cols-2 gap-3">
-                {/* Product type dropdown in Product section */}
-                {title === 'Product' && (
-                  <label>
-                    <span className="mb-1.5 block text-xs text-zinc-500">Product type</span>
-                    <select
-                      className={inputClass}
-                      value={result.product_type ?? ''}
-                      onChange={(e) => handleFieldChange('product_type', e.target.value)}
-                    >
-                      <option value="">Select type…</option>
-                      {PRODUCT_TYPES.map(t => <option key={t} value={t.toLowerCase()}>{t}</option>)}
-                    </select>
-                  </label>
-                )}
-                {/* Strain type dropdown in Strain section */}
-                {title === 'Strain' && (
-                  <label>
-                    <span className="mb-1.5 block text-xs text-zinc-500">Strain type</span>
-                    <select
-                      className={inputClass}
-                      value={result.strain_type ?? ''}
-                      onChange={(e) => handleFieldChange('strain_type', e.target.value)}
-                    >
-                      <option value="">Select type…</option>
-                      {STRAIN_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                    </select>
-                  </label>
-                )}
-                {keys.filter(f => f.key !== 'strain_type').map(({ key, label, type }) => (
-                  <label key={key} className={key === 'strain_bio' ? 'col-span-2' : ''}>
-                    <span className="mb-1.5 block text-xs text-zinc-500">{label}</span>
-                    {key === 'strain_bio' ? (
-                      <textarea
-                        className={`${inputClass} min-h-20 resize-none`}
-                        placeholder={`Enter ${label.toLowerCase()}…`}
-                        value={result[key] === null ? '' : String(result[key])}
-                        onChange={(e) => handleFieldChange(key, e.target.value)}
-                      />
-                    ) : (
-                      <input
-                        className={inputClass}
-                        type={type === 'number' ? 'number' : 'text'}
-                        step={type === 'number' ? '0.01' : undefined}
-                        placeholder={type === 'number' ? '0' : `Enter ${label.toLowerCase()}…`}
-                        value={result[key] === null ? '' : String(result[key])}
-                        onChange={(e) => handleFieldChange(key, e.target.value)}
-                      />
-                    )}
-                  </label>
-                ))}
-              </div>
+          {/* STEP 3 — Potency + extras */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Step 3 — Potency <span className="text-zinc-700 normal-case font-normal">(edit if needed)</span></p>
+            <div className="grid grid-cols-2 gap-3">
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">THC %</span>
+                <input className={inputClass} type="number" step="0.01" placeholder="e.g. 23.5"
+                  value={result.thc_percent === null ? '' : String(result.thc_percent)}
+                  onChange={e => handleFieldChange('thc_percent', e.target.value)} />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">CBD %</span>
+                <input className={inputClass} type="number" step="0.01" placeholder="e.g. 0.1"
+                  value={result.cbd_percent === null ? '' : String(result.cbd_percent)}
+                  onChange={e => handleFieldChange('cbd_percent', e.target.value)} />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">THC mg (total)</span>
+                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
+                  value={result.thc_mg === null ? '' : String(result.thc_mg)}
+                  onChange={e => handleFieldChange('thc_mg', e.target.value)} />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">mg per piece</span>
+                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
+                  value={result.mg_per_piece === null ? '' : String(result.mg_per_piece)}
+                  onChange={e => handleFieldChange('mg_per_piece', e.target.value)} />
+              </label>
             </div>
-          ))}
+            {result.thc_estimated && (
+              <p className="text-xs text-amber-400/80">⚠️ THC is an AI estimate — update if you know the exact %.</p>
+            )}
+          </div>
 
           {/* Dispensary */}
           <div ref={dispensaryRef} className="relative">
-            <input className={inputClass} type="text" placeholder="📍 Dispensary (optional)"
+            <p className="mb-1.5 text-xs text-zinc-500">📍 Dispensary <span className="text-zinc-700">(optional)</span></p>
+            <input className={inputClass} type="text" placeholder="Where did you get it?"
               value={dispensaryName}
-              onChange={(e) => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
+              onChange={e => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
               onFocus={() => setShowDispensaryDropdown(true)}
               autoComplete="off"
             />
             {showDispensaryDropdown && filteredDispensaries.length > 0 && (
               <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
-                {filteredDispensaries.map((d) => (
+                {filteredDispensaries.map(d => (
                   <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
                     className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
                     📍 {d}
@@ -722,17 +873,6 @@ export function ScanForm() {
             className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
             {isSaving ? 'Saving…' : '💾 Save to my log'}
           </button>
-
-          <button type="button" onClick={() => setShowJson(v => !v)}
-            className="flex items-center gap-1.5 text-xs text-zinc-700 hover:text-zinc-500 transition">
-            <span>{showJson ? '▾' : '▸'}</span>
-            <span>{showJson ? 'Hide' : 'Show'} raw JSON</span>
-          </button>
-          {showJson && (
-            <pre className="overflow-x-auto rounded-xl bg-zinc-950 p-4 text-xs text-emerald-400">
-              {JSON.stringify(result, null, 2)}
-            </pre>
-          )}
         </div>
       </div>
     );
