@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase.server';
+import { claude } from '@/lib/claude';
 
 const LEAFLY_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -38,17 +39,99 @@ async function fetchLeaflyPage(page: number, take: number) {
   return { strains: [], source: 'failed', status: res.status };
 }
 
-// Mode: 'page' = page through Leafly bulk, 'slugs' = import specific slugs, 'community' = import from your logs
+interface ClaudeStrainData {
+  name: string;
+  slug: string;
+  strain_type: 'indica' | 'sativa' | 'hybrid' | 'unknown';
+  thc_min: number | null;
+  thc_max: number | null;
+  cbd_min: number | null;
+  cbd_max: number | null;
+  strain_bio: string | null;
+  typical_effects: string[];
+  typical_flavors: string[];
+}
+
+async function seedBatchWithClaude(strainNames: string[]): Promise<ClaudeStrainData[]> {
+  const prompt = `You are a cannabis strain database. For each strain name below, provide accurate data in JSON format.
+
+Strain names: ${strainNames.map(n => `"${n}"`).join(', ')}
+
+Return a JSON array where each element has these exact fields:
+- name: string (official strain name, properly capitalized)
+- slug: string (lowercase hyphenated, e.g. "blue-dream")
+- strain_type: "indica" | "sativa" | "hybrid" | "unknown"
+- thc_min: number or null (typical minimum THC %, e.g. 18)
+- thc_max: number or null (typical maximum THC %, e.g. 24)
+- cbd_min: number or null (typical minimum CBD %)
+- cbd_max: number or null (typical maximum CBD %)
+- strain_bio: string (2-3 sentence description of the strain)
+- typical_effects: array of up to 5 effect strings (e.g. ["Relaxed", "Happy", "Euphoric"])
+- typical_flavors: array of up to 5 flavor strings (e.g. ["Berry", "Sweet", "Earthy"])
+
+Return ONLY the JSON array, no markdown, no explanation.`;
+
+  const msg = await claude.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4000,
+    messages: [{ role: 'user', content: prompt }],
+  });
+
+  const text = msg.content[0].type === 'text' ? msg.content[0].text : '';
+  // Strip markdown code fences if present
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+  const parsed = JSON.parse(cleaned);
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+// Mode: 'page' = page through Leafly bulk, 'slugs' = import specific slugs, 'community' = import from your logs, 'claude' = seed with Claude AI
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { secret, mode = 'page', page = 0, take = 100, slugs } = body;
+    const { secret, mode = 'page', page = 0, take = 100, slugs, names, batch_size = 20 } = body;
 
     if (secret !== process.env.STRAIN_IMPORT_SECRET) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const db = createServerSupabaseClient();
+
+    // Mode: seed using Claude AI with a list of strain names
+    if (mode === 'claude' && Array.isArray(names)) {
+      let imported = 0;
+      const errors: string[] = [];
+
+      // Process in batches to avoid token limits
+      for (let i = 0; i < names.length; i += batch_size) {
+        const batch = names.slice(i, i + batch_size);
+        try {
+          const strains = await seedBatchWithClaude(batch);
+          const rows = strains.map(s => ({
+            slug: s.slug,
+            name: s.name,
+            strain_type: s.strain_type,
+            thc_min: s.thc_min,
+            thc_max: s.thc_max,
+            cbd_min: s.cbd_min,
+            cbd_max: s.cbd_max,
+            strain_bio: s.strain_bio,
+            typical_effects: s.typical_effects ?? [],
+            typical_flavors: s.typical_flavors ?? [],
+            nugshot_url: null,
+            leafly_url: `https://www.leafly.com/strains/${s.slug}`,
+            updated_at: new Date().toISOString(),
+          }));
+          const { error } = await db.from('strains').upsert(rows, { onConflict: 'slug' });
+          if (error) throw error;
+          imported += rows.length;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          errors.push(`batch_${i}: ${msg}`);
+        }
+      }
+
+      return NextResponse.json({ imported, errors, total: names.length, done: true, source: 'claude' });
+    }
 
     // Mode: import specific slugs (most reliable since single lookups work)
     if (mode === 'slugs' && Array.isArray(slugs)) {
