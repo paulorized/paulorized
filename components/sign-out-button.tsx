@@ -9,8 +9,9 @@ export default function SignOutButton() {
   async function handleSignOut() {
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
-    router.push('/login');
-    router.refresh();
+    // Clear the server-side session cookie too
+    await fetch('/api/auth/session', { method: 'DELETE' });
+    window.location.href = '/login';
   }
 
   return (
