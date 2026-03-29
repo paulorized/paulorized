@@ -310,9 +310,8 @@ function ProfilePage() {
         type="button"
         onClick={async () => {
           const supabase = createBrowserSupabaseClient();
-          await supabase.auth.signOut();
-          router.push('/login');
-          router.refresh();
+          await supabase.auth.signOut({ scope: 'global' });
+          window.location.replace('/login');
         }}
         className="mt-4 w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
         Sign out
