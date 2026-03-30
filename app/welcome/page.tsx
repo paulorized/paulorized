@@ -14,7 +14,7 @@ export default async function WelcomePage() {
       {/* ── Nav ── */}
       <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/60">
         <span className="text-xl font-bold tracking-tight">
-          <span className="text-emerald-400">Canna</span><span className="text-white">Base</span><span className="text-yellow-400">AI</span>
+          <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
         </span>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-200 transition">Sign in</Link>
