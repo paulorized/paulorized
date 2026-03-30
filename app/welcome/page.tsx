@@ -11,19 +11,6 @@ export default async function WelcomePage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
 
-      {/* ── Nav ── */}
-      <nav className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/60">
-        <span className="text-xl font-bold tracking-tight">
-          <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
-        </span>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-zinc-400 hover:text-zinc-200 transition">Sign in</Link>
-          <Link href="/signup" className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
-            Get started free
-          </Link>
-        </div>
-      </nav>
-
       {/* ── Hero ── */}
       <section className="mx-auto max-w-2xl px-6 pt-16 pb-12 text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
