@@ -33,7 +33,7 @@ export default function SignupPage() {
           refresh_token: data.session.refresh_token,
         }),
       });
-      window.location.href = '/';
+      window.location.href = '/profile?setup=1';
       return;
     }
 
