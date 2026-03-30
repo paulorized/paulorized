@@ -84,7 +84,6 @@ function ProfilePage() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Fetch connoisseur tier
   useEffect(() => {
     fetch('/api/my-tier', { credentials: 'include' })
       .then(r => r.json())
@@ -107,10 +106,7 @@ function ProfilePage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('A username is required to continue.');
-      return;
-    }
+    if (!username.trim()) { setError('A username is required to continue.'); return; }
     setSaving(true);
     setError('');
     setSuccess('');
@@ -142,10 +138,10 @@ function ProfilePage() {
       </div>
     );
   }
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
 
-      {/* Setup mode banner */}
       {isSetup && (
         <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-center">
           <div className="text-2xl mb-1">👋</div>
@@ -158,11 +154,8 @@ function ProfilePage() {
       <div className="mb-8 flex flex-col items-center gap-4">
         <div className="relative">
           {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Your avatar"
-              className="h-24 w-24 rounded-full border-2 border-emerald-500/50 bg-zinc-800 object-cover"
-            />
+            <img src={avatarUrl} alt="Your avatar"
+              className="h-24 w-24 rounded-full border-2 border-emerald-500/50 bg-zinc-800 object-cover" />
           ) : (
             <div className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-600 bg-zinc-800 flex items-center justify-center">
               <span className="text-3xl">👤</span>
@@ -174,7 +167,6 @@ function ProfilePage() {
             </div>
           )}
         </div>
-
         <div className="flex gap-3">
           <button type="button" onClick={() => uploadInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400">
@@ -185,14 +177,11 @@ function ProfilePage() {
             📷 Take photo
           </button>
         </div>
-
         <input ref={uploadInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden"
           onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }} />
         <input ref={cameraInputRef} type="file" accept="image/*" capture="user" className="hidden"
           onChange={e => { if (e.target.files?.[0]) handleAvatarChange(e.target.files[0]); }} />
-
         {avatarError && <p className="text-xs text-rose-400">{avatarError}</p>}
-
         <div className="text-center">
           <h1 className="text-xl font-bold text-zinc-100">
             {profile?.username ? `@${profile.username}` : 'Set up your profile'}
@@ -212,10 +201,7 @@ function ProfilePage() {
       {/* Profile form */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
         <h2 className="mb-6 text-base font-semibold text-zinc-100">Profile details</h2>
-
         <form onSubmit={handleSave} className="flex flex-col gap-5">
-
-          {/* Username */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-zinc-400">Username <span className="text-rose-400">*</span></label>
             <div className="relative">
@@ -227,16 +213,12 @@ function ProfilePage() {
             </div>
             <p className="text-xs text-zinc-600">3–20 characters, letters, numbers, underscores only.</p>
           </div>
-
-          {/* Date of Birth */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-zinc-400">Date of birth <span className="text-rose-400">*</span></label>
             <input type="date" required value={dob} max={maxDob} onChange={e => setDob(e.target.value)}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none" />
             <p className="text-xs text-zinc-600">You must be 21 or older to use CannaBaseAI.</p>
           </div>
-
-          {/* State */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-zinc-400">State</label>
             <select value={state} onChange={e => setState(e.target.value)}
@@ -250,8 +232,6 @@ function ProfilePage() {
               </optgroup>
             </select>
           </div>
-
-          {/* Sex */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-zinc-400">Sex</label>
             <div className="flex gap-3">
@@ -272,20 +252,12 @@ function ProfilePage() {
               ))}
             </div>
           </div>
-
-          {error && (
-            <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>
-          )}
-          {success && (
-            <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>
-          )}
-
+          {error && <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>}
+          {success && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>}
           <button type="submit" disabled={saving}
             className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50">
             {saving ? 'Saving…' : 'Save profile'}
           </button>
-
-          {/* Privacy blurb */}
           <p className="text-center text-xs text-zinc-600 leading-relaxed">
             🔐 Your data is private and never shared. Scan photos are discarded after AI processing and never stored.
             Product photos you upload are stored securely in your account.{' '}
@@ -294,7 +266,7 @@ function ProfilePage() {
         </form>
       </div>
 
-      {/* Discord community card */}
+      {/* Discord */}
       <a href="https://discord.gg/MTNvDM4MS" target="_blank" rel="noopener noreferrer"
         className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10">
         <span className="text-2xl">💬</span>
@@ -318,7 +290,7 @@ function ProfilePage() {
         Sign out
       </button>
 
-      {/* Delete account */}
+      {/* Danger zone */}
       <details className="mt-6 group">
         <summary className="cursor-pointer text-xs text-zinc-700 hover:text-zinc-500 transition select-none list-none text-center">
           Danger zone ↓
@@ -343,10 +315,7 @@ function ProfilePage() {
           </button>
         </div>
       </details>
+
     </div>
   );
-}
-      </button>
-    </div>
-  )
 }
