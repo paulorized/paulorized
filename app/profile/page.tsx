@@ -126,7 +126,7 @@ function ProfilePage() {
     const isFirstSave = !profile;
     setSuccess('Profile saved!');
     setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
-    if (isFirstSave) { router.push('/welcome'); } else if (isSetup) { router.push('/'); } else { router.refresh(); }
+    if (isFirstSave || isSetup) { router.push('/'); } else { router.refresh(); }
   }
 
   const maxDob = (() => {
