@@ -91,6 +91,8 @@ function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | '
 export default function DashboardPage() {
   const [view, setView] = useState<'me' | 'all'>('me');
   const [myData, setMyData] = useState<DashboardData | null>(null);
+
+  useEffect(() => { document.title = 'Stats — CannaBaseAI'; }, []);
   const [communityData, setCommunityData] = useState<CommunityData | null>(null);
   const [loadingMe, setLoadingMe] = useState(true);
   const [loadingAll, setLoadingAll] = useState(false);

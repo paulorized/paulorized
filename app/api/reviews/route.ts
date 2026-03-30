@@ -89,3 +89,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { review_id } = await request.json();
+    if (!review_id) return NextResponse.json({ error: 'review_id required.' }, { status: 400 });
+
+    const auth = await createAuthServerClient();
+    const { data: { user } } = await auth.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', review_id)
+      .eq('user_id', user.id); // only allow deleting own review
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unexpected error.';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

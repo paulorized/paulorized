@@ -317,6 +317,36 @@ function ProfilePage() {
         className="mt-4 w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
         Sign out
       </button>
+
+      {/* Delete account */}
+      <details className="mt-6 group">
+        <summary className="cursor-pointer text-xs text-zinc-700 hover:text-zinc-500 transition select-none list-none text-center">
+          Danger zone ↓
+        </summary>
+        <div className="mt-3 rounded-2xl border border-rose-900/40 bg-rose-950/20 px-5 py-4 space-y-3">
+          <p className="text-xs text-zinc-500">Deleting your account is permanent. All your logs, reviews, and data will be erased immediately.</p>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+              const res = await fetch('/api/account', { method: 'DELETE' });
+              if (res.ok) {
+                await fetch('/api/auth/session', { method: 'DELETE' });
+                window.location.replace('/welcome');
+              } else {
+                const d = await res.json();
+                alert(d.error ?? 'Could not delete account. Please try again.');
+              }
+            }}
+            className="w-full rounded-xl border border-rose-700/50 bg-rose-900/20 py-2.5 text-sm font-medium text-rose-400 transition hover:bg-rose-900/40 hover:text-rose-300">
+            Delete my account
+          </button>
+        </div>
+      </details>
+    </div>
+  );
+}
+      </button>
     </div>
   )
 }

@@ -67,6 +67,8 @@ function StrainCard({ item, onRemove }: { item: WishlistItem; onRemove: (id: str
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => { document.title = 'Wishlist — CannaBaseAI'; }, []);
   const [error, setError] = useState('');
   const [removing, setRemoving] = useState<string | null>(null);
 

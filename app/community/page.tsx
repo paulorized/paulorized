@@ -79,8 +79,9 @@ function Stars({ rating }: { rating: number | null }) {
   );
 }
 
-function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id: string, voted: boolean) => void; onImageClick: (url: string) => void }) {
+function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; onVote: (id: string, voted: boolean) => void; onImageClick: (url: string) => void; onDelete: (id: string) => void }) {
   const [voting, setVoting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [localVoted, setLocalVoted] = useState(!!item.i_voted);
   const [localCount, setLocalCount] = useState(item.helpful_count ?? 0);
   const canVote = !!(item.notes?.trim()) && !item.is_mine;
@@ -218,7 +219,27 @@ function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id:
           {localCount > 0 && <span className={`ml-0.5 ${localVoted ? 'text-emerald-400' : 'text-zinc-500'}`}>{localCount}</span>}
         </button>
         <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
-        {item.is_mine && <span className="text-xs text-zinc-600 italic">Your review</span>}
+        {item.is_mine && (
+          <button
+            onClick={async () => {
+              if (!window.confirm('Delete your review?')) return;
+              setDeleting(true);
+              try {
+                const res = await fetch('/api/reviews', {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ review_id: item.id }),
+                });
+                if (res.ok) onDelete(item.id);
+              } catch {}
+              setDeleting(false);
+            }}
+            disabled={deleting}
+            className="text-xs text-zinc-600 italic hover:text-rose-400 transition disabled:opacity-50"
+          >
+            {deleting ? 'Deleting…' : 'Delete review'}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -227,6 +248,8 @@ function FeedCard({ item, onVote, onImageClick }: { item: FeedItem; onVote: (id:
 export default function CommunityPage() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -261,6 +284,10 @@ export default function CommunityPage() {
     setFeed(prev => prev.map(item => item.id === id ? { ...item, i_voted: voted } : item));
   }, []);
 
+  const handleDelete = useCallback((id: string) => {
+    setFeed(prev => prev.filter(item => item.id !== id));
+  }, []);
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <div className="mb-6">
@@ -287,7 +314,15 @@ export default function CommunityPage() {
         </div>
       </div>
 
-      {error && <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">{error}</div>}
+      {error && (
+        <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 flex items-center justify-between gap-3">
+          <span className="text-sm text-rose-400">{error}</span>
+          <button onClick={() => { setError(''); setLoading(true); loadFeed().then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); }).catch(err => { setError(String(err?.message ?? err)); setLoading(false); }); }}
+            className="shrink-0 rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/30 transition">
+            Retry
+          </button>
+        </div>
+      )}
 
       {loading && (
         <div className="space-y-4">
@@ -317,7 +352,7 @@ export default function CommunityPage() {
 
       {!loading && feed.length > 0 && (
         <div className="space-y-4">
-          {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} />)}
+          {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
           {nextCursor && (
             <button onClick={handleLoadMore} disabled={loadingMore}
               className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">

@@ -74,6 +74,7 @@ function StrainDetailInner() {
 
   useEffect(() => {
     if (!result) return;
+    document.title = `${result.strain_name} — CannaBaseAI`;
     fetch('/api/wishlist')
       .then(r => r.json())
       .then(data => {
