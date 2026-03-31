@@ -4,7 +4,7 @@ import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supaba
 // Call remove.bg to strip background, returns PNG buffer with transparency
 async function removeBackground(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   const form = new FormData();
-  const blob = new Blob([imageBuffer], { type: mimeType });
+  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
   form.append('image_file', blob, 'image');
   form.append('size', 'auto');
   // Improve edge quality for organic shapes like nugs
@@ -32,7 +32,7 @@ async function removeBackground(imageBuffer: Buffer, mimeType: string): Promise<
 // bg_color param — this composites directly server-side without sharp/canvas deps.
 async function removeBackgroundOnBlack(imageBuffer: Buffer, mimeType: string): Promise<Buffer> {
   const form = new FormData();
-  const blob = new Blob([imageBuffer], { type: mimeType });
+  const blob = new Blob([new Uint8Array(imageBuffer)], { type: mimeType });
   form.append('image_file', blob, 'image');
   form.append('size', 'auto');
   form.append('type', 'other');
