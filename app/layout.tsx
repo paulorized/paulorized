@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ThemeProvider } from '@/components/theme-provider';
 import { PWAPrompt } from '@/components/pwa-prompt';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'CannaBaseAI',
@@ -112,6 +113,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </header>
           <div className="w-full">{children}</div>
           <PWAPrompt />
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
