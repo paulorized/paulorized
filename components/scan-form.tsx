@@ -866,4 +866,57 @@ export function ScanForm() {
                 <span className="mb-1.5 block text-xs text-zinc-500">CBD %</span>
                 <input className={inputClass} type="number" step="0.01" placeholder="e.g. 0.1"
                   value={result.cbd_percent === null ? '' : String(result.cbd_percent)}
-                  
+                                    onChange={e => handleFieldChange('cbd_percent', e.target.value)} />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">THC mg (total)</span>
+                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
+                  value={result.thc_mg === null ? '' : String(result.thc_mg)}
+                  onChange={e => handleFieldChange('thc_mg', e.target.value)} />
+              </label>
+              <label>
+                <span className="mb-1.5 block text-xs text-zinc-500">mg per piece</span>
+                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
+                  value={result.mg_per_piece === null ? '' : String(result.mg_per_piece)}
+                  onChange={e => handleFieldChange('mg_per_piece', e.target.value)} />
+              </label>
+            </div>
+            {result.thc_estimated && (
+              <p className="text-xs text-amber-400/80">⚠️ THC is an AI estimate — update if you know the exact %.</p>
+            )}
+          </div>
+
+          {/* Dispensary */}
+          <div ref={dispensaryRef} className="relative">
+            <p className="mb-1.5 text-xs text-zinc-500">📍 Dispensary <span className="text-zinc-700">(optional)</span></p>
+            <input className={inputClass} type="text" placeholder="Where did you get it?"
+              value={dispensaryName}
+              onChange={e => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
+              onFocus={() => setShowDispensaryDropdown(true)}
+              autoComplete="off"
+            />
+            {showDispensaryDropdown && filteredDispensaries.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
+                {filteredDispensaries.map(d => (
+                  <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
+                    📍 {d}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+
+          <button type="button" onClick={handleSave} disabled={isSaving}
+            className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
+            {isSaving ? 'Saving…' : '💾 Save to my log'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
