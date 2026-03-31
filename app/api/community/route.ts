@@ -7,7 +7,7 @@ export async function GET() {
 
     const [logsRes, reviewsRes] = await Promise.all([
       db.from('product_logs')
-        .select('user_id, brand, product_type, strain_name, strain_type, thc_percent')
+        .select('user_id, brand, product_type, strain_name, strain_type, thc_percent, weight')
         .limit(2000),
       db.from('reviews')
         .select('effects, flavors')
@@ -60,9 +60,24 @@ export async function GET() {
       ? Math.round((thcValues.reduce((a, b) => a + b, 0) / thcValues.length) * 10) / 10
       : null;
 
+    // Sum all weights across all users — same parser as personal dashboard
+    let totalGrams = 0;
+    for (const log of logs) {
+      const w = ((log.weight ?? '') as string).toString().toLowerCase().trim();
+      if (!w) continue;
+      const ozMatch = w.match(/([\d.]+)\s*oz/);
+      const gMatch = w.match(/([\d.]+)\s*g/);
+      const bareMatch = w.match(/^([\d.]+)$/);
+      if (ozMatch) totalGrams += parseFloat(ozMatch[1]) * 28.3495;
+      else if (gMatch) totalGrams += parseFloat(gMatch[1]);
+      else if (bareMatch) totalGrams += parseFloat(bareMatch[1]);
+    }
+    totalGrams = Math.round(totalGrams * 10) / 10;
+
     return NextResponse.json({
       totalScans: logs.length,
       totalUsers: new Set(logs.map(l => l.user_id)).size,
+      totalGrams,
       avgThc,
       strainTypeCounts,
       topStrains: countBy(logs as Record<string, unknown>[], 'strain_name').slice(0, 10),
