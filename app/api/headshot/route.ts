@@ -77,4 +77,78 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unsupported image type.' }, { status: 400 });
     }
 
-    const rawBuffer = Buffer.from(await file.arrayB
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+
+    // Run through remove.bg — strip background and composite on black
+    let finalBuffer: Buffer;
+    let finalContentType: string;
+    let finalExt: string;
+
+    if (process.env.REMOVE_BG_API_KEY) {
+      try {
+        finalBuffer = await removeBackgroundOnBlack(rawBuffer, file.type);
+        finalContentType = 'image/jpeg';
+        finalExt = 'jpg';
+      } catch (bgErr) {
+        // If remove.bg fails (quota, network), fall back to original
+        console.error('remove.bg failed, using original:', bgErr);
+        finalBuffer = rawBuffer;
+        finalContentType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        finalExt = file.type === 'image/png' ? 'png' : 'jpg';
+      }
+    } else {
+      finalBuffer = rawBuffer;
+      finalContentType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+      finalExt = file.type === 'image/png' ? 'png' : 'jpg';
+    }
+
+    const path = `${user.id}/${logId}.${finalExt}`;
+    const db = createServerSupabaseClient();
+
+    // Remove any old version with either extension before uploading
+    await db.storage.from('headshots').remove([
+      `${user.id}/${logId}.jpg`,
+      `${user.id}/${logId}.png`,
+    ]);
+
+    const { error: uploadError } = await db.storage
+      .from('headshots')
+      .upload(path, finalBuffer, { contentType: finalContentType, upsert: true });
+
+    if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 });
+
+    const { data: { publicUrl } } = db.storage.from('headshots').getPublicUrl(path);
+
+    const { error: updateError } = await db
+      .from('product_logs')
+      .update({ headshot_url: publicUrl })
+      .eq('id', logId)
+      .eq('user_id', user.id);
+
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 });
+
+    return NextResponse.json({ url: publicUrl });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createAuthServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const logId = searchParams.get('log_id');
+    if (!logId) return NextResponse.json({ error: 'log_id required.' }, { status: 400 });
+
+    const db = createServerSupabaseClient();
+    await db.storage.from('headshots').remove([`${user.id}/${logId}.jpg`, `${user.id}/${logId}.png`]);
+    await db.from('product_logs').update({ headshot_url: null }).eq('id', logId).eq('user_id', user.id);
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
+  }
+}
