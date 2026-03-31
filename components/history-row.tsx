@@ -20,6 +20,7 @@ type ProductLog = {
   dispensary_name: string | null;
   created_at: string;
   headshot_url: string | null;
+  has_review?: boolean;
 };
 
 const strainTypeBadge: Record<string, string> = {
@@ -101,6 +102,15 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               {log.strain_type && (
                 <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${badgeClass}`}>
                   {log.strain_type}
+                </span>
+              )}
+              {log.has_review ? (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                  ★ Reviewed
+                </span>
+              ) : (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-xs font-medium text-zinc-500">
+                  + Add review
                 </span>
               )}
             </div>

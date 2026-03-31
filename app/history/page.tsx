@@ -17,6 +17,7 @@ type ProductLog = {
   dispensary_name: string | null;
   created_at: string;
   headshot_url: string | null;
+  has_review: boolean;
 };
 
 export default async function HistoryPage() {
@@ -30,10 +31,16 @@ export default async function HistoryPage() {
 
   const { data } = await supabase
     .from('product_logs')
-    .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url')
+    .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, reviews(id)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(200);
 
-  return <HistoryClient logs={(data ?? []) as ProductLog[]} />;
+  // Flatten the joined reviews into a simple has_review boolean
+  const logs: ProductLog[] = (data ?? []).map((row: Record<string, unknown>) => ({
+    ...(row as Omit<ProductLog, 'has_review'>),
+    has_review: Array.isArray(row.reviews) ? row.reviews.length > 0 : false,
+  }));
+
+  return <HistoryClient logs={logs} />;
 }

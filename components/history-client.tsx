@@ -19,12 +19,15 @@ type ProductLog = {
   dispensary_name: string | null;
   created_at: string;
   headshot_url: string | null;
+  has_review?: boolean;
 };
 
 type SortKey = 'date_desc' | 'date_asc' | 'thc_desc' | 'thc_asc' | 'name_asc';
+type ReviewFilter = 'all' | 'needs_review' | 'reviewed';
 
 export function HistoryClient({ logs }: { logs: ProductLog[] }) {
   const [filter, setFilter] = useState('all');
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('date_desc');
 
@@ -44,8 +47,14 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
     return counts;
   }, [logs]);
 
+  const reviewedCount = useMemo(() => logs.filter(l => l.has_review).length, [logs]);
+  const needsReviewCount = useMemo(() => logs.filter(l => !l.has_review).length, [logs]);
+
   const filtered = useMemo(() => {
     let result = filter === 'all' ? logs : logs.filter(l => (l.product_type ?? '').toLowerCase() === filter);
+
+    if (reviewFilter === 'needs_review') result = result.filter(l => !l.has_review);
+    else if (reviewFilter === 'reviewed') result = result.filter(l => l.has_review);
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -81,6 +90,59 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
           + Scan
         </Link>
       </div>
+
+      {/* Review progress banner */}
+      {logs.length > 0 && needsReviewCount > 0 && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-300">
+              {reviewedCount} of {logs.length} reviewed
+            </p>
+            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+              <div
+                className="h-full rounded-full bg-amber-400 transition-all"
+                style={{ width: `${Math.round((reviewedCount / logs.length) * 100)}%` }}
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => setReviewFilter('needs_review')}
+            className="shrink-0 rounded-xl bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-400/20 transition"
+          >
+            Finish {needsReviewCount} →
+          </button>
+        </div>
+      )}
+
+      {/* Review filter tabs */}
+      {logs.length > 0 && (
+        <div className="mb-3 flex gap-2">
+          {(['all', 'needs_review', 'reviewed'] as ReviewFilter[]).map((rf) => {
+            const labels: Record<ReviewFilter, string> = {
+              all: 'All',
+              needs_review: `Needs Review (${needsReviewCount})`,
+              reviewed: `Reviewed (${reviewedCount})`,
+            };
+            return (
+              <button
+                key={rf}
+                onClick={() => setReviewFilter(rf)}
+                className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
+                  reviewFilter === rf
+                    ? rf === 'needs_review'
+                      ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
+                      : rf === 'reviewed'
+                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-zinc-700 text-zinc-100 border border-zinc-600'
+                    : 'bg-zinc-900 text-zinc-500 border border-zinc-800 hover:border-zinc-600 hover:text-zinc-300'
+                }`}
+              >
+                {labels[rf]}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Search + filters row */}
       {logs.length > 0 && (
@@ -128,7 +190,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
       {filtered.length === 0 && logs.length > 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/50 py-12 text-center">
           <p className="text-sm text-zinc-500">No results found.</p>
-          <button onClick={() => { setFilter('all'); setSearch(''); }}
+          <button onClick={() => { setFilter('all'); setSearch(''); setReviewFilter('all'); }}
             className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition">
             Clear filters
           </button>
