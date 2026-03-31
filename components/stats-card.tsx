@@ -345,10 +345,23 @@ export function StatsCard({
     ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(20, footerY - 10); ctx.lineTo(W - 20, footerY - 10); ctx.stroke();
-    ctx.textAlign = 'center';
+    // Multi-color branded footer
     ctx.font = 'bold 13px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#fde047';
-    ctx.fillText('Track your cannabis journey at cannabaseai.com', W / 2, footerY + 4);
+    ctx.textBaseline = 'middle';
+    const prefix = 'Track your cannabis journey at ';
+    const prefixW = ctx.measureText(prefix).width;
+    const cannaW2 = ctx.measureText('Canna').width;
+    const baseW2  = ctx.measureText('Base').width;
+    const aiW2    = ctx.measureText('AI').width;
+    const dotComW = ctx.measureText('.com').width;
+    const totalFooterW = prefixW + cannaW2 + baseW2 + aiW2 + dotComW;
+    let fx = W / 2 - totalFooterW / 2;
+    const fy = footerY + 4;
+    ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left'; ctx.fillText(prefix, fx, fy); fx += prefixW;
+    ctx.fillStyle = '#34d399'; ctx.fillText('Canna', fx, fy); fx += cannaW2;
+    ctx.fillStyle = '#a78bfa'; ctx.fillText('Base', fx, fy); fx += baseW2;
+    ctx.fillStyle = '#fde047'; ctx.fillText('AI', fx, fy); fx += aiW2;
+    ctx.fillStyle = '#a1a1aa'; ctx.fillText('.com', fx, fy);
 
     const dataUrl = canvas.toDataURL('image/png');
     setPreview(dataUrl);
