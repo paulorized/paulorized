@@ -55,7 +55,6 @@ export function ScanForm() {
   const [strainSearchQuery, setStrainSearchQuery] = useState('');
   const [isSearchingStrains, setIsSearchingStrains] = useState(false);
   const [isWebSearching, setIsWebSearching] = useState(false);
-  const [webSearchDone, setWebSearchDone] = useState(false);
   const [showOzConverter, setShowOzConverter] = useState(false);
   const [ozInput, setOzInput] = useState('');
   const strainSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -79,8 +78,7 @@ export function ScanForm() {
       setStrainSearchQuery('');
       setShowOzConverter(false);
       setOzInput('');
-      setWebSearchDone(false);
-    }
+          }
   }, [searchParams]);
 
   // Dispensary state
@@ -234,8 +232,7 @@ export function ScanForm() {
     setStrainSearchQuery('');
     setShowOzConverter(false);
     setOzInput('');
-    setWebSearchDone(false);
-  };
+      };
 
   const handleStrainLookup = async () => {
     if (!manualBrand.trim() && !manualStrain.trim()) return;
@@ -619,8 +616,7 @@ export function ScanForm() {
     const handleStrainSearch = (q: string) => {
       setStrainSearchQuery(q);
       setSelectedStrain(null);
-      setWebSearchDone(false);
-      if (strainSearchTimer.current) clearTimeout(strainSearchTimer.current);
+            if (strainSearchTimer.current) clearTimeout(strainSearchTimer.current);
       if (!q.trim()) { setStrainResults([]); return; }
       strainSearchTimer.current = setTimeout(async () => {
         setIsSearchingStrains(true);
@@ -637,50 +633,55 @@ export function ScanForm() {
       }, 400);
     };
 
-    const handleWebSearch = async () => {
-      const q = strainSearchQuery.trim();
-      if (!q) return;
-      setIsWebSearching(true);
-      setWebSearchDone(false);
-      try {
-        const res = await fetch('/api/strain-results-stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: q, force_web: true }),
-        });
-        const data = await res.json();
-        const results = data.results ?? [];
-        setStrainResults(results);
-        setWebSearchDone(true);
-        // Auto-select the first result if we only got one back
-        if (results.length === 1) setSelectedStrain(results[0]);
-      } catch { /* silent */ }
-      finally { setIsWebSearching(false); }
-    };
-
-    const handlePopulate = async () => {
+    // Single combined action: if no strain is selected from the list, try web search first,
+    // then fall through to AI populate regardless.
+    const handleUseStrain = async () => {
       const strainName = selectedStrain?.name ?? strainSearchQuery.trim();
       if (!strainName) return;
       setIsLooking(true);
       setLookupError('');
+
+      // If the user typed something but didn't pick from the list, do a quick web search
+      // to find a better match before populating.
+      let resolvedStrain = selectedStrain;
+      if (!resolvedStrain) {
+        try {
+          setIsWebSearching(true);
+          const res = await fetch('/api/strain-results-stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: strainName, force_web: true }),
+          });
+          const data = await res.json();
+          const results = data.results ?? [];
+          if (results.length > 0) {
+            resolvedStrain = results[0];
+            setStrainResults(results);
+            setSelectedStrain(results[0]);
+          }
+        } catch { /* silent — fall through to AI populate */ }
+        finally { setIsWebSearching(false); }
+      }
+
+      // Now populate details via AI lookup
       try {
         const res = await fetch('/api/strain-lookup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ strain: strainName }),
+          body: JSON.stringify({ strain: resolvedStrain?.name ?? strainName }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? 'Lookup failed.');
         setResult(prev => ({ ...prev, ...data.product }));
         setLookupDone(true);
       } catch (err) {
-        // Fallback: use what we already have from the search results
-        if (selectedStrain) {
+        // Fallback: use whatever we have from the search result
+        if (resolvedStrain) {
           setResult(prev => ({
             ...prev,
-            strain_name: selectedStrain.name,
-            strain_type: selectedStrain.strain_type,
-            thc_percent: selectedStrain.thc_max ?? prev.thc_percent,
+            strain_name: resolvedStrain!.name,
+            strain_type: resolvedStrain!.strain_type,
+            thc_percent: resolvedStrain!.thc_max ?? prev.thc_percent,
             thc_estimated: true,
           }));
         } else {
@@ -701,7 +702,7 @@ export function ScanForm() {
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/20 text-xs font-bold text-purple-400">1</span>
               <h2 className="font-semibold text-zinc-100">Enter product details</h2>
             </div>
-            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setStrainResults([]); setSelectedStrain(null); setStrainSearchQuery(''); setWebSearchDone(false); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
+            <button type="button" onClick={() => { setResult(emptyProduct); setManualBrand(''); setManualStrain(''); setLookupError(''); setLookupDone(false); setStrainResults([]); setSelectedStrain(null); setStrainSearchQuery(''); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
           </div>
 
           {/* STEP 1 — Strain search */}
@@ -756,34 +757,21 @@ export function ScanForm() {
               </div>
             )}
 
-            {/* Web search button — shown when user has typed something and search is done */}
-            {strainSearchQuery.trim() && !isSearchingStrains && (
+            {/* Single action button — shown when user has typed or selected a strain */}
+            {(selectedStrain || strainSearchQuery.trim()) && !isSearchingStrains && (
               <button
                 type="button"
-                onClick={handleWebSearch}
-                disabled={isWebSearching}
-                className="w-full rounded-xl border border-blue-500/30 bg-blue-500/10 py-2.5 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/20 disabled:opacity-50"
-              >
-                {isWebSearching ? '🌐 Searching the web…' : `🌐 Search the web for "${strainSearchQuery.trim()}"`}
-              </button>
-            )}
-            {webSearchDone && strainResults.length === 0 && (
-              <p className="text-xs text-zinc-500 text-center">No results found — try a different spelling or use Populate to fill manually.</p>
-            )}
-
-            {/* Populate button — works with or without a selected strain */}
-            {(selectedStrain || strainSearchQuery.trim()) && (
-              <button
-                type="button"
-                onClick={handlePopulate}
-                disabled={isLooking}
+                onClick={handleUseStrain}
+                disabled={isLooking || isWebSearching}
                 className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
               >
-                {isLooking
-                  ? '⏳ Loading strain data…'
-                  : selectedStrain
-                    ? `✦ Populate details for ${selectedStrain.name}`
-                    : `✦ Populate details for "${strainSearchQuery.trim()}"`}
+                {isWebSearching
+                  ? '🌐 Searching…'
+                  : isLooking
+                    ? '⏳ Loading strain data…'
+                    : selectedStrain
+                      ? `✦ Use ${selectedStrain.name}`
+                      : `✦ Use "${strainSearchQuery.trim()}"`}
               </button>
             )}
             {lookupDone && !lookupError && <p className="text-xs text-emerald-400">✓ Fields pre-filled from StrainAI — review and adjust below.</p>}
@@ -878,57 +866,4 @@ export function ScanForm() {
                 <span className="mb-1.5 block text-xs text-zinc-500">CBD %</span>
                 <input className={inputClass} type="number" step="0.01" placeholder="e.g. 0.1"
                   value={result.cbd_percent === null ? '' : String(result.cbd_percent)}
-                  onChange={e => handleFieldChange('cbd_percent', e.target.value)} />
-              </label>
-              <label>
-                <span className="mb-1.5 block text-xs text-zinc-500">THC mg (total)</span>
-                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
-                  value={result.thc_mg === null ? '' : String(result.thc_mg)}
-                  onChange={e => handleFieldChange('thc_mg', e.target.value)} />
-              </label>
-              <label>
-                <span className="mb-1.5 block text-xs text-zinc-500">mg per piece</span>
-                <input className={inputClass} type="number" step="0.1" placeholder="edibles"
-                  value={result.mg_per_piece === null ? '' : String(result.mg_per_piece)}
-                  onChange={e => handleFieldChange('mg_per_piece', e.target.value)} />
-              </label>
-            </div>
-            {result.thc_estimated && (
-              <p className="text-xs text-amber-400/80">⚠️ THC is an AI estimate — update if you know the exact %.</p>
-            )}
-          </div>
-
-          {/* Dispensary */}
-          <div ref={dispensaryRef} className="relative">
-            <p className="mb-1.5 text-xs text-zinc-500">📍 Dispensary <span className="text-zinc-700">(optional)</span></p>
-            <input className={inputClass} type="text" placeholder="Where did you get it?"
-              value={dispensaryName}
-              onChange={e => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
-              onFocus={() => setShowDispensaryDropdown(true)}
-              autoComplete="off"
-            />
-            {showDispensaryDropdown && filteredDispensaries.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
-                {filteredDispensaries.map(d => (
-                  <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
-                    📍 {d}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {error && <p className="text-sm text-rose-400">{error}</p>}
-
-          <button type="button" onClick={handleSave} disabled={isSaving}
-            className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
-            {isSaving ? 'Saving…' : '💾 Save to my log'}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
-}
+                  
