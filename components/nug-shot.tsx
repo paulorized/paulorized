@@ -16,13 +16,45 @@ export function NugShot({ logId, initialUrl }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
 
+  // Compress/resize large images before upload so desktop photos don't hit size limits
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const MAX_PX = 1600;
+      const QUALITY = 0.85;
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const { width, height } = img;
+        // If already small enough, skip compression
+        if (width <= MAX_PX && height <= MAX_PX && file.size < 2 * 1024 * 1024) {
+          return resolve(file);
+        }
+        const scale = Math.min(MAX_PX / width, MAX_PX / height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(width * scale);
+        canvas.height = Math.round(height * scale);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file),
+          'image/jpeg',
+          QUALITY
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+      img.src = objectUrl;
+    });
+  };
+
   const handleFile = async (file: File) => {
     if (!file) return;
     setUploading(true);
     setError('');
     try {
+      const compressed = await compressImage(file);
       const form = new FormData();
-      form.append('image', file);
+      form.append('image', compressed);
       form.append('log_id', logId);
       const res = await fetch('/api/headshot', { method: 'POST', body: form });
       const data = await res.json();
@@ -156,32 +188,4 @@ export function NugShot({ logId, initialUrl }: Props) {
       {error && url && <p className="text-xs text-rose-400">{error}</p>}
 
       {/* Hidden file inputs */}
-      <input ref={inputRef} type="file" accept="image/*" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
-
-      {/* Fullscreen lightbox */}
-      {lightbox && url && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/95 backdrop-blur-sm"
-          onClick={() => setLightbox(false)}
-        >
-          <button
-            type="button"
-            onClick={() => setLightbox(false)}
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 transition text-lg z-10"
-          >
-            ✕
-          </button>
-          <img
-            src={url}
-            alt="Nug headshot full size"
-            className="max-h-[90vh] max-w-[95vw] rounded-2xl object-contain shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+      <input ref={inputRef} type="file" accept="imag
