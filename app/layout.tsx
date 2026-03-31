@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ThemeProvider } from '@/components/theme-provider';
+import { PWAPrompt } from '@/components/pwa-prompt';
 
 export const metadata: Metadata = {
   title: 'CannaBaseAI',
@@ -48,6 +49,16 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="en">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        {/* PWA */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#09090b" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="CannaBase" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <ThemeProvider>
@@ -100,6 +111,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </div>
           </header>
           <div className="w-full">{children}</div>
+          <PWAPrompt />
         </ThemeProvider>
       </body>
     </html>
