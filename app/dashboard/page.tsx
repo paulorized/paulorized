@@ -96,6 +96,7 @@ export default function DashboardPage() {
   const [view, setView] = useState<'me' | 'all'>('me');
   const [myData, setMyData] = useState<DashboardData | null>(null);
   const [username, setUsername] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => { document.title = 'Stats — CannaBaseAI'; }, []);
   const [communityData, setCommunityData] = useState<CommunityData | null>(null);
@@ -110,7 +111,7 @@ export default function DashboardPage() {
       .catch(() => setLoadingMe(false));
     fetch('/api/profile')
       .then(r => r.json())
-      .then(d => { if (d.profile?.username) setUsername(d.profile.username); })
+      .then(d => { if (d.profile?.username) setUsername(d.profile.username); if (d.profile?.avatar_url) setAvatarUrl(d.profile.avatar_url); })
       .catch(() => {});
   }, []);
 
@@ -200,12 +201,17 @@ export default function DashboardPage() {
 
           <StatsCard
             username={username || 'me'}
+            avatarUrl={avatarUrl}
             totalScans={myData.totalScans}
+            totalReviews={myData.totalReviews}
             totalGrams={myData.totalGrams ?? 0}
             avgThc={myData.avgThc}
             avgRating={myData.avgRating}
-            topStrain={myData.topStrains?.[0]?.name ?? null}
-            topEffect={myData.topEffects?.[0]?.name ?? null}
+            wbaPct={myData.wbaPct}
+            topStrains={myData.topStrains?.slice(0, 3) ?? []}
+            topEffects={myData.topEffects?.slice(0, 4) ?? []}
+            topFlavors={myData.topFlavors?.slice(0, 3) ?? []}
+            topBrand={myData.topBrands?.[0]?.name ?? null}
           />
 
           {myData.scansOverTime.length > 1 && (
