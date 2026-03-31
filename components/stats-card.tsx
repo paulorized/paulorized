@@ -346,8 +346,8 @@ export function StatsCard({
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(20, footerY - 10); ctx.lineTo(W - 20, footerY - 10); ctx.stroke();
     ctx.textAlign = 'center';
-    ctx.font = '10px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#3f3f46';
+    ctx.font = 'bold 13px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = '#fde047';
     ctx.fillText('Track your cannabis journey at cannabaseai.com', W / 2, footerY + 4);
 
     const dataUrl = canvas.toDataURL('image/png');
