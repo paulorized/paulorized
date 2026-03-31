@@ -371,11 +371,29 @@ export function StatsCard({
     setGenerating(false);
   };
 
-  const download = () => {
+  const isMobile = () => /iphone|ipad|ipod|android/i.test(navigator.userAgent);
+
+  const saveOrShare = async () => {
     if (!preview) return;
+    const fileName = `${username}-brag-sheet.png`;
+
+    // Mobile: use Web Share API so iOS shows "Save to Photos" / Android shows share sheet
+    if (isMobile() && navigator.share) {
+      try {
+        const res = await fetch(preview);
+        const blob = await res.blob();
+        const file = new File([blob], fileName, { type: 'image/png' });
+        await navigator.share({ files: [file], title: 'My CannaBaseAI Brag Sheet' });
+        return;
+      } catch {
+        // user cancelled or share failed — fall through to download
+      }
+    }
+
+    // Desktop (or mobile share not available): straight download
     const a = document.createElement('a');
     a.href = preview;
-    a.download = `${username}-brag-sheet.png`;
+    a.download = fileName;
     a.click();
   };
 
@@ -398,9 +416,9 @@ export function StatsCard({
         <div className="space-y-3">
           <img src={preview} alt="Your brag sheet" className="w-full max-w-xs mx-auto rounded-2xl border border-zinc-700 shadow-2xl shadow-emerald-900/20" />
           <div className="flex gap-2 max-w-xs mx-auto">
-            <button type="button" onClick={download}
+            <button type="button" onClick={saveOrShare}
               className="flex-1 rounded-xl bg-emerald-400 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95">
-              ↓ Download
+              {isMobile() && typeof navigator !== 'undefined' && navigator.share ? '↑ Save to Photos' : '↓ Download'}
             </button>
             <button type="button" onClick={() => setPreview(null)}
               className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700">
