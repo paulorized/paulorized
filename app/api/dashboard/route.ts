@@ -107,15 +107,18 @@ export async function GET() {
       .sort((a, b) => b[1] - a[1]).slice(0, 8)
       .map(([name, count]) => ({ name, count }));
 
-    // Parse and sum all weights (handles "3.5g", "1oz", "1g", "28g", etc.)
+    // Parse and sum all weights — handles "3.5g", "1oz", "28", "3.5", "1g/2pk", "28.35", etc.
+    // Priority: oz label > g label > bare number (treated as grams)
     let totalGrams = 0;
     for (const log of logs ?? []) {
       const w = (log.weight ?? '').toString().toLowerCase().trim();
       if (!w) continue;
       const ozMatch = w.match(/([\d.]+)\s*oz/);
       const gMatch = w.match(/([\d.]+)\s*g/);
+      const bareMatch = w.match(/^([\d.]+)$/);
       if (ozMatch) totalGrams += parseFloat(ozMatch[1]) * 28.3495;
       else if (gMatch) totalGrams += parseFloat(gMatch[1]);
+      else if (bareMatch) totalGrams += parseFloat(bareMatch[1]); // bare number = grams
     }
     totalGrams = Math.round(totalGrams * 10) / 10;
 
