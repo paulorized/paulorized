@@ -74,7 +74,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
         default:          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [logs, filter, search, sort]);
+  }, [logs, filter, reviewFilter, search, sort]);
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -83,7 +83,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">My Log</h1>
           <p className="mt-0.5 text-xs text-zinc-500">
             {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'}
-            {(filter !== 'all' || search.trim()) && <span className="text-zinc-600"> (filtered)</span>}
+            {(filter !== 'all' || search.trim() || reviewFilter !== 'all') && <span className="text-zinc-600"> (filtered)</span>}
           </p>
         </div>
         <Link href="/" className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95">
