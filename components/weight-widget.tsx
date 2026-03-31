@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 
@@ -32,7 +32,7 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
     <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-1">Total Weight Scanned</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-1">Total Weight Logged</p>
           <p className="text-3xl font-bold text-zinc-100">
             {totalGrams >= 1000
               ? (totalGrams / 1000).toFixed(2) + ' kg'
