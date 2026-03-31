@@ -89,7 +89,26 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
+      {/* Review tick — top-right corner */}
+      <div
+        className="absolute top-0 right-0 z-10"
+        title={log.has_review ? 'Reviewed' : 'No review yet'}
+      >
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          {/* Corner triangle background */}
+          <path d="M28 0 L28 28 L0 0 Z" fill={log.has_review ? 'rgba(253,224,71,0.15)' : 'rgba(63,63,70,0.3)'} />
+          {/* Checkmark */}
+          <polyline
+            points="11,6 16,11 22,4"
+            stroke={log.has_review ? '#fde047' : '#52525b'}
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
+      </div>
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -104,15 +123,7 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
                   {log.strain_type}
                 </span>
               )}
-              {log.has_review ? (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
-                  ★ Reviewed
-                </span>
-              ) : (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-xs font-medium text-zinc-500">
-                  + Add review
-                </span>
-              )}
+
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
