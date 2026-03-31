@@ -157,16 +157,6 @@ export default function DashboardPage() {
     .filter(([, v]) => v > 0)
     .map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value }));
 
-  // Format grams into a friendly display string (same logic as WeightWidget)
-  const formatCommunityWeight = (g: number) => {
-    if (g === 0) return '0g';
-    const oz = g / 28.3495;
-    const lbs = oz / 16;
-    if (lbs >= 1) return lbs.toFixed(1) + ' lbs';
-    if (oz >= 1) return oz.toFixed(1) + ' oz';
-    return g.toFixed(1) + 'g';
-  };
-
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-8">
       {/* Header + Toggle */}
@@ -352,16 +342,17 @@ export default function DashboardPage() {
       {/* ===== ALL USERS VIEW ===== */}
       {view === 'all' && !loading && communityData && (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <StatCard label="Total Scans" value={communityData.totalScans} sub="across all users" />
             <StatCard label="Avg THC" value={communityData.avgThc != null ? communityData.avgThc + '%' : '—'} />
             <StatCard label="Users" value={communityData.totalUsers ?? '—'} sub="have scanned" />
-            <StatCard
-              label="Community Weight"
-              value={formatCommunityWeight(communityData.totalGrams ?? 0)}
-              sub="total logged by all users"
-            />
           </div>
+
+          <WeightWidget
+            totalGrams={communityData.totalGrams ?? 0}
+            label="Community Weight Logged"
+            sublabel="combined across all users"
+          />
 
           <Section title="Strain type breakdown">
             {Object.values(communityData.strainTypeCounts).some(v => v > 0) ? (

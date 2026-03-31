@@ -2,16 +2,24 @@
 
 import { useState } from 'react';
 
-export function WeightWidget({ totalGrams }: { totalGrams: number }) {
+interface WeightWidgetProps {
+  totalGrams: number;
+  label?: string;
+  sublabel?: string;
+}
+
+export function WeightWidget({
+  totalGrams,
+  label = 'Total Weight Logged',
+  sublabel = 'across all your logs',
+}: WeightWidgetProps) {
   const [comparison, setComparison] = useState<string>('');
-  const [item, setItem] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
   const fetchComparison = async () => {
     setLoading(true);
     setComparison('');
-    setItem('');
     try {
       const res = await fetch('/api/weight-fun', {
         method: 'POST',
@@ -20,7 +28,6 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
       });
       const data = await res.json();
       setComparison(data.comparison ?? '');
-      setItem(data.item ?? '');
       setRevealed(true);
     } catch {}
     finally { setLoading(false); }
@@ -32,13 +39,13 @@ export function WeightWidget({ totalGrams }: { totalGrams: number }) {
     <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-1">Total Weight Logged</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-1">{label}</p>
           <p className="text-3xl font-bold text-zinc-100">
             {totalGrams >= 1000
               ? (totalGrams / 1000).toFixed(2) + ' kg'
               : totalGrams.toFixed(1) + 'g'}
           </p>
-          <p className="text-xs text-zinc-500 mt-0.5">across all your logs</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{sublabel}</p>
         </div>
         <span className="text-3xl">🌿</span>
       </div>
