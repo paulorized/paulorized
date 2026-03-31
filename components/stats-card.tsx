@@ -46,6 +46,34 @@ function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: n
   ctx.closePath();
 }
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function drawDefaultAvatar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  const grad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
+  grad.addColorStop(0, '#34d399');
+  grad.addColorStop(1, '#a78bfa');
+  ctx.fillStyle = grad;
+  ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = `bold ${r}px -apple-system, system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('?', cx, cy);
+}
+
+function isMobile(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+}
+
 export function StatsCard({
   username, avatarUrl, totalScans, totalReviews, totalGrams,
   avgThc, avgRating, wbaPct, topStrains, topEffects, topFlavors, topBrand,
@@ -57,13 +85,12 @@ export function StatsCard({
   const generate = async () => {
     setGenerating(true);
     const canvas = canvasRef.current!;
-    // iPhone 14 Pro portrait @ 2x — looks sharp on any screen
     const W = 390, H = 844;
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
-    // ── BACKGROUND ─────────────────────────────────────────────────────────
+    // ── BACKGROUND
     const bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0,   '#09090b');
     bg.addColorStop(0.4, '#0b1a12');
@@ -79,14 +106,14 @@ export function StatsCard({
       }
     }
 
-    // hero glow behind avatar area
+    // hero glow
     const heroGlow = ctx.createRadialGradient(W / 2, 160, 0, W / 2, 160, 200);
     heroGlow.addColorStop(0, 'rgba(16,185,129,0.18)');
     heroGlow.addColorStop(1, 'rgba(16,185,129,0)');
     ctx.fillStyle = heroGlow;
     ctx.fillRect(0, 0, W, 360);
 
-    // bottom purple accent glow
+    // bottom purple glow
     const bottomGlow = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 260);
     bottomGlow.addColorStop(0, 'rgba(139,92,246,0.12)');
     bottomGlow.addColorStop(1, 'rgba(139,92,246,0)');
@@ -99,7 +126,7 @@ export function StatsCard({
     rr(ctx, 0.5, 0.5, W - 1, H - 1, 28);
     ctx.stroke();
 
-    // ── LOGO BAR ────────────────────────────────────────────────────────────
+    // ── LOGO BAR
     ctx.textBaseline = 'middle';
     ctx.font = 'bold 16px -apple-system, system-ui, sans-serif';
     const logoX = W / 2;
@@ -116,22 +143,19 @@ export function StatsCard({
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(20, 44); ctx.lineTo(W - 20, 44); ctx.stroke();
 
-    // ── AVATAR ──────────────────────────────────────────────────────────────
+    // ── AVATAR
     const avatarR = 44;
     const avatarCX = W / 2;
     const avatarCY = 110;
 
-    // avatar glow ring
     const ringGrad = ctx.createRadialGradient(avatarCX, avatarCY, avatarR - 2, avatarCX, avatarCY, avatarR + 8);
     ringGrad.addColorStop(0, 'rgba(52,211,153,0.6)');
     ringGrad.addColorStop(1, 'rgba(52,211,153,0)');
     ctx.fillStyle = ringGrad;
     ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR + 8, 0, Math.PI * 2); ctx.fill();
 
-    // clip circle for avatar
     ctx.save();
     ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR, 0, Math.PI * 2); ctx.clip();
-
     if (avatarUrl) {
       try {
         const img = await loadImage(avatarUrl);
@@ -144,12 +168,11 @@ export function StatsCard({
     }
     ctx.restore();
 
-    // avatar border ring
     ctx.strokeStyle = '#34d399';
     ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR + 2, 0, Math.PI * 2); ctx.stroke();
 
-    // ── USERNAME + BRAG HEADER ──────────────────────────────────────────────
+    // ── USERNAME + HEADER
     ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'center';
     ctx.font = 'bold 22px -apple-system, system-ui, sans-serif';
@@ -158,16 +181,13 @@ export function StatsCard({
 
     ctx.font = '600 12px -apple-system, system-ui, sans-serif';
     ctx.fillStyle = '#34d399';
-    ctx.letterSpacing = '2px';
     ctx.fillText('🌿  MY CANNABIS BRAG SHEET  🌿', W / 2, 200);
-    ctx.letterSpacing = '0px';
 
-    // ── DIVIDER ─────────────────────────────────────────────────────────────
     ctx.strokeStyle = 'rgba(52,211,153,0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(40, 216); ctx.lineTo(W - 40, 216); ctx.stroke();
 
-    // ── BIG 4 STAT TILES ────────────────────────────────────────────────────
+    // ── BIG 4 STAT TILES
     const tileData = [
       { label: 'PRODUCTS\nLOGGED',  value: String(totalScans),                       color: '#34d399' },
       { label: 'WEIGHT\nLOGGED',    value: formatWeight(totalGrams),                  color: '#fde047' },
@@ -187,16 +207,12 @@ export function StatsCard({
       ctx.strokeStyle = 'rgba(255,255,255,0.08)';
       ctx.lineWidth = 1;
       rr(ctx, tx, tileY, tileW, tileH, 10); ctx.stroke();
-
-      // accent top bar
       ctx.fillStyle = t.color;
       rr(ctx, tx, tileY, tileW, 3, 2); ctx.fill();
-
       ctx.textAlign = 'center';
       ctx.font = `bold ${t.value.length > 5 ? '17px' : '22px'} -apple-system, system-ui, sans-serif`;
       ctx.fillStyle = '#f4f4f5';
       ctx.fillText(t.value, tx + tileW / 2, tileY + 36);
-
       ctx.font = '8.5px -apple-system, system-ui, sans-serif';
       ctx.fillStyle = '#71717a';
       t.label.split('\n').forEach((line, li) => {
@@ -204,11 +220,10 @@ export function StatsCard({
       });
     });
 
-    // ── SECONDARY ROW: AVG RATING + WOULD BUY AGAIN ─────────────────────────
+    // ── SECONDARY ROW: AVG RATING + WOULD BUY AGAIN
     const secY = tileY + tileH + 14;
     const halfW = (W - 52) / 2;
 
-    // Rating tile
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     rr(ctx, 20, secY, halfW, 52, 10); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
@@ -222,7 +237,6 @@ export function StatsCard({
     ctx.fillStyle = '#71717a';
     ctx.fillText('AVG RATING' + (avgRating != null ? `  ${avgRating}/5` : ''), 20 + halfW / 2, secY + 40);
 
-    // Would buy again tile
     const wbaX = 20 + halfW + 12;
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     rr(ctx, wbaX, secY, halfW, 52, 10); ctx.fill();
@@ -236,220 +250,181 @@ export function StatsCard({
     ctx.fillStyle = '#71717a';
     ctx.fillText('WOULD BUY AGAIN', wbaX + halfW / 2, secY + 40);
 
-    // ── SECTION DIVIDER ──────────────────────────────────────────────────────
-    const div2Y = secY + 52 + 16;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(20, div2Y); ctx.lineTo(W - 20, div2Y); ctx.stroke();
-
-    // ── TOP STRAINS ──────────────────────────────────────────────────────────
-    const strainY = div2Y + 14;
-    ctx.textAlign = 'left';
-    ctx.font = '600 9px -apple-system, system-ui, sans-serif';
+    // ── TOP STRAINS BAR CHART
+    const strainY = secY + 52 + 18;
+    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
     ctx.fillStyle = '#52525b';
+    ctx.textAlign = 'left';
     ctx.fillText('TOP STRAINS', 20, strainY);
 
-    const strainColors = ['#34d399', '#a78bfa', '#fde047'];
+    const barAreaY = strainY + 10;
+    const maxCount = topStrains.length > 0 ? topStrains[0].count : 1;
+    const barColors = ['#34d399', '#a78bfa', '#fde047'];
     topStrains.slice(0, 3).forEach((s, i) => {
-      const sy = strainY + 12 + i * 24;
+      const by = barAreaY + i * 26;
       const barMaxW = W - 130;
-      const maxCount = topStrains[0]?.count || 1;
-      const barW = Math.max(20, (s.count / maxCount) * barMaxW);
-
-      ctx.fillStyle = 'rgba(255,255,255,0.04)';
-      rr(ctx, 20, sy, W - 40, 18, 4); ctx.fill();
-
-      // filled bar
-      const barGrad = ctx.createLinearGradient(20, 0, 20 + barW, 0);
-      barGrad.addColorStop(0, strainColors[i] + '40');
-      barGrad.addColorStop(1, strainColors[i] + '15');
-      ctx.fillStyle = barGrad;
-      rr(ctx, 20, sy, barW + 20, 18, 4); ctx.fill();
-
-      ctx.font = `${i === 0 ? 'bold' : '500'} 10px -apple-system, system-ui, sans-serif`;
-      ctx.fillStyle = i === 0 ? strainColors[i] : '#a1a1aa';
+      const barW = Math.max(4, (s.count / maxCount) * barMaxW);
+      ctx.fillStyle = barColors[i] + '22';
+      rr(ctx, 20, by, barMaxW, 18, 4); ctx.fill();
+      ctx.fillStyle = barColors[i];
+      rr(ctx, 20, by, barW, 18, 4); ctx.fill();
+      ctx.font = '10px -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#f4f4f5';
       ctx.textAlign = 'left';
-      ctx.fillText(`${i + 1}. ${s.name.length > 22 ? s.name.slice(0, 22) + '…' : s.name}`, 28, sy + 13);
+      ctx.fillText(s.name.length > 20 ? s.name.slice(0, 19) + '…' : s.name, 28, by + 13);
       ctx.textAlign = 'right';
-      ctx.font = '9px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#52525b';
-      ctx.fillText(`${s.count}x`, W - 26, sy + 13);
-      ctx.textAlign = 'left';
+      ctx.fillStyle = '#71717a';
+      ctx.fillText(`${s.count}×`, W - 20, by + 13);
     });
 
-    // ── FAVOURITE BRAND ──────────────────────────────────────────────────────
+    // ── FAV BRAND PILL
+    const brandY = barAreaY + 3 * 26 + 14;
     if (topBrand) {
-      const brandY = strainY + 12 + Math.min(topStrains.length, 3) * 24 + 6;
-      ctx.fillStyle = 'rgba(251,191,36,0.08)';
-      rr(ctx, 20, brandY, W - 40, 28, 8); ctx.fill();
-      ctx.strokeStyle = 'rgba(251,191,36,0.18)';
+      ctx.fillStyle = 'rgba(167,139,250,0.12)';
+      rr(ctx, 20, brandY, W - 40, 32, 16); ctx.fill();
+      ctx.strokeStyle = 'rgba(167,139,250,0.3)';
       ctx.lineWidth = 1;
-      rr(ctx, 20, brandY, W - 40, 28, 8); ctx.stroke();
-      ctx.font = '9px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#71717a';
-      ctx.textAlign = 'left';
-      ctx.fillText('FAV BRAND', 30, brandY + 11);
-      ctx.font = 'bold 12px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#fbbf24';
-      ctx.fillText(topBrand.length > 28 ? topBrand.slice(0, 28) + '…' : topBrand, 30, brandY + 23);
+      rr(ctx, 20, brandY, W - 40, 32, 16); ctx.stroke();
+      ctx.textAlign = 'center';
+      ctx.font = '600 11px -apple-system, system-ui, sans-serif';
+      ctx.fillStyle = '#a78bfa';
+      ctx.fillText(`🏆  FAV BRAND: ${topBrand}`, W / 2, brandY + 20);
     }
 
-    // ── EFFECTS ──────────────────────────────────────────────────────────────
-    const effectsStartY = strainY + 12 + Math.min(topStrains.length, 3) * 24 + (topBrand ? 42 : 12);
-    ctx.textAlign = 'left';
-    ctx.font = '600 9px -apple-system, system-ui, sans-serif';
+    // ── EFFECTS + FLAVORS PILLS
+    const pillsStartY = (topBrand ? brandY + 32 : brandY) + 14;
+    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
     ctx.fillStyle = '#52525b';
-    ctx.fillText('FAVOURITE EFFECTS', 20, effectsStartY);
+    ctx.textAlign = 'left';
+    ctx.fillText('TOP EFFECTS', 20, pillsStartY);
 
-    let pillX = 20, pillRowY = effectsStartY + 10;
-    topEffects.slice(0, 5).forEach((e) => {
+    let pillX = 20;
+    let pillY = pillsStartY + 8;
+    const pillH = 22;
+    const pillPad = 10;
+    topEffects.slice(0, 4).forEach((e) => {
       ctx.font = '10px -apple-system, system-ui, sans-serif';
-      const pw = ctx.measureText(e.name).width + 20;
-      if (pillX + pw > W - 20) { pillX = 20; pillRowY += 22; }
+      const pw = ctx.measureText(e.name).width + pillPad * 2;
+      if (pillX + pw > W - 20) { pillX = 20; pillY += pillH + 6; }
       ctx.fillStyle = 'rgba(52,211,153,0.12)';
-      rr(ctx, pillX, pillRowY, pw, 18, 9); ctx.fill();
-      ctx.strokeStyle = 'rgba(52,211,153,0.25)';
+      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(52,211,153,0.3)';
       ctx.lineWidth = 1;
-      rr(ctx, pillX, pillRowY, pw, 18, 9); ctx.stroke();
-      ctx.fillStyle = '#6ee7b7';
+      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.stroke();
+      ctx.fillStyle = '#34d399';
       ctx.textAlign = 'center';
-      ctx.fillText(e.name, pillX + pw / 2, pillRowY + 13);
+      ctx.fillText(e.name, pillX + pw / 2, pillY + 15);
       pillX += pw + 6;
     });
 
-    // ── FLAVORS ──────────────────────────────────────────────────────────────
-    const flavorsY = pillRowY + 28;
-    ctx.textAlign = 'left';
-    ctx.font = '600 9px -apple-system, system-ui, sans-serif';
+    pillY += pillH + 14;
+    pillX = 20;
+    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
     ctx.fillStyle = '#52525b';
-    ctx.fillText('FAVOURITE FLAVORS', 20, flavorsY);
+    ctx.textAlign = 'left';
+    ctx.fillText('TOP FLAVORS', 20, pillY);
+    pillY += 8;
 
-    let fpillX = 20, fpillRowY = flavorsY + 10;
-    topFlavors.slice(0, 4).forEach((f) => {
+    topFlavors.slice(0, 3).forEach((f) => {
       ctx.font = '10px -apple-system, system-ui, sans-serif';
-      const pw = ctx.measureText(f.name).width + 20;
-      if (fpillX + pw > W - 20) { fpillX = 20; fpillRowY += 22; }
-      ctx.fillStyle = 'rgba(251,191,36,0.10)';
-      rr(ctx, fpillX, fpillRowY, pw, 18, 9); ctx.fill();
-      ctx.strokeStyle = 'rgba(251,191,36,0.22)';
+      const pw = ctx.measureText(f.name).width + pillPad * 2;
+      if (pillX + pw > W - 20) { pillX = 20; pillY += pillH + 6; }
+      ctx.fillStyle = 'rgba(253,224,71,0.10)';
+      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(253,224,71,0.3)';
       ctx.lineWidth = 1;
-      rr(ctx, fpillX, fpillRowY, pw, 18, 9); ctx.stroke();
-      ctx.fillStyle = '#fde68a';
+      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.stroke();
+      ctx.fillStyle = '#fde047';
       ctx.textAlign = 'center';
-      ctx.fillText(f.name, fpillX + pw / 2, fpillRowY + 13);
-      fpillX += pw + 6;
+      ctx.fillText(f.name, pillX + pw / 2, pillY + 15);
+      pillX += pw + 6;
     });
 
-    // ── CTA FOOTER ───────────────────────────────────────────────────────────
-    const footerY = H - 68;
-    ctx.strokeStyle = 'rgba(52,211,153,0.12)';
+    // ── FOOTER CTA
+    const footerY = H - 36;
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(20, footerY - 14); ctx.lineTo(W - 20, footerY - 14); ctx.stroke();
-
-    // CTA pill background
-    ctx.fillStyle = 'rgba(16,185,129,0.08)';
-    rr(ctx, 20, footerY - 4, W - 40, 58, 14); ctx.fill();
-    ctx.strokeStyle = 'rgba(16,185,129,0.18)';
-    ctx.lineWidth = 1;
-    rr(ctx, 20, footerY - 4, W - 40, 58, 14); ctx.stroke();
-
+    ctx.beginPath(); ctx.moveTo(20, footerY - 10); ctx.lineTo(W - 20, footerY - 10); ctx.stroke();
     ctx.textAlign = 'center';
-    ctx.font = 'bold 13px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#f4f4f5';
-    ctx.fillText('Think you can keep up? 👀', W / 2, footerY + 16);
+    ctx.font = '10px -apple-system, system-ui, sans-serif';
+    ctx.fillStyle = '#3f3f46';
+    ctx.fillText('Track your cannabis journey at cannabaseai.com', W / 2, footerY + 4);
 
-    ctx.font = '11px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#71717a';
-    ctx.fillText('Track your collection at', W / 2, footerY + 32);
-
-    ctx.font = 'bold 12px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#34d399';
-    ctx.fillText('cannabaseai.com', W / 2, footerY + 48);
-
-    const url = canvas.toDataURL('image/png');
-    setPreview(url);
+    const dataUrl = canvas.toDataURL('image/png');
+    setPreview(dataUrl);
     setGenerating(false);
   };
 
-  const isMobile = () => /iphone|ipad|ipod|android/i.test(navigator.userAgent);
-
-  const saveOrShare = async () => {
+  const handleSave = async () => {
     if (!preview) return;
-    const fileName = `${username}-brag-sheet.png`;
 
-    // Mobile: use Web Share API so iOS shows "Save to Photos" / Android shows share sheet
-    if (isMobile() && navigator.share) {
+    const mobile = isMobile();
+    const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
+
+    if (mobile && canShare) {
+      // Mobile: use native share sheet → Save to Photos
       try {
         const res = await fetch(preview);
         const blob = await res.blob();
-        const file = new File([blob], fileName, { type: 'image/png' });
-        await navigator.share({ files: [file], title: 'My CannaBaseAI Brag Sheet' });
-        return;
+        const file = new File([blob], 'cannabase-brag-sheet.png', { type: 'image/png' });
+        await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
+          files: [file],
+          title: 'My CannaBrags',
+        });
       } catch {
-        // user cancelled or share failed — fall through to download
+        // user cancelled or share failed — fall back to download
+        const a = document.createElement('a');
+        a.href = preview;
+        a.download = 'cannabase-brag-sheet.png';
+        a.click();
       }
+    } else {
+      // Desktop: straight download
+      const a = document.createElement('a');
+      a.href = preview;
+      a.download = 'cannabase-brag-sheet.png';
+      a.click();
     }
-
-    // Desktop (or mobile share not available): straight download
-    const a = document.createElement('a');
-    a.href = preview;
-    a.download = fileName;
-    a.click();
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center gap-4 py-4">
       <canvas ref={canvasRef} className="hidden" />
-      {!preview ? (
+
+      {!preview && (
         <button
-          type="button"
           onClick={generate}
           disabled={generating}
-          className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/20 active:scale-95 disabled:opacity-50"
+          className="px-6 py-3 rounded-xl bg-emerald-500 text-black font-bold text-sm disabled:opacity-50 hover:bg-emerald-400 transition-colors"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
-          </svg>
-          {generating ? 'Building your brag sheet…' : '🏆 Generate brag sheet'}
+          {generating ? 'Generating…' : '✨ Generate My Brag Sheet'}
         </button>
-      ) : (
-        <div className="space-y-3">
-          <img src={preview} alt="Your brag sheet" className="w-full max-w-xs mx-auto rounded-2xl border border-zinc-700 shadow-2xl shadow-emerald-900/20" />
-          <div className="flex gap-2 max-w-xs mx-auto">
-            <button type="button" onClick={saveOrShare}
-              className="flex-1 rounded-xl bg-emerald-400 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95">
-              {isMobile() && typeof navigator !== 'undefined' && navigator.share ? '↑ Save to Photos' : '↓ Download'}
+      )}
+
+      {preview && (
+        <div className="flex flex-col items-center gap-3 w-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={preview}
+            alt="Your cannabis brag sheet"
+            className="rounded-2xl shadow-xl w-full max-w-xs border border-white/10"
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={handleSave}
+              className="px-5 py-2.5 rounded-xl bg-emerald-500 text-black font-bold text-sm hover:bg-emerald-400 transition-colors"
+            >
+              {isMobile() && 'share' in navigator ? '↑ Save to Photos' : '↓ Download'}
             </button>
-            <button type="button" onClick={() => setPreview(null)}
-              className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700">
-              ✕
+            <button
+              onClick={() => { setPreview(null); generate(); }}
+              className="px-5 py-2.5 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-colors"
+            >
+              ↺ Regenerate
             </button>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-// Load a cross-origin image onto canvas
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-function drawDefaultAvatar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  ctx.fillStyle = '#18181b';
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-  // head
-  ctx.fillStyle = '#34d399';
-  ctx.beginPath(); ctx.arc(cx, cy - r * 0.15, r * 0.38, 0, Math.PI * 2); ctx.fill();
-  // body
-  ctx.beginPath();
-  ctx.arc(cx, cy + r * 0.65, r * 0.55, Math.PI, 0);
-  ctx.fill();
 }
