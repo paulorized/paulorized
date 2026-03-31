@@ -52,6 +52,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hasExisting, setHasExisting] = useState(false);
   const [error, setError] = useState('');
 
   const productTypeLower = (productType ?? '').toLowerCase();
@@ -66,6 +67,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
         const res = await fetch(`/api/reviews?product_log_id=${productLogId}`);
         const data = await res.json();
         if (data.review) {
+          setHasExisting(true);
           setReview({
             rating: data.review.rating ?? 0,
             would_buy_again: data.review.would_buy_again ?? null,
@@ -299,8 +301,8 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
         <div className="flex items-center gap-3">
           <button type="button" onClick={handleSave} disabled={isSaving || review.rating === 0}
             className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
-          >{isSaving ? 'Saving...' : 'Save review'}</button>
-          {saved && <span className="text-sm text-emerald-400">&#10003; Review saved!</span>}
+          >{isSaving ? 'Saving...' : hasExisting ? 'Update review' : 'Save review'}</button>
+          {saved && <span className="text-sm text-emerald-400">&#10003; {hasExisting ? 'Review updated!' : 'Review saved!'}</span>}
           {error && <span className="text-sm text-rose-400">{error}</span>}
           {review.rating === 0 && !saved && <span className="text-xs text-zinc-500">Add a star rating to save</span>}
         </div>

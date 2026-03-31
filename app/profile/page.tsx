@@ -266,6 +266,20 @@ function ProfilePage() {
         </form>
       </div>
 
+      {/* Add to Home Screen */}
+      <button
+        type="button"
+        onClick={() => (window as Window & { __pwaInstall?: () => void }).__pwaInstall?.()}
+        className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left"
+      >
+        <span className="text-2xl">📲</span>
+        <div>
+          <p className="font-medium text-zinc-200 text-sm">Add to Home Screen</p>
+          <p className="text-xs text-zinc-500 mt-0.5">Install CannaBaseAI as an app on your device</p>
+        </div>
+        <span className="ml-auto text-zinc-500 text-lg">→</span>
+      </button>
+
       {/* Discord */}
       <a href="https://discord.gg/MTNvDM4MS" target="_blank" rel="noopener noreferrer"
         className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10">

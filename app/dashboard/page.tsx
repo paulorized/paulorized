@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { WeightWidget } from '@/components/weight-widget';
+import { StatsCard } from '@/components/stats-card';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -94,6 +95,7 @@ function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | '
 export default function DashboardPage() {
   const [view, setView] = useState<'me' | 'all'>('me');
   const [myData, setMyData] = useState<DashboardData | null>(null);
+  const [username, setUsername] = useState('');
 
   useEffect(() => { document.title = 'Stats — CannaBaseAI'; }, []);
   const [communityData, setCommunityData] = useState<CommunityData | null>(null);
@@ -106,6 +108,10 @@ export default function DashboardPage() {
       .then(r => r.json())
       .then(d => { setMyData(d); setLoadingMe(false); })
       .catch(() => setLoadingMe(false));
+    fetch('/api/profile')
+      .then(r => r.json())
+      .then(d => { if (d.profile?.username) setUsername(d.profile.username); })
+      .catch(() => {});
   }, []);
 
   const handleViewChange = (v: 'me' | 'all') => {
@@ -191,6 +197,16 @@ export default function DashboardPage() {
           </div>
 
           <WeightWidget totalGrams={myData.totalGrams ?? 0} />
+
+          <StatsCard
+            username={username || 'me'}
+            totalScans={myData.totalScans}
+            totalGrams={myData.totalGrams ?? 0}
+            avgThc={myData.avgThc}
+            avgRating={myData.avgRating}
+            topStrain={myData.topStrains?.[0]?.name ?? null}
+            topEffect={myData.topEffects?.[0]?.name ?? null}
+          />
 
           {myData.scansOverTime.length > 1 && (
             <Section title="Scans over time">
