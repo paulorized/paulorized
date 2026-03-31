@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -184,11 +184,15 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
 
       {expanded && (
         <div className="border-t border-zinc-800 bg-zinc-950/60 px-4 py-5 space-y-6">
-          {/* NugShot — only for flower / concentrate / wax types */}
+          {/* Shot — flower, concentrate, preroll, and related types */}
           {(() => {
             const t = (log.product_type ?? '').toLowerCase();
-            const showNugShot =
+            const showShot =
               t.includes('flower') ||
+              t.includes('preroll') ||
+              t.includes('pre-roll') ||
+              t.includes('pre roll') ||
+              t.includes('joint') ||
               t.includes('concentrate') ||
               t.includes('wax') ||
               t.includes('shatter') ||
@@ -196,7 +200,7 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               t.includes('resin') ||
               t.includes('hash') ||
               t.includes('dab');
-            return showNugShot ? (
+            return showShot ? (
               <div>
                 <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-zinc-500">Nugg-Shot</p>
                 <NugShot logId={log.id} initialUrl={log.headshot_url} />
