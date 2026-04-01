@@ -23,14 +23,20 @@ export default async function WelcomePage() {
         <p className="mt-4 text-base text-zinc-400 leading-relaxed max-w-lg mx-auto">
           Scan any product label, identify any strain, log THC%, effects &amp; flavors — then share with a community that actually knows their weed.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <Link href="/signup"
-            className="rounded-2xl bg-emerald-400 px-6 py-3.5 text-base font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-[0.98]">
-            Start logging free →
-          </Link>
-          <Link href="/login"
-            className="rounded-2xl border border-zinc-700 bg-zinc-900 px-6 py-3.5 text-base font-medium text-zinc-300 transition hover:bg-zinc-800">
-            Sign in
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/signup"
+              className="rounded-2xl bg-emerald-400 px-6 py-3.5 text-base font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-[0.98]">
+              Start logging free →
+            </Link>
+            <Link href="/login"
+              className="rounded-2xl border border-zinc-700 bg-zinc-900 px-6 py-3.5 text-base font-medium text-zinc-300 transition hover:bg-zinc-800">
+              Sign in
+            </Link>
+          </div>
+          <Link href="/"
+            className="text-sm text-zinc-500 hover:text-emerald-400 transition underline-offset-4 hover:underline">
+            Try 10 free scans first — no account needed
           </Link>
         </div>
       </section>

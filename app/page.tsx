@@ -1,32 +1,36 @@
-import { redirect } from 'next/navigation';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
 import { HomeStats } from '@/components/home-stats';
 import { CommunityPreview } from '@/components/community-preview';
 import { PageFooter } from '@/components/page-footer';
+import { GuestBanner } from '@/components/guest-banner';
+import { redirect } from 'next/navigation';
+
 export default async function HomePage() {
   const supabase = await createAuthServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect('/welcome');
+  // Guests are allowed — only redirect if they have an account but no profile
+  if (user) {
+    const db = createServerSupabaseClient();
+    const { data: profile } = await db
+      .from('profiles')
+      .select('id, username')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (!profile || !profile.username) redirect('/profile?setup=1');
+  }
 
-  const db = createServerSupabaseClient();
-  const { data: profile } = await db
-    .from('profiles')
-    .select('id, username')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  if (!profile) redirect('/profile?setup=1');
-  if (!profile.username) redirect('/profile?setup=1');
+  const isGuest = !user;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
+      {isGuest && <GuestBanner />}
       <div>
-        <ScanForm />
+        <ScanForm isGuest={isGuest} />
       </div>
-      <HomeStats />
-      <CommunityPreview />
+      {!isGuest && <HomeStats />}
+      {!isGuest && <CommunityPreview />}
       <PageFooter />
     </div>
   );

@@ -4,6 +4,8 @@ import { useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
 import { ReviewForm } from './review-form';
+import { GuestGateModal } from './guest-gate-modal';
+import { incrementGuestScanCount, isGuestLimitReached } from './guest-banner';
 
 const PRODUCT_TYPES = [
   'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
@@ -30,8 +32,9 @@ type Mode = 'choose' | 'upload' | 'camera' | 'manual';
 
 const inputClass = 'w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-emerald-500/50 placeholder:text-zinc-600 transition';
 
-export function ScanForm() {
+export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   const searchParams = useSearchParams();
+  const [guestGate, setGuestGate] = useState<'limit' | 'save' | null>(null);
   const [mode, setMode] = useState<Mode>('choose');
   const [files, setFiles] = useState<File[]>([]);
   const [result, setResult] = useState<ExtractedProduct>(emptyProduct);
@@ -158,6 +161,11 @@ export function ScanForm() {
 
   const handleScan = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // Guest limit check
+    if (isGuest && isGuestLimitReached()) {
+      setGuestGate('limit');
+      return;
+    }
     setIsScanning(true);
     setError('');
     setStage('idle');
@@ -172,6 +180,10 @@ export function ScanForm() {
       if (!payload?.extractedData) throw new Error('No data returned from scan.');
       setResult(payload.extractedData);
       setStage('scanned');
+      if (isGuest) {
+        incrementGuestScanCount();
+        window.dispatchEvent(new Event('cbai_scan_used'));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Scan failed.');
     } finally {
@@ -180,6 +192,7 @@ export function ScanForm() {
   };
 
   const handleSave = async () => {
+    if (isGuest) { setGuestGate('save'); return; }
     setIsSaving(true);
     setError('');
     try {
@@ -272,6 +285,11 @@ export function ScanForm() {
     { title: 'Strain', keys: fieldLabels.filter(f => f.section === 'strain') },
     { title: 'Potency', keys: fieldLabels.filter(f => f.section === 'potency') },
   ];
+
+  // ── Guest gate modal (rendered over any stage) ──
+  if (guestGate) {
+    return <GuestGateModal reason={guestGate} onClose={() => setGuestGate(null)} />;
+  }
 
   // ── Saved confirmation screen ──
   if (stage === 'saved') {
