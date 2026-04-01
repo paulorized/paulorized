@@ -3,7 +3,6 @@ import { ScanForm } from '@/components/scan-form';
 import { HomeStats } from '@/components/home-stats';
 import { CommunityPreview } from '@/components/community-preview';
 import { PageFooter } from '@/components/page-footer';
-import { GuestBanner } from '@/components/guest-banner';
 import { redirect } from 'next/navigation';
 
 export default async function HomePage() {
@@ -25,7 +24,6 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
-      {isGuest && <GuestBanner />}
       <div>
         <ScanForm isGuest={isGuest} />
       </div>

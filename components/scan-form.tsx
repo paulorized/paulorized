@@ -656,6 +656,8 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
     const handleUseStrain = async () => {
       const strainName = selectedStrain?.name ?? strainSearchQuery.trim();
       if (!strainName) return;
+      if (isGuest && isGuestLimitReached()) { setGuestGate('limit'); return; }
+      if (isGuest) { incrementGuestScanCount(); }
       setIsLooking(true);
       setLookupError('');
 

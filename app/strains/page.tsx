@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { incrementGuestScanCount, isGuestLimitReached } from '@/components/guest-banner';
+import { GuestGateModal } from '@/components/guest-gate-modal';
 
 interface StrainHit {
   slug: string;
@@ -153,6 +155,7 @@ function StrainsInner() {
   const [results, setResults] = useState<StrainHit[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
+  const [guestGate, setGuestGate] = useState(false);
 
   const search = useCallback(async (q: string) => {
     if (!q.trim()) return;
@@ -190,6 +193,8 @@ function StrainsInner() {
     e.preventDefault();
     const q = inputVal.trim();
     if (!q) return;
+    if (isGuestLimitReached()) { setGuestGate(true); return; }
+    incrementGuestScanCount();
     setQuery(q);
     setResults([]);
     router.replace(`/strains?q=${encodeURIComponent(q)}`);
@@ -198,6 +203,7 @@ function StrainsInner() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
+      {guestGate && <GuestGateModal reason="limit" onClose={() => setGuestGate(false)} />}
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-100">Strain Library</h1>

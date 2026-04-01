@@ -88,7 +88,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 ) : (
                   <div className="flex items-center gap-3">
                     <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">Sign in</Link>
-                    <Link href="/signup" className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">Get started free</Link>
+                    <Link href="/signup" className="rounded-xl bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">Create account</Link>
                   </div>
                 )}
               </div>
