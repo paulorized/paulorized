@@ -1,7 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Montserrat } from 'next/font/google';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['700', '800'],
+  variable: '--font-montserrat',
+  display: 'swap',
+});
 import { ThemeProvider } from '@/components/theme-provider';
 import { PWAPrompt } from '@/components/pwa-prompt';
 import { Analytics } from '@vercel/analytics/next';
@@ -47,7 +55,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const bubbleColor = userId ? getBubbleColor(userId) : 'bg-zinc-700';
 
   return (
-    <html lang="en">
+    <html lang="en" className={montserrat.variable}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         {/* PWA */}
@@ -68,7 +76,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               {/* Row 1: Logo + Avatar */}
               <div className="flex items-center justify-between py-2.5">
                 <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">
-                  <span className="text-lg font-bold tracking-tight">
+                  <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-montserrat)]">
                     <span className="text-emerald-400">Canna</span><span className="text-purple-400">Base</span><span className="text-yellow-300">AI</span>
                   </span>
                 </Link>
