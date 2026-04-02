@@ -235,17 +235,19 @@ export function StatsCard({
 
     // ── FAV BRAND banner
     if (topBrand) {
-      const brandH = 34;
+      const brandH = 36;
       const brandGrad = ctx.createLinearGradient(PAD, curY, W - PAD, curY);
       brandGrad.addColorStop(0, 'rgba(52,211,153,0.15)'); brandGrad.addColorStop(1, 'rgba(167,139,250,0.15)');
       ctx.fillStyle = brandGrad; rr(ctx, PAD, curY, W - PAD * 2, brandH, 10); ctx.fill();
       ctx.strokeStyle = 'rgba(52,211,153,0.25)'; ctx.lineWidth = 1;
       rr(ctx, PAD, curY, W - PAD * 2, brandH, 10); ctx.stroke();
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '10px system-ui'; ctx.fillStyle = '#fde047';
-      ctx.fillText('🏆  FAV BRAND:', W / 2 - 30, curY + brandH / 2);
-      ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#f4f4f5';
-      ctx.fillText(topBrand.toUpperCase(), W / 2 + 30, curY + brandH / 2);
+      // label line
+      ctx.font = '9px system-ui'; ctx.fillStyle = '#71717a';
+      ctx.fillText('🏆  FAVORITE BRAND', W / 2, curY + 10);
+      // brand name
+      ctx.font = 'bold 14px system-ui'; ctx.fillStyle = '#f4f4f5';
+      ctx.fillText(topBrand.toUpperCase(), W / 2, curY + brandH - 8);
       curY += brandH + 10;
     }
 
