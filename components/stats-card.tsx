@@ -15,6 +15,8 @@ type Props = {
   topEffects: { name: string; count: number }[];
   topFlavors: { name: string; count: number }[];
   topBrand: string | null;
+  strainTypeCounts?: Record<string, number>;
+  thcDistribution?: { range: string; count: number }[];
 };
 
 function formatWeight(g: number): string {
@@ -56,6 +58,11 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+function loadFont(name: string, url: string): Promise<void> {
+  const font = new FontFace(name, `url(${url})`);
+  return font.load().then(f => { document.fonts.add(f); });
+}
+
 function drawDefaultAvatar(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
   const grad = ctx.createLinearGradient(cx - r, cy - r, cx + r, cy + r);
   grad.addColorStop(0, '#34d399');
@@ -63,20 +70,16 @@ function drawDefaultAvatar(ctx: CanvasRenderingContext2D, cx: number, cy: number
   ctx.fillStyle = grad;
   ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
-  ctx.font = `bold ${r}px -apple-system, system-ui, sans-serif`;
+  ctx.font = `bold ${r}px system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('?', cx, cy);
 }
 
-function isMobile(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-}
-
 export function StatsCard({
   username, avatarUrl, totalScans, totalReviews, totalGrams,
   avgThc, avgRating, wbaPct, topStrains, topEffects, topFlavors, topBrand,
+  strainTypeCounts = {}, thcDistribution = [],
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [generating, setGenerating] = useState(false);
@@ -84,284 +87,257 @@ export function StatsCard({
 
   const generate = async () => {
     setGenerating(true);
+
+    try {
+      await loadFont('Montserrat', 'https://fonts.gstatic.com/s/montserrat/v26/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2');
+    } catch { /* fallback silently */ }
+
     const canvas = canvasRef.current!;
-    const W = 390, H = 844;
-    canvas.width = W;
-    canvas.height = H;
+    const W = 390, H = 1050;
+    canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
     // ── BACKGROUND
     const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0,   '#09090b');
-    bg.addColorStop(0.4, '#0b1a12');
-    bg.addColorStop(1,   '#09090b');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
+    bg.addColorStop(0, '#09090b'); bg.addColorStop(0.4, '#0b1a12'); bg.addColorStop(1, '#09090b');
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
     // dot grid
     ctx.fillStyle = 'rgba(255,255,255,0.025)';
-    for (let x = 20; x < W; x += 24) {
+    for (let x = 20; x < W; x += 24)
       for (let y = 20; y < H; y += 24) {
         ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
       }
-    }
 
     // hero glow
     const heroGlow = ctx.createRadialGradient(W / 2, 160, 0, W / 2, 160, 200);
-    heroGlow.addColorStop(0, 'rgba(16,185,129,0.18)');
-    heroGlow.addColorStop(1, 'rgba(16,185,129,0)');
-    ctx.fillStyle = heroGlow;
-    ctx.fillRect(0, 0, W, 360);
+    heroGlow.addColorStop(0, 'rgba(16,185,129,0.18)'); heroGlow.addColorStop(1, 'rgba(16,185,129,0)');
+    ctx.fillStyle = heroGlow; ctx.fillRect(0, 0, W, 360);
 
-    // bottom purple glow
-    const bottomGlow = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 260);
-    bottomGlow.addColorStop(0, 'rgba(139,92,246,0.12)');
-    bottomGlow.addColorStop(1, 'rgba(139,92,246,0)');
-    ctx.fillStyle = bottomGlow;
-    ctx.fillRect(0, H - 260, W, 260);
+    // bottom glow
+    const bottomGlow = ctx.createRadialGradient(W / 2, H, 0, W / 2, H, 300);
+    bottomGlow.addColorStop(0, 'rgba(139,92,246,0.14)'); bottomGlow.addColorStop(1, 'rgba(139,92,246,0)');
+    ctx.fillStyle = bottomGlow; ctx.fillRect(0, H - 300, W, 300);
 
     // outer border
-    ctx.strokeStyle = 'rgba(16,185,129,0.3)';
-    ctx.lineWidth = 1;
-    rr(ctx, 0.5, 0.5, W - 1, H - 1, 28);
-    ctx.stroke();
+    ctx.strokeStyle = 'rgba(16,185,129,0.3)'; ctx.lineWidth = 1;
+    rr(ctx, 0.5, 0.5, W - 1, H - 1, 28); ctx.stroke();
 
     // ── LOGO BAR
     ctx.textBaseline = 'middle';
-    ctx.font = 'bold 16px -apple-system, system-ui, sans-serif';
-    const logoX = W / 2;
+    ctx.font = 'bold 17px Montserrat, system-ui, sans-serif';
     const cW = ctx.measureText('Canna').width;
     const bW = ctx.measureText('Base').width;
     const aW = ctx.measureText('AI').width;
-    const totalLogoW = cW + bW + aW;
-    let lx = logoX - totalLogoW / 2;
+    let lx = W / 2 - (cW + bW + aW) / 2;
     ctx.fillStyle = '#34d399'; ctx.textAlign = 'left'; ctx.fillText('Canna', lx, 26); lx += cW;
-    ctx.fillStyle = '#a78bfa'; ctx.fillText('Base', lx, 26); lx += bW;
-    ctx.fillStyle = '#fde047'; ctx.fillText('AI', lx, 26);
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(20, 44); ctx.lineTo(W - 20, 44); ctx.stroke();
+    ctx.fillStyle = '#fde047'; ctx.fillText('Base', lx, 26); lx += bW;
+    ctx.fillStyle = '#f97316'; ctx.fillText('AI', lx, 26);
 
     // ── AVATAR
-    const avatarR = 44;
-    const avatarCX = W / 2;
-    const avatarCY = 110;
-
-    const ringGrad = ctx.createRadialGradient(avatarCX, avatarCY, avatarR - 2, avatarCX, avatarCY, avatarR + 8);
-    ringGrad.addColorStop(0, 'rgba(52,211,153,0.6)');
-    ringGrad.addColorStop(1, 'rgba(52,211,153,0)');
-    ctx.fillStyle = ringGrad;
-    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR + 8, 0, Math.PI * 2); ctx.fill();
-
+    const avatarSize = 72, avatarCX = W / 2, avatarCY = 100;
     ctx.save();
-    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR, 0, Math.PI * 2); ctx.clip();
+    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarSize / 2, 0, Math.PI * 2); ctx.clip();
     if (avatarUrl) {
       try {
         const img = await loadImage(avatarUrl);
-        ctx.drawImage(img, avatarCX - avatarR, avatarCY - avatarR, avatarR * 2, avatarR * 2);
-      } catch {
-        drawDefaultAvatar(ctx, avatarCX, avatarCY, avatarR);
-      }
-    } else {
-      drawDefaultAvatar(ctx, avatarCX, avatarCY, avatarR);
-    }
+        ctx.drawImage(img, avatarCX - avatarSize / 2, avatarCY - avatarSize / 2, avatarSize, avatarSize);
+      } catch { drawDefaultAvatar(ctx, avatarCX, avatarCY, avatarSize / 2); }
+    } else { drawDefaultAvatar(ctx, avatarCX, avatarCY, avatarSize / 2); }
     ctx.restore();
 
-    ctx.strokeStyle = '#34d399';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarR + 2, 0, Math.PI * 2); ctx.stroke();
+    // avatar ring
+    ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarSize / 2 + 3, 0, Math.PI * 2); ctx.stroke();
 
-    // ── USERNAME + HEADER
-    ctx.textBaseline = 'alphabetic';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 22px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#f4f4f5';
-    ctx.fillText(`@${username}`, W / 2, 178);
+    // ── USERNAME
+    ctx.font = 'bold 22px Montserrat, system-ui, sans-serif';
+    ctx.textAlign = 'center'; ctx.fillStyle = '#f4f4f5';
+    ctx.fillText(`@${username}`, W / 2, 150);
 
-    ctx.font = '600 12px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#34d399';
-    ctx.fillText('🌿  MY CANNABIS BRAG SHEET  🌿', W / 2, 200);
-
-    ctx.strokeStyle = 'rgba(52,211,153,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(40, 216); ctx.lineTo(W - 40, 216); ctx.stroke();
-
-    // ── BIG 4 STAT TILES
-    const tileData = [
-      { label: 'PRODUCTS\nLOGGED',  value: String(totalScans),                       color: '#34d399' },
-      { label: 'WEIGHT\nLOGGED',    value: formatWeight(totalGrams),                  color: '#fde047' },
-      { label: 'AVG\nTHC',          value: avgThc != null ? `${avgThc}%` : '—',       color: '#f97316' },
-      { label: 'REVIEWS\nWRITTEN',  value: String(totalReviews),                      color: '#a78bfa' },
+    // ── STATS ROW (3 tiles)
+    const tileY = 175, tileH = 64, tileW = 100, tileGap = 10;
+    const tiles = [
+      { label: 'SCANS', value: String(totalScans), color: '#34d399' },
+      { label: 'REVIEWS', value: String(totalReviews), color: '#a78bfa' },
+      { label: 'CONSUMED', value: formatWeight(totalGrams), color: '#fde047' },
     ];
+    tiles.forEach((t, i) => {
+      const tx = 20 + i * (tileW + tileGap) + (W - 20 * 2 - tileW * 3 - tileGap * 2) / 2;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'; rr(ctx, tx, tileY, tileW, tileH, 12); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1; rr(ctx, tx, tileY, tileW, tileH, 12); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold 18px system-ui, sans-serif'; ctx.fillStyle = t.color;
+      ctx.fillText(t.value, tx + tileW / 2, tileY + tileH / 2 - 8);
+      ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText(t.label, tx + tileW / 2, tileY + tileH / 2 + 10);
+    });
+    ctx.textBaseline = 'alphabetic';
 
-    const tileW = 80, tileH = 72, tileGap = 10;
-    const tilesTotal = tileData.length * tileW + (tileData.length - 1) * tileGap;
-    const tileStartX = (W - tilesTotal) / 2;
-    const tileY = 228;
+    // ── AVG ROW (THC / Rating / WBA)
+    const avgY = tileY + tileH + 12;
+    const avgTiles = [
+      { label: 'AVG THC', value: avgThc != null ? `${avgThc.toFixed(1)}%` : '—', color: '#34d399' },
+      { label: 'AVG RATING', value: avgRating != null ? stars(avgRating) : '—', color: '#fde047' },
+      { label: 'WBA', value: wbaPct != null ? `${wbaPct.toFixed(0)}%` : '—', color: '#a78bfa' },
+    ];
+    avgTiles.forEach((t, i) => {
+      const tx = 20 + i * (tileW + tileGap) + (W - 20 * 2 - tileW * 3 - tileGap * 2) / 2;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'; rr(ctx, tx, avgY, tileW, tileH, 12); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1; rr(ctx, tx, avgY, tileW, tileH, 12); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold 15px system-ui, sans-serif'; ctx.fillStyle = t.color;
+      ctx.fillText(t.value, tx + tileW / 2, avgY + tileH / 2 - 8);
+      ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText(t.label, tx + tileW / 2, avgY + tileH / 2 + 10);
+    });
+    ctx.textBaseline = 'alphabetic';
 
-    tileData.forEach((t, i) => {
-      const tx = tileStartX + i * (tileW + tileGap);
-      ctx.fillStyle = 'rgba(255,255,255,0.04)';
-      rr(ctx, tx, tileY, tileW, tileH, 10); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-      ctx.lineWidth = 1;
-      rr(ctx, tx, tileY, tileW, tileH, 10); ctx.stroke();
-      ctx.fillStyle = t.color;
-      rr(ctx, tx, tileY, tileW, 3, 2); ctx.fill();
-      ctx.textAlign = 'center';
-      ctx.font = `bold ${t.value.length > 5 ? '17px' : '22px'} -apple-system, system-ui, sans-serif`;
-      ctx.fillStyle = '#f4f4f5';
-      ctx.fillText(t.value, tx + tileW / 2, tileY + 36);
-      ctx.font = '8.5px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#71717a';
-      t.label.split('\n').forEach((line, li) => {
-        ctx.fillText(line, tx + tileW / 2, tileY + 52 + li * 11);
+    // ── TOP BRAND banner
+    if (topBrand) {
+      const brandY = avgY + tileH + 14;
+      const brandH = 32;
+      const brandGrad = ctx.createLinearGradient(20, brandY, W - 20, brandY);
+      brandGrad.addColorStop(0, 'rgba(52,211,153,0.12)'); brandGrad.addColorStop(1, 'rgba(167,139,250,0.12)');
+      ctx.fillStyle = brandGrad; rr(ctx, 20, brandY, W - 40, brandH, 10); ctx.fill();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText('TOP BRAND', W / 2, brandY + brandH / 2 - 7);
+      ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = '#f4f4f5';
+      ctx.fillText(topBrand, W / 2, brandY + brandH / 2 + 8);
+    }
+    ctx.textBaseline = 'alphabetic';
+
+    // ── LIST SECTION (Strains / Effects / Flavors)
+    const listsY = (topBrand ? avgY + 64 + 14 : avgY + 64) + 18;
+    const listColW = (W - 40 - 20) / 3;
+    const lists = [
+      { title: 'TOP STRAINS', items: topStrains, color: '#34d399' },
+      { title: 'TOP EFFECTS', items: topEffects, color: '#a78bfa' },
+      { title: 'TOP FLAVORS', items: topFlavors, color: '#fde047' },
+    ];
+    lists.forEach((list, ci) => {
+      const colX = 20 + ci * (listColW + 10);
+      ctx.font = '600 9px system-ui, sans-serif'; ctx.fillStyle = '#52525b';
+      ctx.textAlign = 'left'; ctx.fillText(list.title, colX, listsY);
+      list.items.slice(0, 5).forEach((item, ri) => {
+        const iy = listsY + 14 + ri * 18;
+        // rank dot
+        ctx.fillStyle = list.color + '40';
+        ctx.beginPath(); ctx.arc(colX + 5, iy - 3, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '600 8px system-ui, sans-serif'; ctx.fillStyle = list.color; ctx.textAlign = 'center';
+        ctx.fillText(String(ri + 1), colX + 5, iy - 0.5);
+        ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#d4d4d8'; ctx.textAlign = 'left';
+        const maxW = listColW - 18;
+        let name = item.name;
+        while (ctx.measureText(name).width > maxW && name.length > 2) name = name.slice(0, -1);
+        if (name !== item.name) name += '…';
+        ctx.fillText(name, colX + 13, iy);
       });
     });
 
-    // ── SECONDARY ROW: AVG RATING + WOULD BUY AGAIN
-    const secY = tileY + tileH + 14;
-    const halfW = (W - 52) / 2;
+    // ── CHARTS SECTION DIVIDER
+    const chartSectionY = listsY + 5 * 18 + 28;
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, chartSectionY - 14); ctx.lineTo(W - 20, chartSectionY - 14); ctx.stroke();
 
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    rr(ctx, 20, secY, halfW, 52, 10); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    rr(ctx, 20, secY, halfW, 52, 10); ctx.stroke();
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 18px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText(stars(avgRating), 20 + halfW / 2, secY + 24);
-    ctx.font = '9px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#71717a';
-    ctx.fillText('AVG RATING' + (avgRating != null ? `  ${avgRating}/5` : ''), 20 + halfW / 2, secY + 40);
+    // ── STRAIN TYPE DONUT (left half)
+    const strainOrder = ['sativa', 'indica', 'hybrid', 'cbd', 'other'];
+    const strainColors: Record<string, string> = {
+      sativa: '#fde047', indica: '#a78bfa', hybrid: '#34d399', cbd: '#38bdf8', other: '#71717a',
+    };
+    const strainTotal = Object.values(strainTypeCounts).reduce((s, n) => s + n, 0);
+    const donutCX = W / 4, donutCY = chartSectionY + 70, donutR = 52, donutInner = 32;
 
-    const wbaX = 20 + halfW + 12;
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    rr(ctx, wbaX, secY, halfW, 52, 10); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    rr(ctx, wbaX, secY, halfW, 52, 10); ctx.stroke();
-    ctx.font = 'bold 20px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = wbaPct != null && wbaPct >= 70 ? '#34d399' : '#f4f4f5';
-    ctx.fillText(wbaPct != null ? `${wbaPct}%` : '—', wbaX + halfW / 2, secY + 24);
-    ctx.font = '9px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#71717a';
-    ctx.fillText('WOULD BUY AGAIN', wbaX + halfW / 2, secY + 40);
+    ctx.font = '600 10px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'center';
+    ctx.fillText('STRAIN TYPES', donutCX, chartSectionY + 4);
 
-    // ── TOP STRAINS BAR CHART
-    const strainY = secY + 52 + 18;
-    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#52525b';
-    ctx.textAlign = 'left';
-    ctx.fillText('TOP STRAINS', 20, strainY);
+    if (strainTotal > 0) {
+      let startAngle = -Math.PI / 2;
+      strainOrder.forEach(type => {
+        const count = strainTypeCounts[type] ?? 0;
+        if (!count) return;
+        const slice = (count / strainTotal) * Math.PI * 2;
+        ctx.beginPath(); ctx.moveTo(donutCX, donutCY);
+        ctx.arc(donutCX, donutCY, donutR, startAngle, startAngle + slice);
+        ctx.closePath(); ctx.fillStyle = strainColors[type]; ctx.fill();
+        startAngle += slice;
+      });
+      // punch inner hole
+      ctx.beginPath(); ctx.arc(donutCX, donutCY, donutInner, 0, Math.PI * 2);
+      ctx.fillStyle = '#09090b'; ctx.fill();
+      // center label
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = '#f4f4f5';
+      ctx.fillText(String(strainTotal), donutCX, donutCY);
+      ctx.font = '8px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText('logs', donutCX, donutCY + 13);
+      ctx.textBaseline = 'alphabetic';
 
-    const barAreaY = strainY + 10;
-    const maxCount = topStrains.length > 0 ? topStrains[0].count : 1;
-    const barColors = ['#34d399', '#a78bfa', '#fde047'];
-    topStrains.slice(0, 3).forEach((s, i) => {
-      const by = barAreaY + i * 26;
-      const barMaxW = W - 130;
-      const barW = Math.max(4, (s.count / maxCount) * barMaxW);
-      ctx.fillStyle = barColors[i] + '22';
-      rr(ctx, 20, by, barMaxW, 18, 4); ctx.fill();
-      ctx.fillStyle = barColors[i];
-      rr(ctx, 20, by, barW, 18, 4); ctx.fill();
-      ctx.font = '10px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#f4f4f5';
-      ctx.textAlign = 'left';
-      ctx.fillText(s.name.length > 20 ? s.name.slice(0, 19) + '…' : s.name, 28, by + 13);
-      ctx.textAlign = 'right';
-      ctx.fillStyle = '#71717a';
-      ctx.fillText(`${s.count}×`, W - 20, by + 13);
-    });
-
-    // ── FAV BRAND PILL
-    const brandY = barAreaY + 3 * 26 + 14;
-    if (topBrand) {
-      ctx.fillStyle = 'rgba(167,139,250,0.12)';
-      rr(ctx, 20, brandY, W - 40, 32, 16); ctx.fill();
-      ctx.strokeStyle = 'rgba(167,139,250,0.3)';
-      ctx.lineWidth = 1;
-      rr(ctx, 20, brandY, W - 40, 32, 16); ctx.stroke();
-      ctx.textAlign = 'center';
-      ctx.font = '600 11px -apple-system, system-ui, sans-serif';
-      ctx.fillStyle = '#a78bfa';
-      ctx.fillText(`🏆  FAV BRAND: ${topBrand}`, W / 2, brandY + 20);
+      // legend
+      let legY = chartSectionY + 18;
+      strainOrder.forEach(type => {
+        const count = strainTypeCounts[type] ?? 0;
+        if (!count) return;
+        ctx.fillStyle = strainColors[type];
+        ctx.fillRect(W / 2 - 56, legY - 7, 8, 8);
+        ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
+        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, W / 2 - 44, legY);
+        legY += 16;
+      });
     }
 
-    // ── EFFECTS + FLAVORS PILLS
-    const pillsStartY = (topBrand ? brandY + 32 : brandY) + 14;
-    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#52525b';
-    ctx.textAlign = 'left';
-    ctx.fillText('TOP EFFECTS', 20, pillsStartY);
+    // ── THC DISTRIBUTION (right half)
+    const thcX = W / 2 + 10;
+    const thcW = W / 2 - 30;
+    ctx.font = '600 10px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'left';
+    ctx.fillText('THC RANGE', thcX, chartSectionY + 4);
 
-    let pillX = 20;
-    let pillY = pillsStartY + 8;
-    const pillH = 22;
-    const pillPad = 10;
-    topEffects.slice(0, 4).forEach((e) => {
-      ctx.font = '10px -apple-system, system-ui, sans-serif';
-      const pw = ctx.measureText(e.name).width + pillPad * 2;
-      if (pillX + pw > W - 20) { pillX = 20; pillY += pillH + 6; }
-      ctx.fillStyle = 'rgba(52,211,153,0.12)';
-      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(52,211,153,0.3)';
-      ctx.lineWidth = 1;
-      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.stroke();
-      ctx.fillStyle = '#34d399';
-      ctx.textAlign = 'center';
-      ctx.fillText(e.name, pillX + pw / 2, pillY + 15);
-      pillX += pw + 6;
-    });
+    if (thcDistribution.filter(b => b.count > 0).length > 0) {
+      const maxBucket = Math.max(...thcDistribution.map(b => b.count));
+      const barH = 11, barGap = 5;
+      thcDistribution.forEach((b, i) => {
+        const by = chartSectionY + 16 + i * (barH + barGap);
+        const bw = maxBucket > 0 ? Math.max(3, (b.count / maxBucket) * thcW) : 3;
+        // track bg
+        ctx.fillStyle = 'rgba(255,255,255,0.04)'; rr(ctx, thcX, by, thcW, barH, 3); ctx.fill();
+        // filled bar
+        if (b.count > 0) {
+          const grad = ctx.createLinearGradient(thcX, by, thcX + bw, by);
+          grad.addColorStop(0, '#fde047'); grad.addColorStop(1, '#f97316');
+          ctx.fillStyle = grad; rr(ctx, thcX, by, bw, barH, 3); ctx.fill();
+        }
+        // labels
+        ctx.font = '8px system-ui, sans-serif'; ctx.fillStyle = '#71717a'; ctx.textAlign = 'left';
+        ctx.fillText(b.range, thcX + 3, by + barH - 2);
+        if (b.count > 0) {
+          ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'right';
+          ctx.fillText(String(b.count), thcX + thcW - 2, by + barH - 2);
+        }
+      });
+    }
 
-    pillY += pillH + 14;
-    pillX = 20;
-    ctx.font = '600 10px -apple-system, system-ui, sans-serif';
-    ctx.fillStyle = '#52525b';
-    ctx.textAlign = 'left';
-    ctx.fillText('TOP FLAVORS', 20, pillY);
-    pillY += 8;
-
-    topFlavors.slice(0, 3).forEach((f) => {
-      ctx.font = '10px -apple-system, system-ui, sans-serif';
-      const pw = ctx.measureText(f.name).width + pillPad * 2;
-      if (pillX + pw > W - 20) { pillX = 20; pillY += pillH + 6; }
-      ctx.fillStyle = 'rgba(253,224,71,0.10)';
-      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(253,224,71,0.3)';
-      ctx.lineWidth = 1;
-      rr(ctx, pillX, pillY, pw, pillH, pillH / 2); ctx.stroke();
-      ctx.fillStyle = '#fde047';
-      ctx.textAlign = 'center';
-      ctx.fillText(f.name, pillX + pw / 2, pillY + 15);
-      pillX += pw + 6;
-    });
-
-    // ── FOOTER CTA
+    // ── FOOTER
     const footerY = H - 36;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(20, footerY - 10); ctx.lineTo(W - 20, footerY - 10); ctx.stroke();
-    // Multi-color branded footer
-    ctx.font = 'bold 13px -apple-system, system-ui, sans-serif';
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, footerY - 8); ctx.lineTo(W - 20, footerY - 8); ctx.stroke();
+
+    // tricolor logo in footer
+    ctx.font = 'bold 13px Montserrat, system-ui, sans-serif';
     ctx.textBaseline = 'middle';
-    const prefix = 'Track your cannabis journey at ';
-    const prefixW = ctx.measureText(prefix).width;
-    const cannaW2 = ctx.measureText('Canna').width;
-    const baseW2  = ctx.measureText('Base').width;
-    const aiW2    = ctx.measureText('AI').width;
-    const dotComW = ctx.measureText('.com').width;
-    const totalFooterW = prefixW + cannaW2 + baseW2 + aiW2 + dotComW;
-    let fx = W / 2 - totalFooterW / 2;
-    const fy = footerY + 4;
-    ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left'; ctx.fillText(prefix, fx, fy); fx += prefixW;
-    ctx.fillStyle = '#34d399'; ctx.fillText('Canna', fx, fy); fx += cannaW2;
-    ctx.fillStyle = '#a78bfa'; ctx.fillText('Base', fx, fy); fx += baseW2;
-    ctx.fillStyle = '#fde047'; ctx.fillText('AI', fx, fy); fx += aiW2;
-    ctx.fillStyle = '#a1a1aa'; ctx.fillText('.com', fx, fy);
+    const footerParts = [
+      { text: 'canna', color: '#4ade80' },
+      { text: 'ba.se', color: '#fde047' },
+      { text: '/ai',   color: '#f97316' },
+    ];
+    const footerFull = footerParts.map(p => p.text).join('');
+    let fx = W / 2 - ctx.measureText(footerFull).width / 2;
+    footerParts.forEach(p => {
+      ctx.fillStyle = p.color; ctx.textAlign = 'left';
+      ctx.fillText(p.text, fx, footerY + 8);
+      fx += ctx.measureText(p.text).width;
+    });
+    ctx.textBaseline = 'alphabetic';
 
     const dataUrl = canvas.toDataURL('image/png');
     setPreview(dataUrl);
@@ -370,70 +346,51 @@ export function StatsCard({
 
   const handleSave = async () => {
     if (!preview) return;
-
-    const mobile = isMobile();
-    const canShare = typeof navigator !== 'undefined' && 'share' in navigator;
-
-    if (mobile && canShare) {
-      // Mobile: use native share sheet → Save to Photos
+    const blob = await (await fetch(preview)).blob();
+    const file = new File([blob], 'cannabase-brag-sheet.png', { type: 'image/png' });
+    if ('share' in navigator) {
       try {
-        const res = await fetch(preview);
-        const blob = await res.blob();
-        const file = new File([blob], 'cannabase-brag-sheet.png', { type: 'image/png' });
-        await (navigator as Navigator & { share: (data: ShareData) => Promise<void> }).share({
-          files: [file],
-          title: 'My CannaBrags',
-        });
-      } catch {
-        // user cancelled or share failed — fall back to download
-        const a = document.createElement('a');
-        a.href = preview;
-        a.download = 'cannabase-brag-sheet.png';
-        a.click();
-      }
-    } else {
-      // Desktop: straight download
-      const a = document.createElement('a');
-      a.href = preview;
-      a.download = 'cannabase-brag-sheet.png';
-      a.click();
+        await navigator.share({ files: [file], title: 'My CannaBa.se Stats' });
+        return;
+      } catch { /* fall through to download */ }
     }
+    const a = document.createElement('a');
+    a.href = preview;
+    a.download = 'cannabase-brag-sheet.png';
+    a.click();
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 py-4">
+    <div className="flex flex-col items-center gap-4">
       <canvas ref={canvasRef} className="hidden" />
-
-      {!preview && (
+      {!preview ? (
         <button
           onClick={generate}
           disabled={generating}
-          className="px-6 py-3 rounded-xl bg-emerald-500 text-black font-bold text-sm disabled:opacity-50 hover:bg-emerald-400 transition-colors"
+          className="px-6 py-3 rounded-xl bg-yellow-400 text-zinc-900 font-semibold text-sm hover:bg-yellow-300 disabled:opacity-50 transition-colors"
         >
-          {generating ? 'Generating…' : '✨ Generate My Brag Sheet'}
+          {generating ? 'Generating…' : 'Generate Brag Sheet'}
         </button>
-      )}
-
-      {preview && (
+      ) : (
         <div className="flex flex-col items-center gap-3 w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={preview}
-            alt="Your cannabis brag sheet"
-            className="rounded-2xl shadow-xl w-full max-w-xs border border-white/10"
+            alt="Brag sheet preview"
+            className="w-full max-w-sm rounded-2xl border border-zinc-800 shadow-xl"
           />
           <div className="flex gap-3">
             <button
               onClick={handleSave}
-              className="px-5 py-2.5 rounded-xl bg-emerald-500 text-black font-bold text-sm hover:bg-emerald-400 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-yellow-400 text-zinc-900 font-semibold text-sm hover:bg-yellow-300 transition-colors"
             >
-              {isMobile() && 'share' in navigator ? '↑ Save to Photos' : '↓ Download'}
+              {'share' in navigator ? 'Share' : 'Download'}
             </button>
             <button
               onClick={() => { setPreview(null); generate(); }}
-              className="px-5 py-2.5 rounded-xl bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition-colors"
+              disabled={generating}
+              className="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-semibold text-sm hover:bg-zinc-700 disabled:opacity-50 transition-colors"
             >
-              ↺ Regenerate
+              Regenerate
             </button>
           </div>
         </div>

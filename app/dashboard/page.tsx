@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -127,7 +127,6 @@ export default function DashboardPage() {
   };
 
   const loading = view === 'me' ? loadingMe : loadingAll;
-
   const monthLabel = (m: string) => {
     const [y, mo] = m.split('-');
     return new Date(Number(y), Number(mo) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
@@ -166,7 +165,6 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-8">
-      {/* Header + Toggle */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-zinc-100">Stats</h1>
@@ -186,7 +184,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ===== ME VIEW ===== */}
       {view === 'me' && !loading && (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -212,6 +209,8 @@ export default function DashboardPage() {
             topEffects={myData.topEffects?.slice(0, 4) ?? []}
             topFlavors={myData.topFlavors?.slice(0, 3) ?? []}
             topBrand={myData.topBrands?.[0]?.name ?? null}
+            strainTypeCounts={myData.strainTypeCounts}
+            thcDistribution={myData.thcDistribution}
           />
 
           {myData.scansOverTime.length > 1 && (
@@ -361,7 +360,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ===== ALL USERS VIEW ===== */}
       {view === 'all' && !loading && communityData && (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
