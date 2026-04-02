@@ -293,10 +293,10 @@ export function StatsCard({
       });
     }
 
-    // Strain type donut (right)
+    // Strain type donut (right) — donut centered in right half, legend below it
     const strainTotal = Object.values(strainTypeCounts).reduce((s, n) => s + n, 0);
-    const donutR = 34, donutInner = 20;
-    const donutCX = bottomRightX + donutR + 2;
+    const donutR = 42, donutInner = 25;
+    const donutCX = bottomRightX + (W - PAD - bottomRightX) / 2;
     const donutCY = sectionStartY + 20 + donutR;
 
     sectionLabel(ctx, 'STRAIN TYPES', bottomRightX, sectionStartY + 10);
@@ -315,26 +315,34 @@ export function StatsCard({
       ctx.beginPath(); ctx.arc(donutCX, donutCY, donutInner, 0, Math.PI * 2);
       ctx.fillStyle = '#0a0f0a'; ctx.fill();
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 12px system-ui'; ctx.fillStyle = '#f4f4f5';
+      ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#f4f4f5';
       ctx.fillText(String(strainTotal), donutCX, donutCY);
       ctx.font = '7px system-ui'; ctx.fillStyle = '#71717a';
-      ctx.fillText('logs', donutCX, donutCY + 11);
+      ctx.fillText('logs', donutCX, donutCY + 12);
       ctx.textBaseline = 'alphabetic';
 
-      // legend right of donut
-      const legX = donutCX + donutR + 6;
-      let legY = sectionStartY + 20;
-      ['sativa','indica','hybrid','cbd','other'].forEach(type => {
-        const count = strainTypeCounts[type] ?? 0;
-        if (!count) return;
-        ctx.fillStyle = strainTypeColors[type]; ctx.fillRect(legX, legY - 7, 8, 8);
-        ctx.font = '9px system-ui'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
-        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, legX + 11, legY);
-        legY += 14;
+      // legend below donut, centered
+      const legendTypes = ['sativa','indica','hybrid','cbd','other'].filter(t => (strainTypeCounts[t] ?? 0) > 0);
+      const legItemW = 72, legH = 14;
+      const legRowW = Math.min(legendTypes.length, 2) * legItemW;
+      let legY = donutCY + donutR + 10;
+      legendTypes.forEach((type, idx) => {
+        const count = strainTypeCounts[type];
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const legX = donutCX - legRowW / 2 + col * legItemW;
+        const ly = legY + row * legH;
+        ctx.fillStyle = strainTypeColors[type];
+        ctx.fillRect(legX, ly - 7, 8, 8);
+        ctx.font = '8px system-ui'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
+        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, legX + 11, ly);
       });
+      const legRows = Math.ceil(legendTypes.length / 2);
+      const donutBottomY = donutCY + donutR + legRows * legH + 16;
+      curY = Math.max(curY, donutBottomY) + 10;
+    } else {
+      curY += 10;
     }
-
-    curY = sectionStartY + donutR * 2 + 28;
 
     // ── THC DISTRIBUTION (full width, colored bars, dark text)
     const thcHasData = thcDistribution.some(b => b.count > 0);
