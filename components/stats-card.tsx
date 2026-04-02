@@ -106,9 +106,9 @@ export function StatsCard({
     for (let x = 20; x < W; x += 22)
       for (let y = 20; y < FULL_H; y += 22) { ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI*2); ctx.fill(); }
 
-    // LOGO — Canna(green) Base(yellow) AI(orange)  matches app header exactly
+    // LOGO — Canna(green) Base(yellow) AI(white) — matches app header exactly
     ctx.textBaseline = 'middle'; ctx.font = 'bold 17px Montserrat, system-ui';
-    const parts = [['Canna','#34d399'],['Base','#fde047'],['AI','#f97316']] as const;
+    const parts = [['Canna','#34d399'],['Base','#fde047'],['AI','#ffffff']] as const;
     const logoW = parts.reduce((s,[t]) => s + ctx.measureText(t).width, 0);
     let lx = W/2 - logoW/2;
     for (const [t, c] of parts) {
@@ -337,9 +337,9 @@ export function StatsCard({
     ctx.beginPath(); ctx.moveTo(PAD,Y); ctx.lineTo(W-PAD,Y); ctx.stroke();
     Y += 14;
 
-    // tricolor footer logo — canna(green) ba.se(yellow) /ai(orange)
+    // footer logo — cannaba.se/ai  styled to match brand: canna=green, base=yellow, .se/ai=white
     ctx.font='bold 13px Montserrat, system-ui'; ctx.textBaseline='alphabetic';
-    const fp=[['canna','#4ade80'],['ba.se','#fde047'],['/ai','#f97316']] as const;
+    const fp=[['canna','#34d399'],['base','#fde047'],['.se/ai','#ffffff']] as const;
     const fAll=fp.map(([t])=>t).join('');
     let fx3=W/2 - ctx.measureText(fAll).width/2;
     for(const [t,c] of fp){
