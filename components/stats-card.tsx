@@ -134,34 +134,34 @@ export function StatsCard({
     ctx.fillStyle = '#f97316'; ctx.fillText('AI', lx, 24);
 
     // ── AVATAR
-    const avatarSize = 72, avatarCX = W / 2, avatarCY = 90;
+    const avatarSize = 64, avatarCX = W / 2, avatarCY = 82;
     ctx.save();
     ctx.beginPath(); ctx.arc(avatarCX, avatarCY, avatarSize / 2, 0, Math.PI * 2); ctx.clip();
     if (avatarUrl) {
-      try { const img = await loadImage(avatarUrl); ctx.drawImage(img, avatarCX - 36, avatarCY - 36, 72, 72); }
-      catch { drawDefaultAvatar(ctx, avatarCX, avatarCY, 36); }
-    } else { drawDefaultAvatar(ctx, avatarCX, avatarCY, 36); }
+      try { const img = await loadImage(avatarUrl); ctx.drawImage(img, avatarCX - 32, avatarCY - 32, 64, 64); }
+      catch { drawDefaultAvatar(ctx, avatarCX, avatarCY, 32); }
+    } else { drawDefaultAvatar(ctx, avatarCX, avatarCY, 32); }
     ctx.restore();
     // ring
     ctx.strokeStyle = '#34d399'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, 39, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(avatarCX, avatarCY, 35, 0, Math.PI * 2); ctx.stroke();
 
     // ── USERNAME
-    ctx.font = 'bold 22px Montserrat, system-ui';
+    ctx.font = 'bold 20px Montserrat, system-ui';
     ctx.textAlign = 'center'; ctx.fillStyle = '#f4f4f5'; ctx.textBaseline = 'alphabetic';
-    ctx.fillText(`@${username}`, W / 2, 148);
+    ctx.fillText(`@${username}`, W / 2, 132);
 
     // subtitle
-    ctx.font = '700 10px system-ui'; ctx.fillStyle = '#34d399';
-    ctx.fillText('MY CANNABIS BRAG SHEET 🌿', W / 2, 163);
+    ctx.font = '700 9px system-ui'; ctx.fillStyle = '#34d399';
+    ctx.fillText('MY CANNABIS BRAG SHEET 🌿', W / 2, 145);
 
     // divider
     ctx.strokeStyle = 'rgba(52,211,153,0.2)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(PAD, 172); ctx.lineTo(W - PAD, 172); ctx.stroke();
-    let curY = 180;
+    ctx.beginPath(); ctx.moveTo(PAD, 153); ctx.lineTo(W - PAD, 153); ctx.stroke();
+    let curY = 160;
 
     // ── STAT TILES (2 rows of 2, then 2 wide)
-    const tileH = 58, tileGap = 8;
+    const tileH = 50, tileGap = 6;
     const tileW2 = (W - PAD * 2 - tileGap) / 2;
     const statTiles = [
       { label: 'PRODUCTS LOGGED', value: String(totalScans), color: '#34d399' },
@@ -209,7 +209,7 @@ export function StatsCard({
       sectionLabel(ctx, 'TOP STRAINS', PAD, curY + 10);
       curY += 16;
       const maxCount = topStrains[0].count;
-      const strainBarH = 22, strainGap = 6;
+      const strainBarH = 20, strainGap = 5;
       const strainBarColors = ['#34d399', '#a78bfa', '#fde047', '#38bdf8', '#f97316'];
       topStrains.slice(0, 5).forEach((s, i) => {
         const bw = Math.max(60, ((s.count / (maxCount || 1)) * (W - PAD * 2)));
@@ -269,79 +269,92 @@ export function StatsCard({
       curY = py + pillH + 8;
     }
 
-    // ── TOP FLAVORS + STRAIN TYPE DONUT (side by side)
-    const bottomLeftW = W / 2 - PAD - 4;
-    const bottomRightX = W / 2 + 4;
-    const bottomRightW = W / 2 - PAD - 4;
-    const sectionStartY = curY;
-
-    // Flavors (left)
+    // ── TOP FLAVORS (pill chips, full width)
     if (topFlavors.length > 0) {
-      sectionLabel(ctx, 'TOP FLAVORS', PAD, sectionStartY + 10);
+      sectionLabel(ctx, 'TOP FLAVORS', PAD, curY + 10);
       const flavorColors = ['#fde047', '#f97316', '#34d399', '#38bdf8', '#a78bfa', '#ec4899'];
       ctx.font = 'bold 10px system-ui';
-      let fpx = PAD, fpy = sectionStartY + 16;
+      let fpx = PAD, fpy = curY + 16;
       const pillH = 22, pillGap = 6;
       topFlavors.slice(0, 6).forEach((f, i) => {
         const tw = ctx.measureText(f.name).width + 18;
-        if (fpx + tw > PAD + bottomLeftW) { fpx = PAD; fpy += pillH + pillGap; }
+        if (fpx + tw > W - PAD) { fpx = PAD; fpy += pillH + pillGap; }
         ctx.fillStyle = flavorColors[i % flavorColors.length];
         rr(ctx, fpx, fpy, tw, pillH, pillH / 2); ctx.fill();
         ctx.fillStyle = '#0a0f0a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(f.name, fpx + tw / 2, fpy + pillH / 2);
         fpx += tw + pillGap;
       });
+      curY = fpy + pillH + 10;
     }
 
-    // Strain type donut (right) — donut centered in right half, legend below it
+    // ── STRAIN TYPES — stacked 100% horizontal bar
     const strainTotal = Object.values(strainTypeCounts).reduce((s, n) => s + n, 0);
-    const donutR = 42, donutInner = 25;
-    const donutCX = bottomRightX + (W - PAD - bottomRightX) / 2;
-    const donutCY = sectionStartY + 20 + donutR;
-
-    sectionLabel(ctx, 'STRAIN TYPES', bottomRightX, sectionStartY + 10);
-
     if (strainTotal > 0) {
-      let startAngle = -Math.PI / 2;
-      ['sativa','indica','hybrid','cbd','other'].forEach(type => {
-        const count = strainTypeCounts[type] ?? 0;
-        if (!count) return;
-        const slice = (count / strainTotal) * Math.PI * 2;
-        ctx.beginPath(); ctx.moveTo(donutCX, donutCY);
-        ctx.arc(donutCX, donutCY, donutR, startAngle, startAngle + slice);
-        ctx.closePath(); ctx.fillStyle = strainTypeColors[type]; ctx.fill();
-        startAngle += slice;
-      });
-      ctx.beginPath(); ctx.arc(donutCX, donutCY, donutInner, 0, Math.PI * 2);
-      ctx.fillStyle = '#0a0f0a'; ctx.fill();
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 13px system-ui'; ctx.fillStyle = '#f4f4f5';
-      ctx.fillText(String(strainTotal), donutCX, donutCY);
-      ctx.font = '7px system-ui'; ctx.fillStyle = '#71717a';
-      ctx.fillText('logs', donutCX, donutCY + 12);
-      ctx.textBaseline = 'alphabetic';
+      sectionLabel(ctx, 'STRAIN TYPES', PAD, curY + 10);
+      curY += 16;
+      const stackH = 22, stackW = W - PAD * 2, stackR = 6;
+      const strainOrder = ['sativa','indica','hybrid','cbd','other'].filter(t => (strainTypeCounts[t] ?? 0) > 0);
 
-      // legend below donut, centered
-      const legendTypes = ['sativa','indica','hybrid','cbd','other'].filter(t => (strainTypeCounts[t] ?? 0) > 0);
-      const legItemW = 72, legH = 14;
-      const legRowW = Math.min(legendTypes.length, 2) * legItemW;
-      let legY = donutCY + donutR + 10;
-      legendTypes.forEach((type, idx) => {
-        const count = strainTypeCounts[type];
-        const col = idx % 2;
-        const row = Math.floor(idx / 2);
-        const legX = donutCX - legRowW / 2 + col * legItemW;
-        const ly = legY + row * legH;
+      // draw stacked bar segments
+      let segX = PAD;
+      strainOrder.forEach((type, i) => {
+        const count = strainTypeCounts[type]!;
+        const segW = (count / strainTotal) * stackW;
+        const isFirst = i === 0, isLast = i === strainOrder.length - 1;
         ctx.fillStyle = strainTypeColors[type];
-        ctx.fillRect(legX, ly - 7, 8, 8);
-        ctx.font = '8px system-ui'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
-        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, legX + 11, ly);
+        ctx.beginPath();
+        ctx.moveTo(segX + (isFirst ? stackR : 0), curY);
+        ctx.lineTo(segX + segW - (isLast ? 0 : 0) - (isFirst ? 0 : 0), curY);
+        if (isLast) { ctx.lineTo(segX + segW, curY); ctx.lineTo(segX + segW, curY + stackH); }
+        else { ctx.lineTo(segX + segW, curY); ctx.lineTo(segX + segW, curY + stackH); }
+        ctx.lineTo(segX + (isFirst ? 0 : 0), curY + stackH);
+        ctx.closePath();
+        // Use rr only for first/last caps
+        if (isFirst && isLast) { rr(ctx, segX, curY, segW, stackH, stackR); }
+        else if (isFirst) {
+          ctx.beginPath();
+          ctx.moveTo(segX + stackR, curY); ctx.lineTo(segX + segW, curY);
+          ctx.lineTo(segX + segW, curY + stackH); ctx.lineTo(segX + stackR, curY + stackH);
+          ctx.quadraticCurveTo(segX, curY + stackH, segX, curY + stackH - stackR);
+          ctx.lineTo(segX, curY + stackR);
+          ctx.quadraticCurveTo(segX, curY, segX + stackR, curY);
+          ctx.closePath();
+        } else if (isLast) {
+          ctx.beginPath();
+          ctx.moveTo(segX, curY); ctx.lineTo(segX + segW - stackR, curY);
+          ctx.quadraticCurveTo(segX + segW, curY, segX + segW, curY + stackR);
+          ctx.lineTo(segX + segW, curY + stackH - stackR);
+          ctx.quadraticCurveTo(segX + segW, curY + stackH, segX + segW - stackR, curY + stackH);
+          ctx.lineTo(segX, curY + stackH);
+          ctx.closePath();
+        } else {
+          ctx.beginPath();
+          ctx.rect(segX, curY, segW, stackH);
+        }
+        ctx.fill();
+
+        // pct label on segment if wide enough
+        const pct = Math.round((count / strainTotal) * 100);
+        ctx.font = 'bold 9px system-ui'; ctx.fillStyle = '#0a0f0a';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (segW > 24) ctx.fillText(`${pct}%`, segX + segW / 2, curY + stackH / 2);
+        segX += segW;
       });
-      const legRows = Math.ceil(legendTypes.length / 2);
-      const donutBottomY = donutCY + donutR + legRows * legH + 16;
-      curY = Math.max(curY, donutBottomY) + 10;
-    } else {
-      curY += 10;
+
+      // legend row below bar
+      curY += stackH + 6;
+      let legX = PAD;
+      ctx.font = '8px system-ui'; ctx.textBaseline = 'middle';
+      strainOrder.forEach(type => {
+        const count = strainTypeCounts[type]!;
+        ctx.fillStyle = strainTypeColors[type]; ctx.fillRect(legX, curY - 4, 7, 7);
+        ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
+        const label = `${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`;
+        ctx.fillText(label, legX + 10, curY);
+        legX += ctx.measureText(label).width + 18;
+      });
+      curY += 14;
     }
 
     // ── THC DISTRIBUTION (full width, colored bars, dark text)
