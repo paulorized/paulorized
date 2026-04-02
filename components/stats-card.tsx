@@ -337,16 +337,7 @@ export function StatsCard({
     ctx.beginPath(); ctx.moveTo(PAD,Y); ctx.lineTo(W-PAD,Y); ctx.stroke();
     Y += 14;
 
-    // footer — cannaba.se/ai (green/purple/yellow) + CannaBaseAI.com tagline
-    ctx.font='bold 13px Montserrat, system-ui'; ctx.textBaseline='alphabetic';
-    const fp=[['canna','#34d399'],['base','#a78bfa'],['.se/ai','#fde047']] as const;
-    const fAll=fp.map(([t])=>t).join('');
-    let fx3=W/2 - ctx.measureText(fAll).width/2;
-    for(const [t,c] of fp){
-      ctx.fillStyle=c; ctx.textAlign='left'; ctx.fillText(t,fx3,Y); fx3+=ctx.measureText(t).width;
-    }
-    Y += 14;
-    ctx.font='9px system-ui'; ctx.fillStyle='#71717a'; ctx.textAlign='center';
+    ctx.font='bold 11px system-ui'; ctx.fillStyle='#a1a1aa'; ctx.textAlign='center';
     ctx.fillText('Visit CannaBaseAI.com', W/2, Y);
     Y += 18;
 
