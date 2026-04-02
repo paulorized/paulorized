@@ -373,21 +373,4 @@ export function StatsCard({
           {generating ? 'Generating…' : 'Generate Brag Sheet'}
         </button>
       ) : (
-        <div className="flex flex-col items-center gap-3 w-full">
-          <img src={preview} alt="Brag sheet preview"
-            className="w-full max-w-sm rounded-2xl border border-zinc-800 shadow-xl" />
-          <div className="flex gap-3">
-            <button onClick={handleSave}
-              className="px-5 py-2.5 rounded-xl bg-yellow-400 text-zinc-900 font-semibold text-sm hover:bg-yellow-300 transition-colors">
-              {'share' in navigator ? 'Share' : 'Download'}
-            </button>
-            <button onClick={()=>{setPreview(null);generate();}} disabled={generating}
-              className="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-semibold text-sm hover:bg-zinc-700 disabled:opacity-50 transition-colors">
-              Regenerate
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+        <div cla

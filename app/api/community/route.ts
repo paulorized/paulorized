@@ -87,7 +87,4 @@ export async function GET() {
       topEffects: countArray(reviews as Record<string, unknown>[], 'effects').slice(0, 10),
       topFlavors: countArray(reviews as Record<string, unknown>[], 'flavors').slice(0, 10),
     });
-  } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
-  }
-}
+  } catch (er

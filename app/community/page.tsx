@@ -383,23 +383,4 @@ export default function CommunityPage() {
           onClick={() => setLightboxUrl(null)}
         >
           <button
-            onClick={() => setLightboxUrl(null)}
-            className="absolute top-4 right-4 rounded-full bg-zinc-800/80 p-2 text-zinc-300 hover:text-white transition"
-            aria-label="Close"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightboxUrl}
-            alt="NugShot full view"
-            onClick={e => e.stopPropagation()}
-            className="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
+            onClick=

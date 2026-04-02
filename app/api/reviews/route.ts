@@ -10,27 +10,40 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('product_log_id', productLogId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
 
-  if (error && error.code !== 'PGRST116') {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Fetch review and the dispensary_name from product_logs in parallel
+  const [reviewResult, logResult] = await Promise.all([
+    supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_log_id', productLogId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single(),
+    supabase
+      .from('product_logs')
+      .select('dispensary_name')
+      .eq('id', productLogId)
+      .single(),
+  ]);
+
+  if (reviewResult.error && reviewResult.error.code !== 'PGRST116') {
+    return NextResponse.json({ error: reviewResult.error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ review: data ?? null });
+  return NextResponse.json({
+    review: reviewResult.data ?? null,
+    dispensary_name: logResult.data?.dispensary_name ?? null,
+  });
 }
+
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const {
       product_log_id, rating, would_buy_again, notes, effects, flavors,
-      burn_speed, canoeing, clogging,
+      burn_speed, canoeing, clogging, dispensary_name,
       edible_dose_mg, edible_onset, edible_peak_duration, edible_total_duration,
       edible_effect_type, edible_feelings, edible_taste_rating, edible_dose_feedback,
     } = body;
@@ -60,56 +73,52 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
-    // Upsert — update if review already exists for this product_log_id
+    // Upsert review
     const { data: existing } = await supabase
       .from('reviews')
       .select('id')
       .eq('product_log_id', product_log_id)
       .single();
 
-    let error;
+    let reviewError;
     if (existing?.id) {
-      ({ error } = await supabase
+      ({ error: reviewError } = await supabase
         .from('reviews')
-        .update({ user_id: authedUserId, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields, updated_at: new Date().toISOString() })
+        .update({
+          user_id: authedUserId, rating, would_buy_again, notes, effects, flavors,
+          burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null,
+          ...edibleFields, updated_at: new Date().toISOString(),
+        })
         .eq('id', existing.id));
     } else {
-      ({ error } = await supabase
+      ({ error: reviewError } = await supabase
         .from('reviews')
-        .insert({ product_log_id, user_id: authedUserId, rating, would_buy_again, notes, effects, flavors, burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null, ...edibleFields }));
+        .insert({
+          product_log_id, user_id: authedUserId, rating, would_buy_again, notes, effects, flavors,
+          burn_speed: burn_speed ?? null, canoeing: canoeing ?? null, clogging: clogging ?? null,
+          ...edibleFields,
+        }));
     }
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (reviewError) {
+      return NextResponse.json({ error: reviewError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unexpected error.';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+    // Update dispensary_name on product_logs (only if provided or explicitly cleared)
+    if (dispensary_name !== undefined) {
+      const trimmed = typeof dispensary_name === 'string' ? dispensary_name.trim() || null : null;
+      await supabase
+        .from('product_logs')
+        .update({ dispensary_name: trimmed })
+        .eq('id', product_log_id)
+        .eq('user_id', authedUserId ?? '');
 
-export async function DELETE(request: NextRequest) {
-  try {
-    const { review_id } = await request.json();
-    if (!review_id) return NextResponse.json({ error: 'review_id required.' }, { status: 400 });
+      // Auto-save to dispensaries list if a name was given
+      if (trimmed && authedUserId) {
+        await supabase
+          .from('dispensaries')
+          .upsert({ name: trimmed, user_id: authedUserId }, { onConflict: 'user_id,name', ignoreDuplicates: true });
+      }
+    }
 
-    const auth = await createAuthServerClient();
-    const { data: { user } } = await auth.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const supabase = createServerSupabaseClient();
-    const { error } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('id', review_id)
-      .eq('user_id', user.id); // only allow deleting own review
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unexpected error.';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+    re

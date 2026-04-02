@@ -465,47 +465,4 @@ export default function DashboardPage() {
 
           {communityData.topDispensaries?.length > 0 && (
             <Section title="Most visited dispensaries">
-              <div className="flex flex-wrap gap-2">
-                {communityData.topDispensaries.map((d, i) => (
-                  <a key={i} href={`https://www.google.com/maps/search/${encodeURIComponent(d.name + ' dispensary')}`} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs text-red-300 hover:bg-red-500/20 transition">
-                    <svg width="9" height="11" viewBox="0 0 24 28" fill="currentColor" className="shrink-0"><path d="M12 0C7.16 0 3.2 3.96 3.2 8.8c0 7.7 8.8 17.6 8.8 17.6s8.8-9.9 8.8-17.6C20.8 3.96 16.84 0 12 0zm0 12a3.2 3.2 0 1 1 0-6.4A3.2 3.2 0 0 1 12 12z"/></svg>
-                    {d.name} <span className="text-red-500">{d.count}x</span>
-                  </a>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {communityData.topEffects.length > 0 && (
-            <Section title="Most reported effects">
-              <div className="flex flex-wrap gap-2">
-                {communityData.topEffects.map((e, i) => (
-                  <span key={i} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
-                    {e.name} <span className="text-emerald-600">{e.count}x</span>
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {communityData.topFlavors.length > 0 && (
-            <Section title="Most reported flavors">
-              <div className="flex flex-wrap gap-2">
-                {communityData.topFlavors.map((f, i) => (
-                  <span key={i} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">
-                    {f.name} <span className="text-amber-600">{f.count}x</span>
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
-        </>
-      )}
-
-      {view === 'all' && !loading && !communityData && (
-        <Empty msg="Could not load community stats." />
-      )}
-    </div>
-  );
-}
+              <div

@@ -135,6 +135,4 @@ export async function GET(request: Request) {
       next_cursor: rows.length === limit ? rows[rows.length - 1].created_at : null,
     });
   } catch (err) {
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
-  }
-}
+    return NextResponse.json
