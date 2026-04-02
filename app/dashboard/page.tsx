@@ -211,6 +211,7 @@ export default function DashboardPage() {
             topBrand={myData.topBrands?.[0]?.name ?? null}
             strainTypeCounts={myData.strainTypeCounts}
             thcDistribution={myData.thcDistribution}
+            productTypeCounts={myData.productTypeCounts}
           />
 
           {myData.scansOverTime.length > 1 && (

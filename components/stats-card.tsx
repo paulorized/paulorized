@@ -17,6 +17,7 @@ type Props = {
   topBrand: string | null;
   strainTypeCounts?: Record<string, number>;
   thcDistribution?: { range: string; count: number }[];
+  productTypeCounts?: Record<string, number>;
 };
 
 function formatWeight(g: number): string {
@@ -79,7 +80,7 @@ function drawDefaultAvatar(ctx: CanvasRenderingContext2D, cx: number, cy: number
 export function StatsCard({
   username, avatarUrl, totalScans, totalReviews, totalGrams,
   avgThc, avgRating, wbaPct, topStrains, topEffects, topFlavors, topBrand,
-  strainTypeCounts = {}, thcDistribution = [],
+  strainTypeCounts = {}, thcDistribution = [], productTypeCounts = {},
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [generating, setGenerating] = useState(false);
@@ -93,7 +94,7 @@ export function StatsCard({
     } catch { /* fallback silently */ }
 
     const canvas = canvasRef.current!;
-    const W = 390, H = 870;
+    const W = 390, H = 960;
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
@@ -311,13 +312,54 @@ export function StatsCard({
           grad.addColorStop(0, '#fde047'); grad.addColorStop(1, '#f97316');
           ctx.fillStyle = grad; rr(ctx, thcX, by, bw, barH, 3); ctx.fill();
         }
-        // labels
-        ctx.font = '8px system-ui, sans-serif'; ctx.fillStyle = '#71717a'; ctx.textAlign = 'left';
+        // labels — white on filled bars, muted on empty tracks
+        const labelColor = b.count > 0 ? '#ffffff' : '#52525b';
+        ctx.font = 'bold 8px system-ui, sans-serif'; ctx.fillStyle = labelColor; ctx.textAlign = 'left';
         ctx.fillText(b.range, thcX + 3, by + barH - 2);
         if (b.count > 0) {
-          ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'right';
-          ctx.fillText(String(b.count), thcX + thcW - 2, by + barH - 2);
+          ctx.fillStyle = '#ffffff'; ctx.textAlign = 'right';
+          ctx.fillText(String(b.count), thcX + thcW - 3, by + barH - 2);
         }
+      });
+    }
+
+    // ── PRODUCT TYPE CHART (horizontal bars, full width)
+    const prodSectionY = chartSectionY + donutR * 2 + 30;
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(20, prodSectionY - 10); ctx.lineTo(W - 20, prodSectionY - 10); ctx.stroke();
+
+    ctx.font = '600 9px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'left';
+    ctx.fillText('PRODUCT TYPES', 20, prodSectionY + 4);
+
+    const prodEntries = Object.entries(productTypeCounts)
+      .filter(([, v]) => v > 0)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 6);
+
+    if (prodEntries.length > 0) {
+      const prodMaxVal = prodEntries[0][1];
+      const prodBarH = 14, prodBarGap = 6;
+      const labelW = 90, barAreaX = 20 + labelW + 6, barAreaW = W - 40 - labelW - 6 - 24;
+      const prodColors = ['#34d399','#a78bfa','#fde047','#38bdf8','#f97316','#ec4899'];
+
+      prodEntries.forEach(([name, count], i) => {
+        const by = prodSectionY + 14 + i * (prodBarH + prodBarGap);
+        const bw = Math.max(6, (count / prodMaxVal) * barAreaW);
+
+        // label
+        ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'right';
+        let label = name.charAt(0).toUpperCase() + name.slice(1);
+        while (ctx.measureText(label).width > labelW - 4 && label.length > 2) label = label.slice(0, -1);
+        if (label !== (name.charAt(0).toUpperCase() + name.slice(1))) label += '…';
+        ctx.fillText(label, 20 + labelW, by + prodBarH - 3);
+
+        // track
+        ctx.fillStyle = 'rgba(255,255,255,0.04)'; rr(ctx, barAreaX, by, barAreaW, prodBarH, 4); ctx.fill();
+        // bar
+        ctx.fillStyle = prodColors[i % prodColors.length]; rr(ctx, barAreaX, by, bw, prodBarH, 4); ctx.fill();
+        // count
+        ctx.font = 'bold 8px system-ui, sans-serif'; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'right';
+        ctx.fillText(String(count), barAreaX + barAreaW - 3, by + prodBarH - 3);
       });
     }
 
