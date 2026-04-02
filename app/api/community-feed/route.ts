@@ -38,7 +38,8 @@ export async function GET(request: Request) {
           strain_type,
           product_type,
           thc_percent,
-          headshot_url
+          headshot_url,
+          dispensary_name
         )
       `)
       .order('created_at', { ascending: false })
@@ -111,6 +112,7 @@ export async function GET(request: Request) {
         tier: getTier(totalPoints),
         scan_count: scanCounts[r.user_id] ?? 0,
         brand: log?.brand ?? '',
+        dispensary_name: log?.dispensary_name ?? null,
         strain_name: log?.strain_name ?? '',
         strain_type: log?.strain_type ?? 'unknown',
         product_type: log?.product_type ?? '',

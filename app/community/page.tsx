@@ -30,6 +30,7 @@ interface FeedItem {
   is_mine: boolean;
   nugshot_url: string | null;
   scan_count: number;
+  dispensary_name: string | null;
 }
 
 const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
@@ -148,6 +149,19 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
               <span className="text-xs text-emerald-500 font-medium">THC {item.thc_percent}%</span>
             )}
           </div>
+          {item.dispensary_name && (
+            <a
+              href={`https://www.google.com/maps/search/${encodeURIComponent(item.dispensary_name + ' dispensary')}`}
+              target="_blank" rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="mt-1 inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition"
+            >
+              <svg width="8" height="10" viewBox="0 0 24 28" fill="currentColor" className="shrink-0">
+                <path d="M12 0C7.16 0 3.2 3.96 3.2 8.8c0 7.7 8.8 17.6 8.8 17.6s8.8-9.9 8.8-17.6C20.8 3.96 16.84 0 12 0zm0 12a3.2 3.2 0 1 1 0-6.4A3.2 3.2 0 0 1 12 12z"/>
+              </svg>
+              {item.dispensary_name}
+            </a>
+          )}
         </div>
       </div>
 
