@@ -346,14 +346,8 @@ export function StatsCard({
       ctx.fillStyle=c; ctx.textAlign='left'; ctx.fillText(t,fx3,Y); fx3+=ctx.measureText(t).width;
     }
     Y += 14;
-    // tagline: Canna(green) Base(purple) AI(yellow) .com(gray)
-    ctx.font='9px Montserrat, system-ui';
-    const tag=[['Canna','#34d399'],['Base','#a78bfa'],['AI','#fde047'],['.com','#71717a']] as const;
-    const tagAll=tag.map(([t])=>t).join('');
-    let tx2=W/2 - ctx.measureText(tagAll).width/2;
-    for(const [t,c] of tag){
-      ctx.fillStyle=c; ctx.textAlign='left'; ctx.fillText(t,tx2,Y); tx2+=ctx.measureText(t).width;
-    }
+    ctx.font='9px system-ui'; ctx.fillStyle='#71717a'; ctx.textAlign='center';
+    ctx.fillText('Visit CannaBaseAI.com', W/2, Y);
     Y += 18;
 
     // CROP canvas to actual content
