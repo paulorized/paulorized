@@ -7,7 +7,7 @@ export async function GET() {
 
     const [logsRes, reviewsRes] = await Promise.all([
       db.from('product_logs')
-        .select('user_id, brand, product_type, strain_name, strain_type, thc_percent, weight')
+        .select('user_id, brand, product_type, strain_name, strain_type, thc_percent, weight, dispensary_name')
         .limit(2000),
       db.from('reviews')
         .select('effects, flavors')
@@ -83,6 +83,7 @@ export async function GET() {
       topStrains: countBy(logs as Record<string, unknown>[], 'strain_name').slice(0, 10),
       topBrands: countBy(logs as Record<string, unknown>[], 'brand').slice(0, 10),
       topProductTypes: countBy(logs as Record<string, unknown>[], 'product_type').slice(0, 8),
+      topDispensaries: countBy(logs as Record<string, unknown>[], 'dispensary_name').slice(0, 8),
       topEffects: countArray(reviews as Record<string, unknown>[], 'effects').slice(0, 10),
       topFlavors: countArray(reviews as Record<string, unknown>[], 'flavors').slice(0, 10),
     });
