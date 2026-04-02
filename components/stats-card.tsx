@@ -93,7 +93,7 @@ export function StatsCard({
     } catch { /* fallback silently */ }
 
     const canvas = canvasRef.current!;
-    const W = 390, H = 1050;
+    const W = 390, H = 870;
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d')!;
 
@@ -194,22 +194,22 @@ export function StatsCard({
     ctx.textBaseline = 'alphabetic';
 
     // ── TOP BRAND banner
+    const brandBannerH = 32;
     if (topBrand) {
-      const brandY = avgY + tileH + 14;
-      const brandH = 32;
+      const brandY = avgY + tileH + 12;
       const brandGrad = ctx.createLinearGradient(20, brandY, W - 20, brandY);
       brandGrad.addColorStop(0, 'rgba(52,211,153,0.12)'); brandGrad.addColorStop(1, 'rgba(167,139,250,0.12)');
-      ctx.fillStyle = brandGrad; rr(ctx, 20, brandY, W - 40, brandH, 10); ctx.fill();
+      ctx.fillStyle = brandGrad; rr(ctx, 20, brandY, W - 40, brandBannerH, 10); ctx.fill();
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '11px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
-      ctx.fillText('TOP BRAND', W / 2, brandY + brandH / 2 - 7);
+      ctx.font = '10px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText('TOP BRAND', W / 2, brandY + brandBannerH / 2 - 7);
       ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = '#f4f4f5';
-      ctx.fillText(topBrand, W / 2, brandY + brandH / 2 + 8);
+      ctx.fillText(topBrand, W / 2, brandY + brandBannerH / 2 + 8);
     }
     ctx.textBaseline = 'alphabetic';
 
     // ── LIST SECTION (Strains / Effects / Flavors)
-    const listsY = (topBrand ? avgY + 64 + 14 : avgY + 64) + 18;
+    const listsY = avgY + tileH + (topBrand ? brandBannerH + 24 : 12) + 14;
     const listColW = (W - 40 - 20) / 3;
     const lists = [
       { title: 'TOP STRAINS', items: topStrains, color: '#34d399' },
@@ -247,10 +247,13 @@ export function StatsCard({
       sativa: '#fde047', indica: '#a78bfa', hybrid: '#34d399', cbd: '#38bdf8', other: '#71717a',
     };
     const strainTotal = Object.values(strainTypeCounts).reduce((s, n) => s + n, 0);
-    const donutCX = W / 4, donutCY = chartSectionY + 70, donutR = 52, donutInner = 32;
+    // donut sits in left half; legend in middle strip between donut and THC bars
+    const donutR = 38, donutInner = 22;
+    const donutCX = 20 + donutR + 4;
+    const donutCY = chartSectionY + donutR + 14;
 
-    ctx.font = '600 10px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'center';
-    ctx.fillText('STRAIN TYPES', donutCX, chartSectionY + 4);
+    ctx.font = '600 9px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'left';
+    ctx.fillText('STRAIN TYPES', 20, chartSectionY + 4);
 
     if (strainTotal > 0) {
       let startAngle = -Math.PI / 2;
@@ -268,29 +271,30 @@ export function StatsCard({
       ctx.fillStyle = '#09090b'; ctx.fill();
       // center label
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 13px system-ui, sans-serif'; ctx.fillStyle = '#f4f4f5';
+      ctx.font = 'bold 11px system-ui, sans-serif'; ctx.fillStyle = '#f4f4f5';
       ctx.fillText(String(strainTotal), donutCX, donutCY);
-      ctx.font = '8px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
-      ctx.fillText('logs', donutCX, donutCY + 13);
+      ctx.font = '7px system-ui, sans-serif'; ctx.fillStyle = '#71717a';
+      ctx.fillText('logs', donutCX, donutCY + 11);
       ctx.textBaseline = 'alphabetic';
 
-      // legend
-      let legY = chartSectionY + 18;
+      // legend — to the right of the donut
+      const legX = donutCX + donutR + 8;
+      let legY = chartSectionY + 16;
       strainOrder.forEach(type => {
         const count = strainTypeCounts[type] ?? 0;
         if (!count) return;
         ctx.fillStyle = strainColors[type];
-        ctx.fillRect(W / 2 - 56, legY - 7, 8, 8);
+        ctx.fillRect(legX, legY - 7, 7, 7);
         ctx.font = '9px system-ui, sans-serif'; ctx.fillStyle = '#a1a1aa'; ctx.textAlign = 'left';
-        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, W / 2 - 44, legY);
-        legY += 16;
+        ctx.fillText(`${type.charAt(0).toUpperCase() + type.slice(1)} (${count})`, legX + 10, legY);
+        legY += 15;
       });
     }
 
     // ── THC DISTRIBUTION (right half)
-    const thcX = W / 2 + 10;
-    const thcW = W / 2 - 30;
-    ctx.font = '600 10px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'left';
+    const thcX = W / 2 + 6;
+    const thcW = W / 2 - 26;
+    ctx.font = '600 9px system-ui, sans-serif'; ctx.fillStyle = '#52525b'; ctx.textAlign = 'left';
     ctx.fillText('THC RANGE', thcX, chartSectionY + 4);
 
     if (thcDistribution.filter(b => b.count > 0).length > 0) {
