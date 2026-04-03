@@ -8,50 +8,23 @@ const EDIBLE_FEELINGS = ['Relaxed', 'Sleepy', 'Euphoric', 'Creative', 'Focused',
 const EDIBLE_DOSE_OPTIONS = [2.5, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200];
 
 export type Review = {
-  rating: number;
-  would_buy_again: boolean | null;
-  notes: string;
-  effects: string[];
-  flavors: string[];
-  burn_speed: 'slow' | 'medium' | 'fast' | null;
-  canoeing: boolean | null;
-  clogging: boolean | null;
-  edible_dose_mg: number | null;
-  edible_onset: string | null;
-  edible_peak_duration: string | null;
-  edible_total_duration: string | null;
-  edible_effect_type: string | null;
-  edible_feelings: string[];
-  edible_taste_rating: number | null;
-  edible_dose_feedback: string | null;
+  rating: number; would_buy_again: boolean | null; notes: string;
+  effects: string[]; flavors: string[];
+  burn_speed: 'slow' | 'medium' | 'fast' | null; canoeing: boolean | null; clogging: boolean | null;
+  edible_dose_mg: number | null; edible_onset: string | null; edible_peak_duration: string | null;
+  edible_total_duration: string | null; edible_effect_type: string | null; edible_feelings: string[];
+  edible_taste_rating: number | null; edible_dose_feedback: string | null;
 };
 
 const emptyReview: Review = {
-  rating: 0,
-  would_buy_again: null,
-  notes: '',
-  effects: [],
-  flavors: [],
-  burn_speed: null,
-  canoeing: null,
-  clogging: null,
-  edible_dose_mg: null,
-  edible_onset: null,
-  edible_peak_duration: null,
-  edible_total_duration: null,
-  edible_effect_type: null,
-  edible_feelings: [],
-  edible_taste_rating: null,
-  edible_dose_feedback: null,
+  rating: 0, would_buy_again: null, notes: '', effects: [], flavors: [],
+  burn_speed: null, canoeing: null, clogging: null,
+  edible_dose_mg: null, edible_onset: null, edible_peak_duration: null,
+  edible_total_duration: null, edible_effect_type: null, edible_feelings: [],
+  edible_taste_rating: null, edible_dose_feedback: null,
 };
 
-type Props = {
-  productLogId: string;
-  productType?: string;
-  userId?: string;
-  suggestedEffects?: string[];
-  suggestedFlavors?: string[];
-};
+type Props = { productLogId: string; productType?: string; userId?: string; suggestedEffects?: string[]; suggestedFlavors?: string[]; };
 
 export function ReviewForm({ productLogId, productType, userId, suggestedEffects, suggestedFlavors }: Props) {
   const [review, setReview] = useState<Review>(emptyReview);
@@ -74,47 +47,31 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
     d => d.toLowerCase().includes(dispensaryName.toLowerCase()) && d.toLowerCase() !== dispensaryName.toLowerCase()
   );
 
-  // Close dispensary dropdown on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (dispensaryRef.current && !dispensaryRef.current.contains(e.target as Node)) {
-        setShowDispSuggestions(false);
-      }
+      if (dispensaryRef.current && !dispensaryRef.current.contains(e.target as Node)) setShowDispSuggestions(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-
-  // Load existing review + dispensary name + user dispensaries list
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       try {
-        // Load review data (now also returns dispensary_name)
         const res = await fetch(`/api/reviews?product_log_id=${productLogId}`);
         const data = await res.json();
         if (data.review) {
           setHasExisting(true);
           setReview({
-            rating: data.review.rating ?? 0,
-            would_buy_again: data.review.would_buy_again ?? null,
-            notes: data.review.notes ?? '',
-            effects: data.review.effects ?? [],
-            flavors: data.review.flavors ?? [],
-            burn_speed: data.review.burn_speed ?? null,
-            canoeing: data.review.canoeing ?? null,
-            clogging: data.review.clogging ?? null,
-            edible_dose_mg: data.review.edible_dose_mg ?? null,
-            edible_onset: data.review.edible_onset ?? null,
-            edible_peak_duration: data.review.edible_peak_duration ?? null,
-            edible_total_duration: data.review.edible_total_duration ?? null,
-            edible_effect_type: data.review.edible_effect_type ?? null,
-            edible_feelings: data.review.edible_feelings ?? [],
-            edible_taste_rating: data.review.edible_taste_rating ?? null,
-            edible_dose_feedback: data.review.edible_dose_feedback ?? null,
+            rating: data.review.rating ?? 0, would_buy_again: data.review.would_buy_again ?? null,
+            notes: data.review.notes ?? '', effects: data.review.effects ?? [], flavors: data.review.flavors ?? [],
+            burn_speed: data.review.burn_speed ?? null, canoeing: data.review.canoeing ?? null, clogging: data.review.clogging ?? null,
+            edible_dose_mg: data.review.edible_dose_mg ?? null, edible_onset: data.review.edible_onset ?? null,
+            edible_peak_duration: data.review.edible_peak_duration ?? null, edible_total_duration: data.review.edible_total_duration ?? null,
+            edible_effect_type: data.review.edible_effect_type ?? null, edible_feelings: data.review.edible_feelings ?? [],
+            edible_taste_rating: data.review.edible_taste_rating ?? null, edible_dose_feedback: data.review.edible_dose_feedback ?? null,
           });
-          // Pre-fill dispensary name from product_log
           if (data.dispensary_name) setDispensaryName(data.dispensary_name);
         } else if (suggestedEffects?.length || suggestedFlavors?.length) {
           setReview(prev => ({
@@ -123,7 +80,6 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
             flavors: suggestedFlavors?.filter(f => FLAVORS.includes(f)) ?? [],
           }));
         }
-        // Load user's saved dispensaries for autocomplete
         const dispRes = await fetch('/api/dispensaries');
         const dispData = await dispRes.json();
         setDispensaries((dispData.dispensaries ?? []).map((d: { name: string }) => d.name));
@@ -143,14 +99,8 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
     setIsSaving(true); setError(''); setSaved(false);
     try {
       const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_log_id: productLogId,
-          user_id: userId,
-          dispensary_name: dispensaryName.trim() || null,
-          ...review,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_log_id: productLogId, user_id: userId, dispensary_name: dispensaryName.trim() || null, ...review }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save review.');
@@ -163,12 +113,11 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
 
   return (
     <div className="space-y-5">
-      {/* Dispensary Name */}
+
+      {/* Dispensary */}
       <div ref={dispensaryRef} className="relative">
         <p className="mb-2 text-sm font-medium text-zinc-200">Dispensary <span className="text-zinc-500 font-normal">(optional)</span></p>
-        <input
-          type="text"
-          placeholder="e.g. Cookies, MedMen, local shop..."
+        <input type="text" placeholder="e.g. Cookies, MedMen, local shop..."
           value={dispensaryName}
           onChange={e => { setDispensaryName(e.target.value); setShowDispSuggestions(true); setSaved(false); }}
           onFocus={() => setShowDispSuggestions(true)}
@@ -178,11 +127,9 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <ul className="absolute z-20 mt-1 w-full rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden">
             {filteredDisp.slice(0, 6).map(d => (
               <li key={d}>
-                <button
-                  type="button"
+                <button type="button"
                   onMouseDown={e => { e.preventDefault(); setDispensaryName(d); setShowDispSuggestions(false); setSaved(false); }}
-                  className="w-full px-4 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-800 transition flex items-center gap-2"
-                >
+                  className="w-full px-4 py-2.5 text-left text-sm text-zinc-200 hover:bg-zinc-800 transition flex items-center gap-2">
                   <svg width="10" height="13" viewBox="0 0 24 28" fill="currentColor" className="text-red-400 flex-shrink-0">
                     <path d="M12 0C7.16 0 3.2 3.96 3.2 8.8c0 7.7 8.8 17.6 8.8 17.6s8.8-9.9 8.8-17.6C20.8 3.96 16.84 0 12 0zm0 12a3.2 3.2 0 1 1 0-6.4A3.2 3.2 0 0 1 12 12z"/>
                   </svg>
@@ -344,4 +291,63 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
             <div className="flex gap-2">
               {[{ value: 'same', label: '👌 Same dose' }, { value: 'lower', label: '⬇️ Go lower' }, { value: 'higher', label: '⬆️ Go higher' }].map(opt => (
                 <button key={opt.value} type="button" onClick={() => set('edible_dose_feedback', review.edible_dose_feedback === opt.value ? null : opt.value)}
-                  className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium transition ${review.edible_dose_feedback === opt.value ? 'border-purple-500/50 bg-p
+                  className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium transition ${review.edible_dose_feedback === opt.value ? 'border-purple-500/50 bg-purple-500/20 text-purple-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'}`}
+                >{opt.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vape */}
+      {isVape && (
+        <div className="space-y-4 rounded-xl border border-zinc-700/50 bg-zinc-900/40 px-4 py-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Vape</p>
+          <div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
+            <div className="flex gap-2">
+              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+                <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
+                >{label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Would buy again */}
+      <div>
+        <p className="mb-2 text-sm font-medium text-zinc-200">Would buy again?</p>
+        <div className="flex gap-2">
+          {[{ label: '👍 Yes', value: true }, { label: '👎 No', value: false }].map(({ label, value }) => (
+            <button key={label} type="button" onClick={() => set('would_buy_again', value)}
+              className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.would_buy_again === value ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
+            >{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Notes */}
+      <div>
+        <p className="mb-2 text-sm font-medium text-zinc-200">Notes</p>
+        <textarea className="min-h-24 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+          placeholder="e.g. great for evenings, smooth smoke, too strong..."
+          value={review.notes} onChange={(e) => set('notes', e.target.value)} />
+      </div>
+
+      {/* Save */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={handleSave} disabled={isSaving || review.rating === 0}
+            className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
+          >{isSaving ? 'Saving...' : hasExisting ? 'Update review' : 'Save review'}</button>
+          {saved && <span className="text-sm text-emerald-400">&#10003; {hasExisting ? 'Review updated!' : 'Review saved!'}</span>}
+          {error && <span className="text-sm text-rose-400">{error}</span>}
+          {review.rating === 0 && !saved && <span className="text-xs text-zinc-500">Add a star rating to save</span>}
+        </div>
+        {!saved && <p className="text-xs text-emerald-400/70">Reviews with notes can be marked helpful by the community — helpful votes level up your rank 🌿→🌳</p>}
+      </div>
+    </div>
+  );
+}

@@ -2,46 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface Tier {
-  label: string;
-  emoji: string;
-  color: string;
-}
+interface Tier { label: string; emoji: string; color: string; }
 
 interface FeedItem {
-  id: string;
-  user_id: string;
-  username: string;
-  avatar_url: string | null;
-  tier: Tier;
-  brand: string;
-  strain_name: string;
-  strain_type: string;
-  product_type: string;
-  thc_percent: number | null;
-  rating: number | null;
-  notes: string | null;
-  effects: string[];
-  flavors: string[];
-  would_buy_again: boolean | null;
-  helpful_count: number;
-  i_voted: boolean;
-  created_at: string;
-  is_mine: boolean;
-  nugshot_url: string | null;
-  scan_count: number;
-  dispensary_name: string | null;
+  id: string; user_id: string; username: string; avatar_url: string | null; tier: Tier;
+  brand: string; strain_name: string; strain_type: string; product_type: string;
+  thc_percent: number | null; rating: number | null; notes: string | null;
+  effects: string[]; flavors: string[]; would_buy_again: boolean | null;
+  helpful_count: number; i_voted: boolean; created_at: string; is_mine: boolean;
+  nugshot_url: string | null; scan_count: number; dispensary_name: string | null;
 }
 
 const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
-
 const strainColors: Record<string, string> = {
-  indica:  'bg-purple-500/20 text-purple-300 border-purple-500/30',
-  sativa:  'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  hybrid:  'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+  sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+  hybrid: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
   unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
 };
-
 const BUBBLE_COLORS = ['bg-emerald-600','bg-purple-600','bg-yellow-500','bg-sky-600','bg-rose-600','bg-orange-500','bg-teal-600','bg-indigo-600'];
 
 function getBubbleColor(userId: string) {
@@ -70,9 +48,7 @@ function Stars({ rating }: { rating: number | null }) {
     <div className="flex gap-0.5">
       {[1,2,3,4,5].map(i => (
         <svg key={i} width="12" height="12" viewBox="0 0 24 24"
-          fill={i <= rating ? '#f59e0b' : 'none'}
-          stroke={i <= rating ? '#f59e0b' : '#52525b'}
-          strokeWidth="2">
+          fill={i <= rating ? '#f59e0b' : 'none'} stroke={i <= rating ? '#f59e0b' : '#52525b'} strokeWidth="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
         </svg>
       ))}
@@ -101,20 +77,14 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
         body: JSON.stringify({ review_id: item.id }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setLocalVoted(!localVoted);
-        setLocalCount(data.helpful_count ?? localCount);
-        onVote(item.id, !localVoted);
-      }
+      if (res.ok) { setLocalVoted(!localVoted); setLocalCount(data.helpful_count ?? localCount); onVote(item.id, !localVoted); }
     } catch {}
     setVoting(false);
   };
 
   return (
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
-      {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
-        {/* Avatar */}
         <div className="relative shrink-0">
           {item.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -127,7 +97,6 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
           )}
           <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={tier.label}>{tier.emoji}</span>
         </div>
-
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm text-zinc-100">{item.username ?? 'Anonymous'}</span>
@@ -138,24 +107,15 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
             <span className="text-sm font-semibold text-zinc-200">{item.strain_name || item.brand || 'Unknown'}</span>
             {item.brand && item.strain_name && <span className="text-xs text-zinc-500">{item.brand}</span>}
             {strainType && strainType !== 'unknown' && (
-              <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${strainColors[strainType] ?? strainColors.unknown}`}>
-                {strainType}
-              </span>
+              <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${strainColors[strainType] ?? strainColors.unknown}`}>{strainType}</span>
             )}
-            {item.product_type && (
-              <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 capitalize">{item.product_type}</span>
-            )}
-            {item.thc_percent && (
-              <span className="text-xs text-emerald-500 font-medium">THC {item.thc_percent}%</span>
-            )}
+            {item.product_type && <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-xs text-zinc-500 capitalize">{item.product_type}</span>}
+            {item.thc_percent && <span className="text-xs text-emerald-500 font-medium">THC {item.thc_percent}%</span>}
           </div>
           {item.dispensary_name && (
-            <a
-              href={`https://www.google.com/maps/search/${encodeURIComponent(item.dispensary_name + ' dispensary')}`}
-              target="_blank" rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-              className="mt-1 inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition"
-            >
+            <a href={`https://www.google.com/maps/search/${encodeURIComponent(item.dispensary_name + ' dispensary')}`}
+              target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+              className="mt-1 inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition">
               <svg width="8" height="10" viewBox="0 0 24 28" fill="currentColor" className="shrink-0">
                 <path d="M12 0C7.16 0 3.2 3.96 3.2 8.8c0 7.7 8.8 17.6 8.8 17.6s8.8-9.9 8.8-17.6C20.8 3.96 16.84 0 12 0zm0 12a3.2 3.2 0 1 1 0-6.4A3.2 3.2 0 0 1 12 12z"/>
               </svg>
@@ -165,7 +125,6 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
         </div>
       </div>
 
-      {/* Rating */}
       {(item.rating != null || item.would_buy_again != null) && (
         <div className="px-4 pb-2 flex items-center gap-3">
           <Stars rating={item.rating} />
@@ -177,27 +136,21 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
         </div>
       )}
 
-      {/* Notes */}
       {item.notes?.trim() && (
         <div className="px-4 pb-3">
           <p className="text-sm text-zinc-300 leading-relaxed italic">&ldquo;{item.notes.trim()}&rdquo;</p>
         </div>
       )}
 
-      {/* NugShot */}
       {item.nugshot_url && (
         <div className="px-4 pb-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={item.nugshot_url}
-            alt={`${item.strain_name || 'Product'} nugshot`}
+          <img src={item.nugshot_url} alt={`${item.strain_name || 'Product'} nugshot`}
             onClick={() => onImageClick(item.nugshot_url!)}
-            className="w-full max-h-64 rounded-xl object-cover border border-zinc-700/60 cursor-zoom-in transition hover:brightness-110"
-          />
+            className="w-full max-h-64 rounded-xl object-cover border border-zinc-700/60 cursor-zoom-in transition hover:brightness-110" />
         </div>
       )}
 
-      {/* Tags */}
       {((item.effects?.length ?? 0) > 0 || (item.flavors?.length ?? 0) > 0) && (
         <div className="px-4 pb-3 flex flex-wrap gap-1.5">
           {(item.effects ?? []).slice(0,5).map(e => (
@@ -209,23 +162,11 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
         </div>
       )}
 
-      {/* Footer */}
       <div className="px-4 py-3 border-t border-zinc-800 flex items-center justify-between">
-        <button
-          onClick={handleVote}
-          disabled={!canVote || voting}
+        <button onClick={handleVote} disabled={!canVote || voting}
           title={item.is_mine ? 'Your own review' : !item.notes?.trim() ? 'Only reviews with notes can be marked helpful' : localVoted ? 'Remove vote' : 'Mark as helpful'}
-          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition
-            ${!canVote
-              ? 'text-zinc-600 cursor-default'
-              : localVoted
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
-                : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700 hover:text-zinc-200'
-            }`}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24"
-            fill={localVoted ? 'currentColor' : 'none'}
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${!canVote ? 'text-zinc-600 cursor-default' : localVoted ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700 hover:text-zinc-200'}`}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill={localVoted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
             <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
           </svg>
@@ -234,23 +175,15 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
         </button>
         <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
         {item.is_mine && (
-          <button
-            onClick={async () => {
-              if (!window.confirm('Delete your review?')) return;
-              setDeleting(true);
-              try {
-                const res = await fetch('/api/reviews', {
-                  method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ review_id: item.id }),
-                });
-                if (res.ok) onDelete(item.id);
-              } catch {}
-              setDeleting(false);
-            }}
-            disabled={deleting}
-            className="text-xs text-zinc-600 italic hover:text-rose-400 transition disabled:opacity-50"
-          >
+          <button onClick={async () => {
+            if (!window.confirm('Delete your review?')) return;
+            setDeleting(true);
+            try {
+              const res = await fetch('/api/reviews', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ review_id: item.id }) });
+              if (res.ok) onDelete(item.id);
+            } catch {}
+            setDeleting(false);
+          }} disabled={deleting} className="text-xs text-zinc-600 italic hover:text-rose-400 transition disabled:opacity-50">
             {deleting ? 'Deleting…' : 'Delete review'}
           </button>
         )}
@@ -262,12 +195,12 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
 export default function CommunityPage() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
 
   const loadFeed = useCallback(async (cursor?: string) => {
     const url = '/api/community-feed' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : '');
@@ -309,15 +242,14 @@ export default function CommunityPage() {
         <p className="mt-1 text-sm text-zinc-500">See what others are scanning and smoking. Write reviews to earn helpful votes and level up your rank.</p>
       </div>
 
-      {/* Tier legend */}
       <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 space-y-2">
         <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           {[
-            { emoji: '🌿', label: 'Seedling',   sub: '0+ votes',  color: 'text-zinc-400' },
-            { emoji: '🌱', label: 'Grower',      sub: '5+ votes',  color: 'text-lime-400' },
+            { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
+            { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
             { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
-            { emoji: '🌳', label: 'Legend',      sub: '50+ votes', color: 'text-yellow-400' },
+            { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
           ].map(t => (
             <div key={t.label} className="flex items-center gap-1.5">
               <span>{t.emoji}</span>
@@ -332,9 +264,7 @@ export default function CommunityPage() {
         <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 flex items-center justify-between gap-3">
           <span className="text-sm text-rose-400">{error}</span>
           <button onClick={() => { setError(''); setLoading(true); loadFeed().then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); }).catch(err => { setError(String(err?.message ?? err)); setLoading(false); }); }}
-            className="shrink-0 rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/30 transition">
-            Retry
-          </button>
+            className="shrink-0 rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/30 transition">Retry</button>
         </div>
       )}
 
@@ -344,10 +274,7 @@ export default function CommunityPage() {
             <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3 animate-pulse">
               <div className="flex gap-3">
                 <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
-                <div className="space-y-2 flex-1">
-                  <div className="h-3 w-24 rounded bg-zinc-800" />
-                  <div className="h-3 w-40 rounded bg-zinc-800" />
-                </div>
+                <div className="space-y-2 flex-1"><div className="h-3 w-24 rounded bg-zinc-800" /><div className="h-3 w-40 rounded bg-zinc-800" /></div>
               </div>
               <div className="h-3 w-full rounded bg-zinc-800" />
               <div className="h-3 w-4/5 rounded bg-zinc-800" />
@@ -376,11 +303,19 @@ export default function CommunityPage() {
         </div>
       )}
 
-      {/* Lightbox */}
       {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <button
-            onClick=
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4" onClick={() => setLightboxUrl(null)}>
+          <button onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 rounded-full bg-zinc-800/80 p-2 text-zinc-300 hover:text-white transition" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightboxUrl} alt="NugShot full view" onClick={e => e.stopPropagation()}
+            className="max-h-[90vh] max-w-full rounded-2xl object-contain shadow-2xl" />
+        </div>
+      )}
+    </div>
+  );
+}

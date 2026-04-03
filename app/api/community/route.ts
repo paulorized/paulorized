@@ -60,7 +60,6 @@ export async function GET() {
       ? Math.round((thcValues.reduce((a, b) => a + b, 0) / thcValues.length) * 10) / 10
       : null;
 
-    // Sum all weights across all users — same parser as personal dashboard
     let totalGrams = 0;
     for (const log of logs) {
       const w = ((log.weight ?? '') as string).toString().toLowerCase().trim();
@@ -87,4 +86,7 @@ export async function GET() {
       topEffects: countArray(reviews as Record<string, unknown>[], 'effects').slice(0, 10),
       topFlavors: countArray(reviews as Record<string, unknown>[], 'flavors').slice(0, 10),
     });
-  } catch (er
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
+  }
+}

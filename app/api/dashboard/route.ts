@@ -90,14 +90,18 @@ export async function GET() {
       else thcBuckets['30%+']++;
     }
 
-    const monthCounts: Record<string, number> = {};
+    // Daily scan counts for last 12 months — frontend aggregates to weekly/monthly
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+    const dayCounts: Record<string, number> = {};
     for (const log of logs ?? []) {
-      const month = log.created_at.slice(0, 7);
-      monthCounts[month] = (monthCounts[month] ?? 0) + 1;
+      const day = log.created_at.slice(0, 10);
+      if (day >= cutoffStr) dayCounts[day] = (dayCounts[day] ?? 0) + 1;
     }
-    const scansOverTime = Object.entries(monthCounts)
+    const scansOverTime = Object.entries(dayCounts)
       .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([month, count]) => ({ month, count }));
+      .map(([date, count]) => ({ date, count }));
 
     const strainCounts: Record<string, number> = {};
     for (const log of logs ?? []) {

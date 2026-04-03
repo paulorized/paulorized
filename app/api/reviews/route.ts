@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServerSupabaseClient();
 
-  // Fetch review and the dispensary_name from product_logs in parallel
   const [reviewResult, logResult] = await Promise.all([
     supabase
       .from('reviews')
@@ -37,7 +36,6 @@ export async function GET(request: NextRequest) {
   });
 }
 
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -52,7 +50,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'product_log_id is required.' }, { status: 400 });
     }
 
-    // Get authenticated user server-side (never trust client-supplied user_id)
     let authedUserId: string | null = null;
     try {
       const auth = await createAuthServerClient();
@@ -73,7 +70,6 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
-    // Upsert review
     const { data: existing } = await supabase
       .from('reviews')
       .select('id')
@@ -104,7 +100,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: reviewError.message }, { status: 500 });
     }
 
-    // Update dispensary_name on product_logs (only if provided or explicitly cleared)
     if (dispensary_name !== undefined) {
       const trimmed = typeof dispensary_name === 'string' ? dispensary_name.trim() || null : null;
       await supabase
@@ -113,7 +108,6 @@ export async function POST(request: NextRequest) {
         .eq('id', product_log_id)
         .eq('user_id', authedUserId ?? '');
 
-      // Auto-save to dispensaries list if a name was given
       if (trimmed && authedUserId) {
         await supabase
           .from('dispensaries')
@@ -121,4 +115,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    re
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unexpected error.';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { review_id } = await request.json();
+    if (!review_id) return NextResponse.json({ error: 'review_id required.' }, { status: 400 });
+
+    const auth = await createAuthServerClient();
+    const { data: { user } } = await auth.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase
+      .from('reviews')
+      .delete()
+      .eq('id', review_id)
+      .eq('user_id', user.id);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unexpected error.';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

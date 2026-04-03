@@ -23,7 +23,7 @@ type DashboardData = {
   topEffects: { name: string; count: number }[];
   topFlavors: { name: string; count: number }[];
   thcDistribution: { range: string; count: number }[];
-  scansOverTime: { month: string; count: number }[];
+  scansOverTime: { date: string; count: number }[];
   topStrains: { name: string; count: number }[];
 };
 
@@ -78,6 +78,68 @@ function Empty({ msg }: { msg: string }) {
   );
 }
 
+type GranularityView = 'daily' | 'weekly' | 'monthly';
+
+function aggregateScans(raw: { date: string; count: number }[], granularity: GranularityView) {
+  if (!raw.length) return [];
+  if (granularity === 'daily') {
+    return raw.map(d => ({ label: d.date.slice(5), count: d.count }));
+  }
+  if (granularity === 'weekly') {
+    const buckets: Record<string, number> = {};
+    for (const { date, count } of raw) {
+      const d = new Date(date + 'T00:00:00');
+      const day = d.getDay();
+      const monday = new Date(d);
+      monday.setDate(d.getDate() - ((day + 6) % 7));
+      const key = monday.toISOString().slice(0, 10);
+      buckets[key] = (buckets[key] ?? 0) + count;
+    }
+    return Object.entries(buckets).sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([key, count]) => ({ label: key.slice(5), count }));
+  }
+  // monthly
+  const buckets: Record<string, number> = {};
+  for (const { date, count } of raw) {
+    const key = date.slice(0, 7);
+    buckets[key] = (buckets[key] ?? 0) + count;
+  }
+  return Object.entries(buckets).sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, count]) => ({ label: new Date(key + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' }), count }));
+}
+
+function ScansChart({ data }: { data: { date: string; count: number }[] }) {
+  const [granularity, setGranularity] = useState<GranularityView>('monthly');
+  const chartData = aggregateScans(data, granularity);
+  const tabs: { key: GranularityView; label: string }[] = [
+    { key: 'daily', label: 'Daily' },
+    { key: 'weekly', label: 'Weekly' },
+    { key: 'monthly', label: 'Monthly' },
+  ];
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 space-y-3">
+      <div className="flex items-center justify-end gap-1">
+        {tabs.map(t => (
+          <button key={t.key} type="button" onClick={() => setGranularity(t.key)}
+            className={`rounded-lg px-3 py-1 text-xs font-medium transition ${granularity === t.key ? 'bg-emerald-400 text-zinc-950' : 'text-zinc-500 hover:text-zinc-300'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={180}>
+        <LineChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+          <XAxis dataKey="label" tick={{ fill: '#71717a', fontSize: 10 }} axisLine={false} tickLine={false}
+            interval={granularity === 'daily' ? Math.floor(chartData.length / 6) : granularity === 'weekly' ? Math.floor(chartData.length / 6) : 0} />
+          <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px', color: '#f4f4f5' }} cursor={{ stroke: '#3f3f46' }} />
+          <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={chartData.length <= 60 ? { fill: '#10b981', r: 2 } : false} name="Scans" />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | 'all') => void }) {
   return (
     <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1 w-fit">
@@ -128,11 +190,6 @@ export default function DashboardPage() {
   };
 
   const loading = view === 'me' ? loadingMe : loadingAll;
-  const monthLabel = (m: string) => {
-    const [y, mo] = m.split('-');
-    return new Date(Number(y), Number(mo) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
-  };
-
   if (loadingMe) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-6">
@@ -215,19 +272,9 @@ export default function DashboardPage() {
             productTypeCounts={myData.productTypeCounts}
           />
 
-          {myData.scansOverTime.length > 1 && (
+          {myData.scansOverTime.length > 0 && (
             <Section title="Scans over time">
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <ResponsiveContainer width="100%" height={180}>
-                  <LineChart data={myData.scansOverTime.map(d => ({ ...d, month: monthLabel(d.month) }))}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                    <XAxis dataKey="month" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <Tooltip contentStyle={TT.contentStyle} cursor={TT.cursor} />
-                    <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }} name="Scans" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <ScansChart data={myData.scansOverTime} />
             </Section>
           )}
 

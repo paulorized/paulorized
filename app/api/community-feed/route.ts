@@ -5,10 +5,9 @@ import { getTier } from '@/lib/tiers';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const cursor = searchParams.get('cursor'); // created_at of last item for pagination
+    const cursor = searchParams.get('cursor');
     const limit = 20;
 
-    // Get current user id (to know which items they've voted on)
     let currentUserId: string | null = null;
     try {
       const auth = await createAuthServerClient();
@@ -18,7 +17,6 @@ export async function GET(request: Request) {
 
     const db = createServerSupabaseClient();
 
-    // Step 1: fetch reviews with product_log join (FK exists)
     let reviewQuery = db
       .from('reviews')
       .select(`
@@ -57,7 +55,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ feed: [], next_cursor: null });
     }
 
-    // Step 2: fetch profiles separately by user_id list (no FK, manual join)
     const userIds = [...new Set(rows.map(r => r.user_id))];
     const { data: profileRows } = await db
       .from('profiles')
@@ -68,7 +65,6 @@ export async function GET(request: Request) {
       profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url };
     }
 
-    // Step 3: total helpful points per author for tier
     const { data: pointRows } = await db
       .from('reviews')
       .select('user_id, helpful_count')
@@ -78,7 +74,6 @@ export async function GET(request: Request) {
       authorPoints[row.user_id] = (authorPoints[row.user_id] ?? 0) + (row.helpful_count ?? 0);
     }
 
-    // Step 3b: scan count per author
     const { data: logCountRows } = await db
       .from('product_logs')
       .select('user_id')
@@ -88,7 +83,6 @@ export async function GET(request: Request) {
       scanCounts[row.user_id] = (scanCounts[row.user_id] ?? 0) + 1;
     }
 
-    // Step 4: which reviews has current user voted on
     let myVotes = new Set<string>();
     if (currentUserId) {
       const reviewIds = rows.map(r => r.id);
@@ -135,4 +129,6 @@ export async function GET(request: Request) {
       next_cursor: rows.length === limit ? rows[rows.length - 1].created_at : null,
     });
   } catch (err) {
-    return NextResponse.json
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
+  }
+}
