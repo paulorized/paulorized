@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, use } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -203,6 +204,13 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function UserProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from'); // 'users' | 'following' | 'feed' | null
+
+  // Build the back link: preserve the originating tab
+  const backHref = from && from !== 'feed'
+    ? `/community?tab=${from}`
+    : '/community';
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -250,7 +258,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
         <div className="text-5xl">🌿</div>
         <h1 className="text-xl font-bold text-zinc-100">User not found</h1>
         <p className="text-sm text-zinc-500">@{username} doesn&apos;t exist or has a private profile.</p>
-        <a href="/community" className="inline-block mt-4 rounded-xl bg-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 transition">
+        <a href={backHref} className="inline-block mt-4 rounded-xl bg-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 transition">
           Back to Community
         </a>
       </div>
@@ -268,7 +276,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     <div className="mx-auto w-full max-w-2xl px-4 py-8 space-y-5">
 
       {/* Back */}
-      <a href="/community" className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition">
+      <a href={backHref} className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-300 transition">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
         </svg>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -82,10 +83,10 @@ function Stars({ rating }: { rating: number | null }) {
 function Avatar({ username, userId, avatarUrl, size = 10 }: { username: string; userId: string; avatarUrl: string | null; size?: number }) {
   const bubbleColor = getBubbleColor(userId);
   const px = size * 4;
-  const cls = `rounded-full object-cover border border-zinc-700`;
   if (avatarUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={avatarUrl} alt={username} referrerPolicy="no-referrer" className={cls} style={{ width: px, height: px }} />;
+    return <img src={avatarUrl} alt={username} referrerPolicy="no-referrer"
+      className="rounded-full object-cover border border-zinc-700" style={{ width: px, height: px }} />;
   }
   return (
     <div className={`rounded-full flex items-center justify-center text-white font-bold ${bubbleColor}`}
@@ -144,14 +145,14 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
         <div className="relative shrink-0">
-          <a href={`/u/${item.username}`}>
+          <a href={`/u/${item.username}?from=feed`}>
             <Avatar username={item.username} userId={item.user_id} avatarUrl={item.avatar_url} size={10} />
           </a>
           <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={tier.label}>{tier.emoji}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <a href={`/u/${item.username}`} className="font-semibold text-sm text-zinc-100 hover:text-emerald-400 transition">
+            <a href={`/u/${item.username}?from=feed`} className="font-semibold text-sm text-zinc-100 hover:text-emerald-400 transition">
               {item.username ?? 'Anonymous'}
             </a>
             <span className="text-xs text-zinc-600">{item.scan_count ?? 0} logs</span>
@@ -246,18 +247,15 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
   );
 }
 
-function UserRow({ user }: { user: UserCard }) {
+function UserRow({ user, fromTab }: { user: UserCard; fromTab: string }) {
   const tier = user.tier ?? DEFAULT_TIER;
   return (
-    <a href={`/u/${user.username}`}
+    <a href={`/u/${user.username}?from=${fromTab}`}
       className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition group">
-      {/* Avatar + tier emoji */}
       <div className="relative shrink-0">
         <Avatar username={user.username} userId={user.id} avatarUrl={user.avatar_url} size={11} />
         <span className="absolute -bottom-1 -right-1 text-sm leading-none">{tier.emoji}</span>
       </div>
-
-      {/* Name + rank */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="font-semibold text-sm text-zinc-100 group-hover:text-emerald-400 transition truncate">
@@ -265,8 +263,6 @@ function UserRow({ user }: { user: UserCard }) {
           </span>
           <span className={`text-xs font-medium ${tier.color}`}>{tier.label}</span>
         </div>
-
-        {/* Color-coded stat pills */}
         <div className="mt-2 flex gap-2 flex-wrap">
           <StatPill label="Scans" value={String(user.scan_count)} color="green" />
           <StatPill label="Strains" value={String(user.strain_count)} color="purple" />
@@ -276,8 +272,6 @@ function UserRow({ user }: { user: UserCard }) {
           )}
         </div>
       </div>
-
-      {/* Follow button — stop propagation so clicking it doesn't navigate */}
       <div onClick={e => e.preventDefault()} className="shrink-0">
         <FollowButton userId={user.id} initialFollowing={user.is_following} isSelf={user.is_self} size="sm" />
       </div>
@@ -323,7 +317,6 @@ function UsersView() {
           </button>
         ))}
       </div>
-
       {loading && (
         <div className="space-y-2">
           {[1,2,3,4,5].map(i => (
@@ -341,17 +334,15 @@ function UsersView() {
           ))}
         </div>
       )}
-
       {!loading && users.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
           <div className="text-4xl mb-2">👥</div>
           <p className="text-sm text-zinc-400">No users found</p>
         </div>
       )}
-
       {!loading && users.length > 0 && (
         <div className="space-y-2">
-          {users.map(u => <UserRow key={u.id} user={u} />)}
+          {users.map(u => <UserRow key={u.id} user={u} fromTab="users" />)}
         </div>
       )}
     </div>
@@ -385,7 +376,6 @@ function FollowingView() {
           </button>
         ))}
       </div>
-
       {loading && (
         <div className="space-y-2">
           {[1,2,3].map(i => (
@@ -403,22 +393,18 @@ function FollowingView() {
           ))}
         </div>
       )}
-
       {!loading && users.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
           <div className="text-4xl mb-2">{tab === 'following' ? '🔍' : '👋'}</div>
           <p className="text-sm text-zinc-400">
             {tab === 'following' ? "You aren't following anyone yet" : "Nobody is following you yet"}
           </p>
-          {tab === 'following' && (
-            <p className="text-xs text-zinc-600 mt-1">Check the Users tab to find people to follow</p>
-          )}
+          {tab === 'following' && <p className="text-xs text-zinc-600 mt-1">Check the Users tab to find people to follow</p>}
         </div>
       )}
-
       {!loading && users.length > 0 && (
         <div className="space-y-2">
-          {users.map(u => <UserRow key={u.id} user={u} />)}
+          {users.map(u => <UserRow key={u.id} user={u} fromTab="following" />)}
         </div>
       )}
     </div>
@@ -429,8 +415,16 @@ function FollowingView() {
 
 type TabKey = 'feed' | 'users' | 'following';
 
-export default function CommunityPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>('feed');
+function CommunityPageInner() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialTab = (searchParams.get('tab') as TabKey) ?? 'feed';
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+
+  const switchTab = (tab: TabKey) => {
+    setActiveTab(tab);
+    router.replace(`/community?tab=${tab}`, { scroll: false });
+  };
 
   // Feed state
   const [feed, setFeed] = useState<FeedItem[]>([]);
@@ -493,7 +487,7 @@ export default function CommunityPage() {
       {/* Tab header */}
       <div className="mb-5 flex gap-1 rounded-xl bg-zinc-800/60 p-1">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)}
+          <button key={t.key} onClick={() => switchTab(t.key)}
             className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === t.key ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
             {t.label}
           </button>
@@ -566,13 +560,9 @@ export default function CommunityPage() {
         </>
       )}
 
-      {/* Users tab */}
       {activeTab === 'users' && <UsersView />}
-
-      {/* Following tab */}
       {activeTab === 'following' && <FollowingView />}
 
-      {/* Lightbox */}
       {lightboxUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4" onClick={() => setLightboxUrl(null)}>
           <button onClick={() => setLightboxUrl(null)}
@@ -587,5 +577,13 @@ export default function CommunityPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CommunityPage() {
+  return (
+    <Suspense>
+      <CommunityPageInner />
+    </Suspense>
   );
 }
