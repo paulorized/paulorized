@@ -43,7 +43,7 @@ type CommunityData = {
 };
 
 const STRAIN_COLORS: Record<string, string> = {
-  sativa: '#10b981', indica: '#8b5cf6', hybrid: '#f59e0b', unknown: '#52525b',
+  sativa: '#f59e0b', indica: '#8b5cf6', hybrid: '#10b981', unknown: '#52525b',
 };
 const COLORS = ['#10b981','#8b5cf6','#f59e0b','#3b82f6','#ef4444','#ec4899','#14b8a6','#f97316'];
 const TT = {
