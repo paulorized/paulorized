@@ -13,6 +13,7 @@ const montserrat = Montserrat({
 import { ThemeProvider } from '@/components/theme-provider';
 import { PWAPrompt } from '@/components/pwa-prompt';
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 export const metadata: Metadata = {
   title: 'CannaBaseAI',
@@ -122,6 +123,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           <div className="w-full">{children}</div>
           <PWAPrompt />
           <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
