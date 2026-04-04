@@ -359,7 +359,7 @@ export function StatsCard({
     const blob = await (await fetch(preview)).blob();
     const file = new File([blob],'cannabase-brag-sheet.png',{type:'image/png'});
     if ('share' in navigator) {
-      try { await navigator.share({files:[file],title:'My CannaBa.se Stats'}); return; } catch {}
+      try { await navigator.share({files:[file]}); return; } catch {}
     }
     const a=document.createElement('a'); a.href=preview; a.download='cannabase-brag-sheet.png'; a.click();
   };
