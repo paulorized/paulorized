@@ -108,7 +108,7 @@ function aggregateScans(raw: { date: string; count: number }[], granularity: Gra
 }
 
 function ScansChart({ data }: { data: { date: string; count: number }[] }) {
-  const [granularity, setGranularity] = useState<GranularityView>('monthly');
+  const [granularity, setGranularity] = useState<GranularityView>('daily');
   const chartData = aggregateScans(data, granularity);
   const tabs: { key: GranularityView; label: string }[] = [
     { key: 'daily', label: 'Daily' },
