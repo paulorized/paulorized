@@ -35,17 +35,17 @@ export async function GET(request: NextRequest) {
 
   // Aggregate per-user stats from logs + reviews
   const [logsRes, reviewsRes] = await Promise.all([
-    db.from('product_logs').select('user_id, weight, created_at'),
+    db.from('product_logs').select('user_id, weight, created_at, strain_name'),
     db.from('reviews').select('user_id, created_at'),
   ]);
   const logs = logsRes.data ?? [];
   const reviews = reviewsRes.data ?? [];
 
-  type Stats = { scans: number; weightG: number; reviews: number; lastActive: number };
+  type Stats = { scans: number; weightG: number; reviews: number; lastActive: number; strains: Set<string> };
   const stats = new Map<string, Stats>();
   const ensure = (id: string): Stats => {
     let s = stats.get(id);
-    if (!s) { s = { scans: 0, weightG: 0, reviews: 0, lastActive: 0 }; stats.set(id, s); }
+    if (!s) { s = { scans: 0, weightG: 0, reviews: 0, lastActive: 0, strains: new Set() }; stats.set(id, s); }
     return s;
   };
 
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
     s.weightG += parseWeightToGrams(log.weight);
     const ts = log.created_at ? new Date(log.created_at).getTime() : 0;
     if (ts > s.lastActive) s.lastActive = ts;
+    if (log.strain_name?.trim()) s.strains.add(log.strain_name.trim().toLowerCase());
   }
   for (const r of reviews) {
     if (!r.user_id) continue;
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
   // Merge + filter to users with at least one scan or review
   const rows = profiles
     .map(p => {
-      const s = stats.get(p.id) ?? { scans: 0, weightG: 0, reviews: 0, lastActive: 0 };
+      const s = stats.get(p.id) ?? { scans: 0, weightG: 0, reviews: 0, lastActive: 0, strains: new Set<string>() };
       return {
         id: p.id,
         username: p.username,
@@ -88,6 +89,7 @@ export async function GET(request: NextRequest) {
         scan_count: s.scans,
         total_grams: Math.round(s.weightG * 10) / 10,
         review_count: s.reviews,
+        strain_count: s.strains.size,
         last_active: s.lastActive || (p.created_at ? new Date(p.created_at).getTime() : 0),
         is_following: followingSet.has(p.id),
         is_self: viewer?.id === p.id,

@@ -17,9 +17,9 @@ interface FeedItem {
 }
 
 interface UserCard {
-  id: string; username: string; avatar_url: string | null; tier: Tier;
-  total_scans: number; total_reviews: number; total_grams: number;
-  avg_rating: number | null; is_following: boolean; is_self: boolean;
+  id: string; username: string; avatar_url: string | null; tier?: Tier;
+  scan_count: number; review_count: number; total_grams: number; strain_count: number;
+  is_following: boolean; is_self: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -81,14 +81,30 @@ function Stars({ rating }: { rating: number | null }) {
 
 function Avatar({ username, userId, avatarUrl, size = 10 }: { username: string; userId: string; avatarUrl: string | null; size?: number }) {
   const bubbleColor = getBubbleColor(userId);
-  const cls = `h-${size} w-${size} rounded-full`;
+  const px = size * 4;
+  const cls = `rounded-full object-cover border border-zinc-700`;
   if (avatarUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={avatarUrl} alt={username} referrerPolicy="no-referrer" className={`${cls} object-cover border border-zinc-700`} />;
+    return <img src={avatarUrl} alt={username} referrerPolicy="no-referrer" className={cls} style={{ width: px, height: px }} />;
   }
   return (
-    <div className={`${cls} flex items-center justify-center text-white font-bold ${bubbleColor}`} style={{ fontSize: size * 1.6 }}>
+    <div className={`rounded-full flex items-center justify-center text-white font-bold ${bubbleColor}`}
+      style={{ width: px, height: px, fontSize: px * 0.4 }}>
       {(username ?? '?').charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function StatPill({ label, value, color }: { label: string; value: string; color: 'green' | 'purple' | 'yellow' }) {
+  const colors = {
+    green:  'bg-emerald-500/10 border-emerald-500/25 text-emerald-400',
+    purple: 'bg-purple-500/10 border-purple-500/25 text-purple-300',
+    yellow: 'bg-yellow-500/10 border-yellow-500/25 text-yellow-300',
+  };
+  return (
+    <div className={`flex flex-col items-center rounded-lg border px-2.5 py-1.5 ${colors[color]}`}>
+      <span className="text-sm font-bold leading-none">{value}</span>
+      <span className="mt-0.5 text-[10px] font-medium opacity-70 leading-none">{label}</span>
     </div>
   );
 }
@@ -229,33 +245,40 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
   );
 }
 
-function UserRow({ user, onFollowChange }: { user: UserCard; onFollowChange: (id: string, following: boolean) => void }) {
+function UserRow({ user }: { user: UserCard }) {
   const tier = user.tier ?? DEFAULT_TIER;
   return (
-    <a href={`/u/${user.username}`} className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition group">
+    <a href={`/u/${user.username}`}
+      className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition group">
+      {/* Avatar + tier emoji */}
       <div className="relative shrink-0">
-        <Avatar username={user.username} userId={user.id} avatarUrl={user.avatar_url} size={10} />
+        <Avatar username={user.username} userId={user.id} avatarUrl={user.avatar_url} size={11} />
         <span className="absolute -bottom-1 -right-1 text-sm leading-none">{tier.emoji}</span>
       </div>
+
+      {/* Name + rank */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="font-semibold text-sm text-zinc-100 group-hover:text-emerald-400 transition truncate">@{user.username}</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-semibold text-sm text-zinc-100 group-hover:text-emerald-400 transition truncate">
+            @{user.username}
+          </span>
           <span className={`text-xs font-medium ${tier.color}`}>{tier.label}</span>
         </div>
-        <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-500">
-          <span>{user.total_scans} logs</span>
-          {user.total_reviews > 0 && <span>{user.total_reviews} reviews</span>}
-          {user.total_grams > 0 && <span>{formatWeight(user.total_grams)}</span>}
-          {user.avg_rating != null && <span>★ {user.avg_rating.toFixed(1)}</span>}
+
+        {/* Color-coded stat pills */}
+        <div className="mt-2 flex gap-2 flex-wrap">
+          <StatPill label="Scans" value={String(user.scan_count)} color="green" />
+          <StatPill label="Strains" value={String(user.strain_count)} color="purple" />
+          <StatPill label="Weight" value={formatWeight(user.total_grams)} color="yellow" />
+          {user.review_count > 0 && (
+            <StatPill label="Reviews" value={String(user.review_count)} color="green" />
+          )}
         </div>
       </div>
+
+      {/* Follow button — stop propagation so clicking it doesn't navigate */}
       <div onClick={e => e.preventDefault()} className="shrink-0">
-        <FollowButton
-          userId={user.id}
-          initialFollowing={user.is_following}
-          isSelf={user.is_self}
-          size="sm"
-        />
+        <FollowButton userId={user.id} initialFollowing={user.is_following} isSelf={user.is_self} size="sm" />
       </div>
     </a>
   );
@@ -282,10 +305,6 @@ function UsersView() {
 
   useEffect(() => { load(sort); }, [load, sort]);
 
-  const handleFollowChange = (id: string, following: boolean) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_following: following } : u));
-  };
-
   const sorts: { key: SortKey; label: string }[] = [
     { key: 'scans', label: 'Most logs' },
     { key: 'reviews', label: 'Most reviews' },
@@ -308,8 +327,15 @@ function UsersView() {
         <div className="space-y-2">
           {[1,2,3,4,5].map(i => (
             <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 flex items-center gap-3 animate-pulse">
-              <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
-              <div className="flex-1 space-y-2"><div className="h-3 w-28 rounded bg-zinc-800" /><div className="h-2.5 w-40 rounded bg-zinc-800" /></div>
+              <div className="h-11 w-11 rounded-full bg-zinc-800 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-28 rounded bg-zinc-800" />
+                <div className="flex gap-2">
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -324,7 +350,7 @@ function UsersView() {
 
       {!loading && users.length > 0 && (
         <div className="space-y-2">
-          {users.map(u => <UserRow key={u.id} user={u} onFollowChange={handleFollowChange} />)}
+          {users.map(u => <UserRow key={u.id} user={u} />)}
         </div>
       )}
     </div>
@@ -348,10 +374,6 @@ function FollowingView() {
 
   useEffect(() => { load(tab); }, [load, tab]);
 
-  const handleFollowChange = (id: string, following: boolean) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_following: following } : u));
-  };
-
   return (
     <div className="space-y-3">
       <div className="flex gap-1 rounded-xl bg-zinc-800/60 p-1">
@@ -367,8 +389,15 @@ function FollowingView() {
         <div className="space-y-2">
           {[1,2,3].map(i => (
             <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 flex items-center gap-3 animate-pulse">
-              <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
-              <div className="flex-1 space-y-2"><div className="h-3 w-28 rounded bg-zinc-800" /><div className="h-2.5 w-40 rounded bg-zinc-800" /></div>
+              <div className="h-11 w-11 rounded-full bg-zinc-800 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 w-28 rounded bg-zinc-800" />
+                <div className="flex gap-2">
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                  <div className="h-8 w-14 rounded-lg bg-zinc-800" />
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -378,7 +407,7 @@ function FollowingView() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
           <div className="text-4xl mb-2">{tab === 'following' ? '🔍' : '👋'}</div>
           <p className="text-sm text-zinc-400">
-            {tab === 'following' ? 'You aren\'t following anyone yet' : 'Nobody is following you yet'}
+            {tab === 'following' ? "You aren't following anyone yet" : "Nobody is following you yet"}
           </p>
           {tab === 'following' && (
             <p className="text-xs text-zinc-600 mt-1">Check the Users tab to find people to follow</p>
@@ -388,7 +417,7 @@ function FollowingView() {
 
       {!loading && users.length > 0 && (
         <div className="space-y-2">
-          {users.map(u => <UserRow key={u.id} user={u} onFollowChange={handleFollowChange} />)}
+          {users.map(u => <UserRow key={u.id} user={u} />)}
         </div>
       )}
     </div>
