@@ -95,11 +95,12 @@ function Avatar({ username, userId, avatarUrl, size = 10 }: { username: string; 
   );
 }
 
-function StatPill({ label, value, color }: { label: string; value: string; color: 'green' | 'purple' | 'yellow' }) {
+function StatPill({ label, value, color }: { label: string; value: string; color: 'green' | 'purple' | 'yellow' | 'gray' }) {
   const colors = {
     green:  'bg-emerald-500/10 border-emerald-500/25 text-emerald-400',
     purple: 'bg-purple-500/10 border-purple-500/25 text-purple-300',
     yellow: 'bg-yellow-500/10 border-yellow-500/25 text-yellow-300',
+    gray:   'bg-zinc-700/40 border-zinc-600/40 text-zinc-300',
   };
   return (
     <div className={`flex flex-col items-center rounded-lg border px-2.5 py-1.5 ${colors[color]}`}>
@@ -271,7 +272,7 @@ function UserRow({ user }: { user: UserCard }) {
           <StatPill label="Strains" value={String(user.strain_count)} color="purple" />
           <StatPill label="Weight" value={formatWeight(user.total_grams)} color="yellow" />
           {user.review_count > 0 && (
-            <StatPill label="Reviews" value={String(user.review_count)} color="green" />
+            <StatPill label="Reviews" value={String(user.review_count)} color="gray" />
           )}
         </div>
       </div>
