@@ -35,9 +35,10 @@ export async function POST(request: NextRequest) {
       date_of_birth: string;
       state?: string;
       sex?: string;
+      hidden_from_directory?: boolean;
     };
 
-    const { username, date_of_birth, state, sex } = body;
+    const { username, date_of_birth, state, sex, hidden_from_directory } = body;
 
     if (!username || !date_of_birth) {
       return NextResponse.json({ error: 'Username and date of birth are required.' }, { status: 400 });
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         state: state ?? null,
         sex: sex ?? null,
         avatar_url: currentProfile?.avatar_url ?? null,
+        hidden_from_directory: hidden_from_directory ?? false,
         updated_at: new Date().toISOString(),
       });
 

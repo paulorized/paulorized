@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { FollowButton } from '@/components/follow-button';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface Tier { label: string; emoji: string; color: string; }
 
@@ -13,6 +16,14 @@ interface FeedItem {
   nugshot_url: string | null; scan_count: number; dispensary_name: string | null;
 }
 
+interface UserCard {
+  id: string; username: string; avatar_url: string | null; tier: Tier;
+  total_scans: number; total_reviews: number; total_grams: number;
+  avg_rating: number | null; is_following: boolean; is_self: boolean;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
 const strainColors: Record<string, string> = {
   indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
@@ -21,6 +32,8 @@ const strainColors: Record<string, string> = {
   unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
 };
 const BUBBLE_COLORS = ['bg-emerald-600','bg-purple-600','bg-yellow-500','bg-sky-600','bg-rose-600','bg-orange-500','bg-teal-600','bg-indigo-600'];
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getBubbleColor(userId: string) {
   if (!userId) return BUBBLE_COLORS[0];
@@ -42,6 +55,16 @@ function timeAgo(dateStr: string) {
   } catch { return ''; }
 }
 
+function formatWeight(g: number): string {
+  if (g <= 0) return '—';
+  const oz = g / 28.3495;
+  if (oz >= 16) return (oz / 16).toFixed(1) + ' lbs';
+  if (oz >= 1) return oz.toFixed(1) + ' oz';
+  return g.toFixed(0) + 'g';
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 function Stars({ rating }: { rating: number | null }) {
   if (!rating || rating < 1) return null;
   return (
@@ -56,14 +79,32 @@ function Stars({ rating }: { rating: number | null }) {
   );
 }
 
-function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; onVote: (id: string, voted: boolean) => void; onImageClick: (url: string) => void; onDelete: (id: string) => void }) {
+function Avatar({ username, userId, avatarUrl, size = 10 }: { username: string; userId: string; avatarUrl: string | null; size?: number }) {
+  const bubbleColor = getBubbleColor(userId);
+  const cls = `h-${size} w-${size} rounded-full`;
+  if (avatarUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={avatarUrl} alt={username} referrerPolicy="no-referrer" className={`${cls} object-cover border border-zinc-700`} />;
+  }
+  return (
+    <div className={`${cls} flex items-center justify-center text-white font-bold ${bubbleColor}`} style={{ fontSize: size * 1.6 }}>
+      {(username ?? '?').charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function FeedCard({ item, onVote, onImageClick, onDelete }: {
+  item: FeedItem;
+  onVote: (id: string, voted: boolean) => void;
+  onImageClick: (url: string) => void;
+  onDelete: (id: string) => void;
+}) {
   const [voting, setVoting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [localVoted, setLocalVoted] = useState(!!item.i_voted);
   const [localCount, setLocalCount] = useState(item.helpful_count ?? 0);
   const canVote = !!(item.notes?.trim()) && !item.is_mine;
   const tier = item.tier ?? DEFAULT_TIER;
-  const bubbleColor = getBubbleColor(item.user_id ?? '');
   const strainType = (item.strain_type ?? 'unknown').toLowerCase();
 
   const handleVote = async () => {
@@ -86,20 +127,16 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden">
       <div className="px-4 pt-4 pb-3 flex items-start gap-3">
         <div className="relative shrink-0">
-          {item.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.avatar_url} alt={item.username} referrerPolicy="no-referrer"
-              className="h-10 w-10 rounded-full object-cover border border-zinc-700" />
-          ) : (
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold ${bubbleColor}`}>
-              {(item.username ?? '?').charAt(0).toUpperCase()}
-            </div>
-          )}
+          <a href={`/u/${item.username}`}>
+            <Avatar username={item.username} userId={item.user_id} avatarUrl={item.avatar_url} size={10} />
+          </a>
           <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={tier.label}>{tier.emoji}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm text-zinc-100">{item.username ?? 'Anonymous'}</span>
+            <a href={`/u/${item.username}`} className="font-semibold text-sm text-zinc-100 hover:text-emerald-400 transition">
+              {item.username ?? 'Anonymous'}
+            </a>
             <span className="text-xs text-zinc-600">{item.scan_count ?? 0} logs</span>
             <span className="text-xs text-zinc-600 ml-auto shrink-0">{timeAgo(item.created_at)}</span>
           </div>
@@ -192,13 +229,187 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: { item: FeedItem; on
   );
 }
 
+function UserRow({ user, onFollowChange }: { user: UserCard; onFollowChange: (id: string, following: boolean) => void }) {
+  const tier = user.tier ?? DEFAULT_TIER;
+  return (
+    <a href={`/u/${user.username}`} className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition group">
+      <div className="relative shrink-0">
+        <Avatar username={user.username} userId={user.id} avatarUrl={user.avatar_url} size={10} />
+        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{tier.emoji}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="font-semibold text-sm text-zinc-100 group-hover:text-emerald-400 transition truncate">@{user.username}</span>
+          <span className={`text-xs font-medium ${tier.color}`}>{tier.label}</span>
+        </div>
+        <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-500">
+          <span>{user.total_scans} logs</span>
+          {user.total_reviews > 0 && <span>{user.total_reviews} reviews</span>}
+          {user.total_grams > 0 && <span>{formatWeight(user.total_grams)}</span>}
+          {user.avg_rating != null && <span>★ {user.avg_rating.toFixed(1)}</span>}
+        </div>
+      </div>
+      <div onClick={e => e.preventDefault()} className="shrink-0">
+        <FollowButton
+          userId={user.id}
+          initialFollowing={user.is_following}
+          isSelf={user.is_self}
+          size="sm"
+        />
+      </div>
+    </a>
+  );
+}
+
+// ─── Tab views ────────────────────────────────────────────────────────────────
+
+type SortKey = 'scans' | 'weight' | 'reviews' | 'recent';
+
+function UsersView() {
+  const [users, setUsers] = useState<UserCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState<SortKey>('scans');
+
+  const load = useCallback(async (s: SortKey) => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/users?sort=${s}&limit=50`, { credentials: 'include' });
+      const data = await res.json();
+      setUsers(data.users ?? []);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(sort); }, [load, sort]);
+
+  const handleFollowChange = (id: string, following: boolean) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_following: following } : u));
+  };
+
+  const sorts: { key: SortKey; label: string }[] = [
+    { key: 'scans', label: 'Most logs' },
+    { key: 'reviews', label: 'Most reviews' },
+    { key: 'weight', label: 'Most weight' },
+    { key: 'recent', label: 'Recently active' },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1.5 flex-wrap">
+        {sorts.map(s => (
+          <button key={s.key} onClick={() => setSort(s.key)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${sort === s.key ? 'bg-emerald-400 text-zinc-950' : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200'}`}>
+            {s.label}
+          </button>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="space-y-2">
+          {[1,2,3,4,5].map(i => (
+            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 flex items-center gap-3 animate-pulse">
+              <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
+              <div className="flex-1 space-y-2"><div className="h-3 w-28 rounded bg-zinc-800" /><div className="h-2.5 w-40 rounded bg-zinc-800" /></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && users.length === 0 && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
+          <div className="text-4xl mb-2">👥</div>
+          <p className="text-sm text-zinc-400">No users found</p>
+        </div>
+      )}
+
+      {!loading && users.length > 0 && (
+        <div className="space-y-2">
+          {users.map(u => <UserRow key={u.id} user={u} onFollowChange={handleFollowChange} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FollowingView() {
+  const [tab, setTab] = useState<'following' | 'followers'>('following');
+  const [users, setUsers] = useState<UserCard[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async (t: 'following' | 'followers') => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/follows?type=${t}`, { credentials: 'include' });
+      const data = await res.json();
+      setUsers(data.users ?? []);
+    } catch {}
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(tab); }, [load, tab]);
+
+  const handleFollowChange = (id: string, following: boolean) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_following: following } : u));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-1 rounded-xl bg-zinc-800/60 p-1">
+        {(['following', 'followers'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold capitalize transition ${tab === t ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {loading && (
+        <div className="space-y-2">
+          {[1,2,3].map(i => (
+            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 flex items-center gap-3 animate-pulse">
+              <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
+              <div className="flex-1 space-y-2"><div className="h-3 w-28 rounded bg-zinc-800" /><div className="h-2.5 w-40 rounded bg-zinc-800" /></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!loading && users.length === 0 && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
+          <div className="text-4xl mb-2">{tab === 'following' ? '🔍' : '👋'}</div>
+          <p className="text-sm text-zinc-400">
+            {tab === 'following' ? 'You aren\'t following anyone yet' : 'Nobody is following you yet'}
+          </p>
+          {tab === 'following' && (
+            <p className="text-xs text-zinc-600 mt-1">Check the Users tab to find people to follow</p>
+          )}
+        </div>
+      )}
+
+      {!loading && users.length > 0 && (
+        <div className="space-y-2">
+          {users.map(u => <UserRow key={u.id} user={u} onFollowChange={handleFollowChange} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+type TabKey = 'feed' | 'users' | 'following';
+
 export default function CommunityPage() {
+  const [activeTab, setActiveTab] = useState<TabKey>('feed');
+
+  // Feed state
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [feedLoaded, setFeedLoaded] = useState(false);
 
   useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
 
@@ -211,10 +422,11 @@ export default function CommunityPage() {
   }, []);
 
   useEffect(() => {
+    if (feedLoaded) return;
     loadFeed()
-      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); })
+      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); setFeedLoaded(true); })
       .catch(err => { setError(String(err?.message ?? err)); setLoading(false); });
-  }, [loadFeed]);
+  }, [loadFeed, feedLoaded]);
 
   const handleLoadMore = async () => {
     if (!nextCursor || loadingMore) return;
@@ -235,74 +447,102 @@ export default function CommunityPage() {
     setFeed(prev => prev.filter(item => item.id !== id));
   }, []);
 
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: 'feed', label: 'Feed' },
+    { key: 'users', label: 'Users' },
+    { key: 'following', label: 'Following' },
+  ];
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
-      <div className="mb-6">
+      <div className="mb-5">
         <h1 className="text-2xl font-bold text-zinc-100">Community</h1>
         <p className="mt-1 text-sm text-zinc-500">See what others are scanning and smoking. Write reviews to earn helpful votes and level up your rank.</p>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 space-y-2">
-        <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
-        <div className="flex flex-wrap gap-x-5 gap-y-2">
-          {[
-            { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
-            { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
-            { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
-            { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
-          ].map(t => (
-            <div key={t.label} className="flex items-center gap-1.5">
-              <span>{t.emoji}</span>
-              <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
-              <span className="text-xs text-zinc-600">{t.sub}</span>
-            </div>
-          ))}
-        </div>
+      {/* Tab header */}
+      <div className="mb-5 flex gap-1 rounded-xl bg-zinc-800/60 p-1">
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)}
+            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${activeTab === t.key ? 'bg-zinc-700 text-zinc-100' : 'text-zinc-500 hover:text-zinc-300'}`}>
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 flex items-center justify-between gap-3">
-          <span className="text-sm text-rose-400">{error}</span>
-          <button onClick={() => { setError(''); setLoading(true); loadFeed().then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); }).catch(err => { setError(String(err?.message ?? err)); setLoading(false); }); }}
-            className="shrink-0 rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/30 transition">Retry</button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="space-y-4">
-          {[1,2,3].map(i => (
-            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3 animate-pulse">
-              <div className="flex gap-3">
-                <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
-                <div className="space-y-2 flex-1"><div className="h-3 w-24 rounded bg-zinc-800" /><div className="h-3 w-40 rounded bg-zinc-800" /></div>
-              </div>
-              <div className="h-3 w-full rounded bg-zinc-800" />
-              <div className="h-3 w-4/5 rounded bg-zinc-800" />
+      {/* Feed tab */}
+      {activeTab === 'feed' && (
+        <>
+          <div className="mb-5 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4 py-3 space-y-2">
+            <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              {[
+                { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
+                { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
+                { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
+                { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
+              ].map(t => (
+                <div key={t.label} className="flex items-center gap-1.5">
+                  <span>{t.emoji}</span>
+                  <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
+                  <span className="text-xs text-zinc-600">{t.sub}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      {!loading && feed.length === 0 && !error && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center space-y-2">
-          <div className="text-4xl">🌿</div>
-          <p className="text-sm font-medium text-zinc-300">No reviews yet</p>
-          <p className="text-sm text-zinc-500">Be the first — scan something and leave a review.</p>
-        </div>
-      )}
-
-      {!loading && feed.length > 0 && (
-        <div className="space-y-4">
-          {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
-          {nextCursor && (
-            <button onClick={handleLoadMore} disabled={loadingMore}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">
-              {loadingMore ? 'Loading...' : 'Load more'}
-            </button>
+          {error && (
+            <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 flex items-center justify-between gap-3">
+              <span className="text-sm text-rose-400">{error}</span>
+              <button onClick={() => { setError(''); setLoading(true); setFeedLoaded(false); }}
+                className="shrink-0 rounded-lg bg-rose-500/20 px-3 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/30 transition">Retry</button>
+            </div>
           )}
-        </div>
+
+          {loading && (
+            <div className="space-y-4">
+              {[1,2,3].map(i => (
+                <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3 animate-pulse">
+                  <div className="flex gap-3">
+                    <div className="h-10 w-10 rounded-full bg-zinc-800 shrink-0" />
+                    <div className="space-y-2 flex-1"><div className="h-3 w-24 rounded bg-zinc-800" /><div className="h-3 w-40 rounded bg-zinc-800" /></div>
+                  </div>
+                  <div className="h-3 w-full rounded bg-zinc-800" />
+                  <div className="h-3 w-4/5 rounded bg-zinc-800" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && feed.length === 0 && !error && (
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center space-y-2">
+              <div className="text-4xl">🌿</div>
+              <p className="text-sm font-medium text-zinc-300">No reviews yet</p>
+              <p className="text-sm text-zinc-500">Be the first — scan something and leave a review.</p>
+            </div>
+          )}
+
+          {!loading && feed.length > 0 && (
+            <div className="space-y-4">
+              {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
+              {nextCursor && (
+                <button onClick={handleLoadMore} disabled={loadingMore}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">
+                  {loadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              )}
+            </div>
+          )}
+        </>
       )}
 
+      {/* Users tab */}
+      {activeTab === 'users' && <UsersView />}
+
+      {/* Following tab */}
+      {activeTab === 'following' && <FollowingView />}
+
+      {/* Lightbox */}
       {lightboxUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/90 backdrop-blur-sm p-4" onClick={() => setLightboxUrl(null)}>
           <button onClick={() => setLightboxUrl(null)}

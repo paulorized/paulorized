@@ -27,6 +27,7 @@ interface Profile {
   state: string | null;
   sex: string | null;
   avatar_url: string | null;
+  hidden_from_directory: boolean;
 }
 
 function getAge(dob: string): number {
@@ -65,6 +66,7 @@ function ProfilePage() {
   const [state, setState] = useState('');
   const [sex, setSex] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [hiddenFromDirectory, setHiddenFromDirectory] = useState(false);
   const [tier, setTier] = useState<{ label: string; emoji: string; color: string } | null>(null);
 
   useEffect(() => {
@@ -78,6 +80,7 @@ function ProfilePage() {
           setState(data.profile.state ?? '');
           setSex(data.profile.sex ?? '');
           setAvatarUrl(data.profile.avatar_url ?? null);
+          setHiddenFromDirectory(data.profile.hidden_from_directory ?? false);
         }
         setLoading(false);
       })
@@ -113,7 +116,7 @@ function ProfilePage() {
     const res = await fetch('/api/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, date_of_birth: dob, state, sex }),
+      body: JSON.stringify({ username, date_of_birth: dob, state, sex, hidden_from_directory: hiddenFromDirectory }),
     });
     const data = await res.json();
     setSaving(false);
@@ -121,7 +124,7 @@ function ProfilePage() {
     if (!res.ok) { setError(data.error ?? 'Something went wrong.'); return; }
     const isFirstSave = !profile;
     setSuccess('Profile saved!');
-    setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl });
+    setProfile({ username, date_of_birth: dob, state, sex, avatar_url: avatarUrl, hidden_from_directory: hiddenFromDirectory });
     if (isFirstSave || isSetup) { router.push('/'); } else { router.refresh(); }
   }
 
@@ -252,6 +255,20 @@ function ProfilePage() {
               ))}
             </div>
           </div>
+
+          {/* Privacy toggle */}
+          <div className="flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-800/50 px-4 py-3">
+            <button type="button" onClick={() => setHiddenFromDirectory(h => !h)}
+              className={`mt-0.5 shrink-0 h-5 w-9 rounded-full border transition-colors ${hiddenFromDirectory ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-600 bg-zinc-700'}`}
+              role="switch" aria-checked={hiddenFromDirectory}>
+              <span className={`block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5 ${hiddenFromDirectory ? 'translate-x-4' : 'translate-x-0'}`} />
+            </button>
+            <div>
+              <p className="text-xs font-medium text-zinc-300">Hide from user directory</p>
+              <p className="text-xs text-zinc-600 mt-0.5">Your profile won&apos;t appear in the Community Users tab. People who know your username can still visit your profile page directly.</p>
+            </div>
+          </div>
+
           {error && <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>}
           {success && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>}
           <button type="submit" disabled={saving}
@@ -270,7 +287,7 @@ function ProfilePage() {
       <button
         type="button"
         onClick={() => (window as Window & { __pwaInstall?: () => void }).__pwaInstall?.()}
-        className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left"
+        className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left mt-4"
       >
         <span className="text-2xl">📲</span>
         <div>
