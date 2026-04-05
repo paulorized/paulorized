@@ -525,8 +525,8 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                 </svg>
               </span>
               <div>
-                <p className="font-semibold text-zinc-100 text-sm">Photo of your product label</p>
-                <p className="text-xs text-zinc-500 mt-0.5">Include all sides with text — THC%, strain, brand. More photos = better results.</p>
+                <p className="font-semibold text-zinc-100 text-sm">Upload from photos</p>
+                <p className="text-xs text-zinc-500 mt-0.5">Already took pics? Pick them from your camera roll — all sides, THC%, strain, brand.</p>
               </div>
               <span className="ml-auto text-zinc-600 text-lg">›</span>
             </div>
