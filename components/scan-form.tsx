@@ -542,7 +542,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             </span>
             <div>
               <p className="font-semibold text-zinc-100 text-sm">Search &amp; enter manually</p>
-              <p className="text-xs text-zinc-500 mt-0.5">AI strain search auto-fills THC%, type &amp; effects — or type everything yourself.</p>
+              <p className="text-xs text-zinc-500 mt-0.5">AI pulls deep strain intel — type, THC/CBD range, bio, typical effects &amp; flavors — from Leafly + Claude. Just type a name.</p>
             </div>
             <span className="ml-auto text-zinc-600 text-lg">›</span>
           </button>
