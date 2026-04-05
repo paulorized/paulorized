@@ -496,6 +496,21 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             </button>
           </div>
 
+          {/* Camera */}
+          <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
+            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-yellow-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+              </svg>
+            </span>
+            <div>
+              <p className="font-semibold text-zinc-100 text-sm">Scan with camera</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Capture front, back &amp; potency label. Multiple shots welcome — nothing saves to your camera roll.</p>
+            </div>
+            <span className="ml-auto text-zinc-600 text-lg">›</span>
+          </button>
+
           {/* Upload photo */}
           <label className="cursor-pointer block">
             <input className="hidden" type="file" accept="image/*" multiple
@@ -516,21 +531,6 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               <span className="ml-auto text-zinc-600 text-lg">›</span>
             </div>
           </label>
-
-          {/* Camera */}
-          <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
-            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-yellow-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-              </svg>
-            </span>
-            <div>
-              <p className="font-semibold text-zinc-100 text-sm">Scan with camera</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Capture front, back &amp; potency label. Multiple shots welcome — nothing saves to your camera roll.</p>
-            </div>
-            <span className="ml-auto text-zinc-600 text-lg">›</span>
-          </button>
 
           {/* Manual entry */}
           <button type="button" onClick={() => setMode('manual')}
