@@ -159,7 +159,17 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
             <span className="text-xs text-zinc-600 ml-auto shrink-0">{timeAgo(item.created_at)}</span>
           </div>
           <div className="mt-1 flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-zinc-200">{item.strain_name || item.brand || 'Unknown'}</span>
+            {item.strain_name ? (
+              <a
+                href={`/strains?q=${encodeURIComponent(item.strain_name)}`}
+                className="text-sm font-semibold text-zinc-200 hover:text-yellow-300 transition underline-offset-2 hover:underline decoration-dotted"
+                title={`Look up "${item.strain_name}" in StrainAI`}
+              >
+                {item.strain_name}
+              </a>
+            ) : (
+              <span className="text-sm font-semibold text-zinc-200">{item.brand || 'Unknown'}</span>
+            )}
             {item.brand && item.strain_name && <span className="text-xs text-zinc-500">{item.brand}</span>}
             {strainType && strainType !== 'unknown' && (
               <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${strainColors[strainType] ?? strainColors.unknown}`}>{strainType}</span>
