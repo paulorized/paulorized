@@ -260,14 +260,27 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
             <div>
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Strain Bio</p>
-                <button
-                  type="button"
-                  onClick={handleRefreshBio}
-                  disabled={refreshingBio}
-                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
-                >
-                  {refreshingBio ? 'Refreshing…' : bio ? '↻ Refresh' : '✨ Fetch bio'}
-                </button>
+                {bio ? (
+                  <button
+                    type="button"
+                    onClick={handleRefreshBio}
+                    disabled={refreshingBio}
+                    aria-label="Refresh bio"
+                    title="Refresh bio"
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-800 hover:text-emerald-400 disabled:opacity-50"
+                  >
+                    <span className={refreshingBio ? 'inline-block animate-spin text-xs' : 'text-xs'}>↻</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleRefreshBio}
+                    disabled={refreshingBio}
+                    className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
+                  >
+                    {refreshingBio ? 'Fetching…' : '✨ Fetch bio'}
+                  </button>
+                )}
               </div>
               {bio ? (
                 <p className="text-sm leading-relaxed text-zinc-300 italic">{bio}</p>
