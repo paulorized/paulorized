@@ -1,7 +1,8 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,12 @@ export async function POST(request: NextRequest) {
     if (!strain_name || !lat || !lon) {
       return NextResponse.json({ error: 'Missing params' }, { status: 400 });
     }
+
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'OPENAI_API_KEY not configured' }, { status: 500 });
+    }
+    const openai = new OpenAI({ apiKey });
 
     const prompt = `I am looking for cannabis dispensaries near latitude ${lat}, longitude ${lon} that are likely to carry the strain "${strain_name}". Based on your knowledge, list up to 4 real dispensaries that are geographically close to those coordinates. For each, provide the name, a one-line description, and an approximate distance if you can estimate it. If you truly have no knowledge of dispensaries in that area, say so honestly. Respond with JSON: { "dispensaries": [{ "name": string, "description": string, "distance": string }], "location_summary": string }`;
 
