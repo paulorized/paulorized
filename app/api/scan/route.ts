@@ -203,15 +203,23 @@ export async function POST(request: NextRequest) {
 
       const missingStrainType = !extractedData.strain_type;
       const missingThc = isEdible ? extractedData.thc_mg == null : extractedData.thc_percent == null;
-      const missingBio = !extractedData.strain_bio;
+      // Treat OCR'd label bios as weak — they're usually marketing taglines ("smooth & relaxing")
+      // rather than real strain info. Anything short, or empty, gets replaced by Leafly/Claude.
+      const labelBio = (extractedData.strain_bio ?? '').trim();
+      const weakBio = labelBio.length < 80;
 
-      if (missingStrainType || missingThc || missingBio) {
+      // Always enrich when we have a strain name — the Leafly/Claude bio is the source of truth.
+      // This runs on every scan with a strain, upgrading bios that came from package marketing copy.
+      {
         const enriched = await enrichFromStrainName(extractedData.strain_name);
 
         if (missingStrainType && enriched.strain_type) {
           extractedData.strain_type = enriched.strain_type;
         }
-        if (missingBio && enriched.strain_bio) {
+        // Prefer enriched bio over label bio whenever the enriched one is meaningfully longer.
+        if (enriched.strain_bio && enriched.strain_bio.length > labelBio.length && (weakBio || enriched.strain_bio.length > labelBio.length + 40)) {
+          extractedData.strain_bio = enriched.strain_bio;
+        } else if (!labelBio && enriched.strain_bio) {
           extractedData.strain_bio = enriched.strain_bio;
         }
         if (enriched.typical_effects) extractedData.typical_effects = enriched.typical_effects;

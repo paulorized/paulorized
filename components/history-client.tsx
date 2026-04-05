@@ -10,6 +10,7 @@ type ProductLog = {
   product_type: string;
   strain_name: string;
   strain_type: string | null;
+  strain_bio: string | null;
   thc_percent: number | null;
   cbd_percent: number | null;
   thc_mg: number | null;

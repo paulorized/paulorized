@@ -8,6 +8,7 @@ type ProductLog = {
   product_type: string;
   strain_name: string;
   strain_type: string | null;
+  strain_bio: string | null;
   thc_percent: number | null;
   cbd_percent: number | null;
   thc_mg: number | null;
@@ -31,7 +32,7 @@ export default async function HistoryPage() {
 
   const { data } = await supabase
     .from('product_logs')
-    .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, reviews(id)')
+    .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, reviews(id)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(200);

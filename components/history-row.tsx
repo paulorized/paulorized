@@ -11,6 +11,7 @@ type ProductLog = {
   product_type: string;
   strain_name: string;
   strain_type: string | null;
+  strain_bio: string | null;
   thc_percent: number | null;
   cbd_percent: number | null;
   thc_mg: number | null;
@@ -52,6 +53,9 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
   const [duplicated, setDuplicated] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [bio, setBio] = useState<string | null>(log.strain_bio);
+  const [refreshingBio, setRefreshingBio] = useState(false);
+  const [bioError, setBioError] = useState('');
 
   const badgeClass = strainTypeBadge[log.strain_type ?? 'unknown'] ?? strainTypeBadge.unknown;
   const date = new Date(log.created_at).toLocaleDateString('en-US', {
@@ -86,6 +90,29 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
       if (res.ok) router.refresh();
     } catch {}
     finally { setDeleting(false); setConfirmDelete(false); }
+  };
+
+  const handleRefreshBio = async () => {
+    if (refreshingBio) return;
+    setRefreshingBio(true);
+    setBioError('');
+    try {
+      const res = await fetch('/api/refresh-bio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_log_id: log.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBioError(data.error ?? 'Could not refresh bio.');
+      } else {
+        setBio(data.strain_bio);
+      }
+    } catch {
+      setBioError('Network error.');
+    } finally {
+      setRefreshingBio(false);
+    }
   };
 
   return (
@@ -228,6 +255,28 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               </div>
             ) : null;
           })()}
+
+          {log.strain_name && (
+            <div>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Strain Bio</p>
+                <button
+                  type="button"
+                  onClick={handleRefreshBio}
+                  disabled={refreshingBio}
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
+                >
+                  {refreshingBio ? 'Refreshing…' : bio ? '↻ Refresh' : '✨ Fetch bio'}
+                </button>
+              </div>
+              {bio ? (
+                <p className="text-sm leading-relaxed text-zinc-300 italic">{bio}</p>
+              ) : (
+                <p className="text-sm text-zinc-500 italic">No bio yet — click &ldquo;Fetch bio&rdquo; to pull one from Leafly + Claude.</p>
+              )}
+              {bioError && <p className="mt-2 text-xs text-rose-400">{bioError}</p>}
+            </div>
+          )}
 
           <div>
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>

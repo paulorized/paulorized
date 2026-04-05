@@ -6,7 +6,7 @@ export async function GET() {
     const supabase = createServerSupabaseClient();
     const { data, error } = await supabase
       .from('product_logs')
-      .select('id, brand, product_type, strain_name, strain_type, thc_percent, cbd_percent, weight, created_at')
+      .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, weight, created_at')
       .order('created_at', { ascending: false })
       .limit(100);
 
