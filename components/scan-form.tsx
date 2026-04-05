@@ -6,6 +6,7 @@ import { emptyProduct, type ExtractedProduct } from '@/types/product';
 import { ReviewForm } from './review-form';
 import { GuestGateModal } from './guest-gate-modal';
 import { incrementGuestScanCount, isGuestLimitReached } from './guest-banner';
+import { ScanHelpModal, shouldAutoShowScanTutorial } from './scan-help-modal';
 
 const PRODUCT_TYPES = [
   'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
@@ -46,6 +47,17 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   const [aiFlavors, setAiFlavors] = useState<string[]>([]);
   const [stage, setStage] = useState<Stage>('idle');
   const [showJson, setShowJson] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpAutoShown, setHelpAutoShown] = useState(false);
+
+  // Auto-show the scan tutorial once on first visit (unless user opted out)
+  useEffect(() => {
+    if (shouldAutoShowScanTutorial()) {
+      setShowHelp(true);
+      setHelpAutoShown(true);
+    }
+  }, []);
+
 // Manual entry search state
   const [manualBrand, setManualBrand] = useState('');
   const [manualStrain, setManualStrain] = useState('');
@@ -469,8 +481,20 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   if (mode === 'choose') {
     return (
       <div className="space-y-4">
+        <ScanHelpModal open={showHelp} onClose={() => setShowHelp(false)} allowSuppress={helpAutoShown} />
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
-          <h2 className="font-semibold text-zinc-100 mb-1">How would you like to log?</h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="font-semibold text-zinc-100">How would you like to log?</h2>
+            <button
+              type="button"
+              onClick={() => { setShowHelp(true); setHelpAutoShown(false); }}
+              aria-label="How to scan"
+              title="How to scan"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-400 transition hover:border-emerald-500/50 hover:text-emerald-400"
+            >
+              ?
+            </button>
+          </div>
 
           {/* Upload photo */}
           <label className="cursor-pointer block">
