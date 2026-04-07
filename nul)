@@ -1,2 +1,0 @@
-Error: You defined "--token", but its contents are invalid. Must not contain: "$", "("
-Learn More: https://err.sh/vercel/invalid-token-value
