@@ -104,7 +104,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               {/* Row 2: Nav links (only when logged in) */}
               {userId && (
                 <nav className="flex items-center justify-between border-t border-zinc-800/40 pb-1.5 pt-1">
-                  <Link href="/" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
+                  <Link href="/?reset=1" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
                   <Link href="/history" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
                   <Link href="/dashboard" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
                   <Link href="/community" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
