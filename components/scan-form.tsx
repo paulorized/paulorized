@@ -170,7 +170,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
       if (!blob) return;
       const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
       setFiles((prev) => [...prev, file]);
-      closeCamera();
+      // Stream stays open — user can keep shooting
     }, 'image/jpeg', 0.92);
   };
 
@@ -575,41 +575,52 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             <button type="button" onClick={() => { closeCamera(); setMode('choose'); }} className="text-xs text-zinc-600 hover:text-zinc-400 transition">← Back</button>
           </div>
 
-          {cameraOpen ? (
+          {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
+
+          {/* Live viewfinder — stays open across multiple shots */}
+          {cameraOpen && (
             <div className="overflow-hidden rounded-xl border border-zinc-700 bg-zinc-950">
-              <video ref={videoRef} className="w-full" autoPlay playsInline muted />
+              <div className="relative">
+                <video ref={videoRef} className="w-full" autoPlay playsInline muted />
+                {fileCount > 0 && (
+                  <span className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-zinc-950/80 px-2.5 py-1 text-xs font-semibold text-emerald-400 backdrop-blur-sm">
+                    ✓ {fileCount} {fileCount === 1 ? 'photo' : 'photos'}
+                  </span>
+                )}
+              </div>
               <div className="flex gap-3 p-3">
                 <button type="button" onClick={capturePhoto}
                   className="flex-1 rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition active:bg-emerald-300">
-                  📸 Take photo
+                  {fileCount === 0 ? '📸 Take photos' : '📸 Take another'}
                 </button>
-                <button type="button" onClick={() => { closeCamera(); setMode('choose'); }}
-                  className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800">
-                  Cancel
-                </button>
+                {fileCount > 0 ? (
+                  <button type="button" onClick={closeCamera}
+                    className="rounded-xl bg-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-600 active:bg-zinc-500">
+                    Done ✓
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => { closeCamera(); setMode('choose'); }}
+                    className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800">
+                    Cancel
+                  </button>
+                )}
               </div>
             </div>
-          ) : fileCount > 0 ? (
-            <div className="space-y-1">
-              <p className="text-sm text-emerald-400">{fileCount} photo{fileCount > 1 ? 's' : ''} captured ✓</p>
-              <p className="text-xs text-zinc-500">💡 Snap all visible sides — especially the potency label — for best results.</p>
-            </div>
-          ) : null}
+          )}
 
-          {cameraError && <p className="text-sm text-rose-400">{cameraError}</p>}
-
-          {fileCount > 0 && !cameraOpen && (
-            <form onSubmit={handleScan} className="space-y-2">
-              <div className="flex gap-2">
-                <button type="button" onClick={openCamera}
-                  className="flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 py-4 text-sm font-semibold text-zinc-300 transition hover:bg-zinc-800 active:scale-[0.99]">
-                  📷 Add more photos
-                </button>
-                <button className="flex-[2] rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
-                  type="submit" disabled={isScanning}>
-                  {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
-                </button>
+          {/* After Done — show count + scan button */}
+          {!cameraOpen && fileCount > 0 && (
+            <form onSubmit={handleScan} className="space-y-3">
+              <div className="flex items-center gap-2 rounded-xl bg-zinc-950/60 px-4 py-2.5">
+                <span className="text-emerald-400 text-sm">✓</span>
+                <span className="text-sm text-zinc-300 font-medium">{fileCount} photo{fileCount > 1 ? 's' : ''} ready</span>
+                <button type="button" onClick={openCamera} className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition">+ add more</button>
               </div>
+              <p className="text-xs text-zinc-600">💡 Best results: front label, back label, and potency panel.</p>
+              <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
+                type="submit" disabled={isScanning}>
+                {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+              </button>
               {error && <p className="text-sm text-rose-400">{error}</p>}
             </form>
           )}
