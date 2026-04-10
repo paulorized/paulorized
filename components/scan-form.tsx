@@ -174,9 +174,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
     }, 'image/jpeg', 0.92);
   };
 
-  const handleScan = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Guest limit check
+  const runScan = async () => {
     if (isGuest && isGuestLimitReached()) {
       setGuestGate('limit');
       return;
@@ -204,6 +202,11 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const handleScan = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await runScan();
   };
 
   const handleSave = async () => {
@@ -594,9 +597,10 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                   {fileCount === 0 ? '📸 Take photos' : '📸 Take another'}
                 </button>
                 {fileCount > 0 ? (
-                  <button type="button" onClick={closeCamera}
-                    className="rounded-xl bg-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-600 active:bg-zinc-500">
-                    Done ✓
+                  <button type="button" onClick={() => { closeCamera(); runScan(); }}
+                    disabled={isScanning}
+                    className="rounded-xl bg-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-600 active:bg-zinc-500 disabled:opacity-50">
+                    {isScanning ? '🔍 Scanning…' : 'Done ✓'}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { closeCamera(); setMode('choose'); }}
@@ -621,6 +625,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                 type="submit" disabled={isScanning}>
                 {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
               </button>
+              <p className="text-center text-xs text-zinc-700">or hit Done ✓ in the camera view to scan immediately</p>
               {error && <p className="text-sm text-rose-400">{error}</p>}
             </form>
           )}
