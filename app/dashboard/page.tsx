@@ -197,6 +197,82 @@ function ScansChart({ data }: { data: { date: string; count: number }[] }) {
   );
 }
 
+function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: string }) {
+  const [active, setActive] = useState<string | null>(null);
+
+  const units = [
+    { key: 'joint',    icon: '🚬', name: 'Standard Joints',  grams: 0.35,  color: 'emerald' },
+    { key: 'king',     icon: '👑', name: 'King Size Joints', grams: 0.5,   color: 'yellow'  },
+    { key: 'blunt',    icon: '🌿', name: 'Blunts',           grams: 1.0,   color: 'amber'   },
+    { key: 'bong',     icon: '💨', name: 'Bong Rips',        grams: 0.25,  color: 'sky'     },
+    { key: 'bowl',     icon: '🫙', name: 'Bowl Packs',       grams: 0.3,   color: 'purple'  },
+    { key: 'eighth',   icon: '⅛',  name: 'Eighths',          grams: 3.5,   color: 'teal'    },
+    { key: 'quarter',  icon: '¼',  name: 'Quarters',         grams: 7.0,   color: 'pink'    },
+    { key: 'brownie',  icon: '🍪', name: 'Pot Brownies',     grams: 1.0,   color: 'orange'  },
+  ];
+
+  const colorMap: Record<string, { bg: string; border: string; text: string; numText: string }> = {
+    emerald: { bg: 'bg-emerald-500/15', border: 'border-emerald-500/50', text: 'text-emerald-400', numText: 'text-emerald-300' },
+    yellow:  { bg: 'bg-yellow-500/15',  border: 'border-yellow-500/50',  text: 'text-yellow-400',  numText: 'text-yellow-300'  },
+    amber:   { bg: 'bg-amber-500/15',   border: 'border-amber-500/50',   text: 'text-amber-400',   numText: 'text-amber-300'   },
+    sky:     { bg: 'bg-sky-500/15',     border: 'border-sky-500/50',     text: 'text-sky-400',     numText: 'text-sky-300'     },
+    purple:  { bg: 'bg-purple-500/15',  border: 'border-purple-500/50',  text: 'text-purple-400',  numText: 'text-purple-300'  },
+    teal:    { bg: 'bg-teal-500/15',    border: 'border-teal-500/50',    text: 'text-teal-400',    numText: 'text-teal-300'    },
+    pink:    { bg: 'bg-pink-500/15',    border: 'border-pink-500/50',    text: 'text-pink-400',    numText: 'text-pink-300'    },
+    orange:  { bg: 'bg-orange-500/15',  border: 'border-orange-500/50',  text: 'text-orange-400',  numText: 'text-orange-300'  },
+  };
+
+  if (!totalGrams || totalGrams <= 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+          {label ?? 'Your stash, broken down'}
+        </p>
+        <p className="mt-0.5 text-xs text-zinc-600">{totalGrams}g logged — tap any unit to highlight</p>
+      </div>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        {units.map(u => {
+          const count = Math.floor(totalGrams / u.grams);
+          const isActive = active === u.key;
+          const c = colorMap[u.color];
+          return (
+            <button
+              key={u.key}
+              type="button"
+              onClick={() => setActive(isActive ? null : u.key)}
+              className={`rounded-xl border p-3 text-left transition ${
+                isActive
+                  ? `${c.bg} ${c.border}`
+                  : 'border-zinc-800 bg-zinc-950/60 hover:border-zinc-700'
+              }`}
+            >
+              <span className="text-xl leading-none">{u.icon}</span>
+              <p className={`mt-2 text-2xl font-bold ${isActive ? c.numText : 'text-zinc-100'}`}>
+                {count.toLocaleString()}
+              </p>
+              <p className={`text-[11px] leading-tight mt-0.5 ${isActive ? c.text : 'text-zinc-500'}`}>
+                {u.name}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+      {active && (() => {
+        const u = units.find(x => x.key === active)!;
+        const count = Math.floor(totalGrams / u.grams);
+        const c = colorMap[u.color];
+        return (
+          <p className={`text-xs ${c.text} text-center py-1`}>
+            That&apos;s <span className="font-bold">{count.toLocaleString()} {u.name.toLowerCase()}</span> worth of cannabis logged 🌿
+          </p>
+        );
+      })()}
+    </div>
+  );
+}
+
 function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | 'all') => void }) {
   return (
     <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1 w-fit">
@@ -339,6 +415,8 @@ export default function DashboardPage() {
           </div>
 
           <WeightWidget totalGrams={myData.totalGrams ?? 0} />
+
+          <StashCalculator totalGrams={myData.totalGrams ?? 0} />
 
           <StatsCard
             username={username || 'me'}
@@ -589,6 +667,8 @@ export default function DashboardPage() {
           </div>
 
           <WeightWidget totalGrams={communityData.totalGrams ?? 0} label="Community Weight Logged" sublabel="combined across all users" />
+
+          <StashCalculator totalGrams={communityData.totalGrams ?? 0} label="Community stash, broken down" />
 
           <Section title="Strain type breakdown">
             {Object.values(communityData.strainTypeCounts).some(v => v > 0) ? (
