@@ -511,10 +511,81 @@ export default function DashboardPage() {
 
       {view === 'all' && !loading && communityData && (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard label="Total Scans" value={communityData.totalScans} sub="across all users" />
-            <StatCard label="Avg THC" value={communityData.avgThc != null ? communityData.avgThc + '%' : '—'} />
+          {/* ── Community headline stats ── */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatCard label="Total Scans" value={communityData.totalScans.toLocaleString()} sub="across all users" />
             <StatCard label="Users" value={communityData.totalUsers ?? '—'} sub="have scanned" />
+            <StatCard label="Avg THC" value={communityData.avgThc != null ? communityData.avgThc + '%' : '—'} sub="community average" />
+            <StatCard label="Grams Logged" value={communityData.totalGrams != null ? (communityData.totalGrams >= 1000 ? (communityData.totalGrams / 1000).toFixed(1) + 'kg' : communityData.totalGrams + 'g') : '—'} sub="combined weight" />
+          </div>
+
+          {/* ── Community KPI spotlight cards ── */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Most logged strain → StrainAI */}
+            {communityData.topStrains[0] ? (
+              <a href={`/strains?q=${encodeURIComponent(communityData.topStrains[0].name)}`}
+                className="block rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition hover:border-purple-500/30 hover:bg-zinc-900 group">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏆 Most Logged Strain</p>
+                  <span className="text-[10px] text-zinc-700 group-hover:text-purple-400 transition">StrainAI ›</span>
+                </div>
+                <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topStrains[0].name}</p>
+                <p className="mt-1 text-xs text-zinc-500">{communityData.topStrains[0].count} logs community-wide</p>
+              </a>
+            ) : (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏆 Most Logged Strain</p>
+                <p className="mt-3 text-xs text-zinc-600">No data yet</p>
+              </div>
+            )}
+
+            {/* Top brand */}
+            {communityData.topBrands[0] ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏷️ Top Brand</p>
+                <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topBrands[0].name}</p>
+                <p className="mt-1 text-xs text-zinc-500">{communityData.topBrands[0].count} logs</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏷️ Top Brand</p>
+                <p className="mt-3 text-xs text-zinc-600">No data yet</p>
+              </div>
+            )}
+
+            {/* Most popular product type */}
+            {communityData.topProductTypes[0] ? (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">💨 Most Popular Type</p>
+                <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{communityData.topProductTypes[0].name}</p>
+                <p className="mt-1 text-xs text-zinc-500">{communityData.topProductTypes[0].count} logs</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">💨 Most Popular Type</p>
+                <p className="mt-3 text-xs text-zinc-600">No data yet</p>
+              </div>
+            )}
+
+            {/* Hybrid vs Indica vs Sativa breakdown winner */}
+            {(() => {
+              const counts = communityData.strainTypeCounts;
+              const winner = Object.entries(counts).filter(([k]) => k !== 'unknown').sort((a, b) => b[1] - a[1])[0];
+              const total = Object.values(counts).reduce((a, b) => a + b, 0);
+              const icons: Record<string, string> = { sativa: '☀️', indica: '🌙', hybrid: '⚡', unknown: '🌿' };
+              return winner ? (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🧬 Community Leans</p>
+                  <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{icons[winner[0]] ?? ''} {winner[0]}</p>
+                  <p className="mt-1 text-xs text-zinc-500">{total > 0 ? Math.round((winner[1] / total) * 100) : 0}% of all logs</p>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🧬 Community Leans</p>
+                  <p className="mt-3 text-xs text-zinc-600">No data yet</p>
+                </div>
+              );
+            })()}
           </div>
 
           <WeightWidget totalGrams={communityData.totalGrams ?? 0} label="Community Weight Logged" sublabel="combined across all users" />
