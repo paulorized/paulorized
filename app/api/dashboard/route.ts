@@ -126,6 +126,22 @@ export async function GET() {
     }
     totalGrams = Math.round(totalGrams * 10) / 10;
 
+    // Best (highest THC) product by type — for KPI cards
+    const wantedTypes = ['flower', 'pre-roll', 'vape', 'concentrate', 'edible'];
+    const highestThcByType: Record<string, { strain_name: string | null; brand: string | null; thc_percent: number }> = {};
+    for (const type of wantedTypes) {
+      const best = (logs ?? [])
+        .filter(l => l.product_type?.toLowerCase() === type && l.thc_percent != null)
+        .sort((a, b) => (b.thc_percent ?? 0) - (a.thc_percent ?? 0))[0];
+      if (best) highestThcByType[type] = { strain_name: best.strain_name ?? null, brand: best.brand ?? null, thc_percent: best.thc_percent as number };
+    }
+
+    // Most tried strain (already in topStrains[0]) + streak
+    const lastLogDate = logs?.length ? logs[logs.length - 1].created_at.slice(0, 10) : null;
+    const uniqueStrains = Object.keys(strainCounts).length;
+    const favProductType = Object.entries(productTypeCounts).sort((a, b) => b[1] - a[1])[0] ?? null;
+    const favDispensary = Object.entries(dispCounts).sort((a, b) => b[1] - a[1])[0] ?? null;
+
     return NextResponse.json({
       totalScans, totalReviews, totalGrams,
       avgThc: avgThc != null ? Math.round(avgThc * 10) / 10 : null,
@@ -135,6 +151,9 @@ export async function GET() {
       topBrands, topDispensaries, topEffects, topFlavors,
       thcDistribution: Object.entries(thcBuckets).map(([range, count]) => ({ range, count })),
       scansOverTime, topStrains,
+      highestThcByType, uniqueStrains, lastLogDate,
+      favProductType: favProductType ? { name: favProductType[0], count: favProductType[1] } : null,
+      favDispensary: favDispensary ? { name: favDispensary[0], count: favDispensary[1] } : null,
     });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });

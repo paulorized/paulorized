@@ -9,6 +9,8 @@ import {
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
 } from 'recharts';
 
+type ThcRecord = { strain_name: string | null; brand: string | null; thc_percent: number };
+
 type DashboardData = {
   totalScans: number;
   totalReviews: number;
@@ -25,6 +27,11 @@ type DashboardData = {
   thcDistribution: { range: string; count: number }[];
   scansOverTime: { date: string; count: number }[];
   topStrains: { name: string; count: number }[];
+  highestThcByType: Record<string, ThcRecord>;
+  uniqueStrains: number;
+  lastLogDate: string | null;
+  favProductType: { name: string; count: number } | null;
+  favDispensary: { name: string; count: number } | null;
 };
 
 type CommunityData = {
@@ -76,6 +83,57 @@ function Empty({ msg }: { msg: string }) {
       <p className="text-sm text-zinc-600">{msg}</p>
     </div>
   );
+}
+
+function StrainKpiCard({ label, icon, record, emptyMsg }: {
+  label: string;
+  icon: string;
+  record: ThcRecord | null | undefined;
+  emptyMsg: string;
+}) {
+  const strainQuery = record?.strain_name ? encodeURIComponent(record.strain_name) : null;
+  const inner = record ? (
+    <div className="mt-2 space-y-1.5">
+      <p className="text-2xl font-bold text-emerald-400">{record.thc_percent}%</p>
+      <p className="text-sm font-semibold text-zinc-100 leading-tight truncate">{record.strain_name ?? '—'}</p>
+      {record.brand && <p className="text-xs text-zinc-500 truncate">by {record.brand}</p>}
+    </div>
+  ) : (
+    <p className="mt-3 text-xs text-zinc-600">{emptyMsg}</p>
+  );
+
+  if (!strainQuery) {
+    return (
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+        {inner}
+      </div>
+    );
+  }
+  return (
+    <a href={`/strains?q=${strainQuery}`}
+      className="block rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition hover:border-emerald-500/40 hover:bg-zinc-900 group">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+        <span className="text-[10px] text-zinc-700 group-hover:text-emerald-500 transition">StrainAI ›</span>
+      </div>
+      {inner}
+    </a>
+  );
+}
+
+function SimpleKpiCard({ label, icon, value, sub, href }: {
+  label: string; icon: string; value: string; sub?: string; href?: string;
+}) {
+  const cls = "rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition" + (href ? " hover:border-zinc-700 hover:bg-zinc-900 block" : "");
+  const content = (
+    <>
+      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+      <p className="mt-2 text-2xl font-bold text-zinc-100">{value}</p>
+      {sub && <p className="mt-1 text-xs text-zinc-500 truncate">{sub}</p>}
+    </>
+  );
+  return href ? <a href={href} className={cls}>{content}</a> : <div className={cls}>{content}</div>;
 }
 
 type GranularityView = 'daily' | 'weekly' | 'monthly';
@@ -249,6 +307,35 @@ export default function DashboardPage() {
             <StatCard label="Avg THC" value={myData.avgThc != null ? myData.avgThc + '%' : '—'} />
             <StatCard label="Avg Rating" value={myData.avgRating != null ? myData.avgRating + '/5' : '—'}
               sub={myData.wbaPct != null ? myData.wbaPct + '% would buy again' : undefined} />
+          </div>
+
+          {/* ── Personal Record KPI cards ── */}
+          <div className="grid grid-cols-2 gap-3">
+            <StrainKpiCard
+              label="Highest THC Flower"
+              icon="🌿"
+              record={myData.highestThcByType?.['flower']}
+              emptyMsg="No flower logged yet"
+            />
+            <StrainKpiCard
+              label="Highest THC Pre-roll"
+              icon="🚬"
+              record={myData.highestThcByType?.['pre-roll']}
+              emptyMsg="No pre-rolls logged yet"
+            />
+            <SimpleKpiCard
+              label="Strains Tried"
+              icon="🧬"
+              value={String(myData.uniqueStrains ?? 0)}
+              sub={myData.topStrains?.[0] ? `Most tried: ${myData.topStrains[0].name}` : undefined}
+              href={myData.topStrains?.[0] ? `/strains?q=${encodeURIComponent(myData.topStrains[0].name)}` : undefined}
+            />
+            <SimpleKpiCard
+              label="Go-To Product"
+              icon="🏆"
+              value={myData.favProductType ? (myData.favProductType.name.charAt(0).toUpperCase() + myData.favProductType.name.slice(1)) : '—'}
+              sub={myData.favProductType ? `${myData.favProductType.count} logs` : 'No data yet'}
+            />
           </div>
 
           <WeightWidget totalGrams={myData.totalGrams ?? 0} />
