@@ -278,18 +278,18 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
 
 // Terpene color/emoji meta
 const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string }> = {
-  myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing'    },
-  limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting'   },
-  caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming'     },
-  linalool:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  emoji: '💜', effect: 'Sedating'    },
-  pinene:        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', emoji: '🌲', effect: 'Alertness'   },
-  terpinolene:   { color: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    emoji: '🌿', effect: 'Energizing'  },
-  ocimene:       { color: 'text-lime-400',    bg: 'bg-lime-500/10',    border: 'border-lime-500/30',    emoji: '🌸', effect: 'Uplifting'   },
-  humulene:      { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     emoji: '🍺', effect: 'Anti-inflam' },
-  bisabolol:     { color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/30',    emoji: '🌺', effect: 'Soothing'    },
-  nerolidol:     { color: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     emoji: '🏔️', effect: 'Sedating'    },
+  myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing',    hex: '#fbbf24' },
+  limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting',   hex: '#facc15' },
+  caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming',     hex: '#fb923c' },
+  linalool:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  emoji: '💜', effect: 'Sedating',    hex: '#c084fc' },
+  pinene:        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', emoji: '🌲', effect: 'Alertness',   hex: '#34d399' },
+  terpinolene:   { color: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    emoji: '🌿', effect: 'Energizing',  hex: '#2dd4bf' },
+  ocimene:       { color: 'text-lime-400',    bg: 'bg-lime-500/10',    border: 'border-lime-500/30',    emoji: '🌸', effect: 'Uplifting',   hex: '#a3e635' },
+  humulene:      { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     emoji: '🍺', effect: 'Anti-inflam', hex: '#f87171' },
+  bisabolol:     { color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/30',    emoji: '🌺', effect: 'Soothing',    hex: '#f472b6' },
+  nerolidol:     { color: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     emoji: '🏔️', effect: 'Sedating',    hex: '#38bdf8' },
 };
-const DEFAULT_TERP = { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700', emoji: '🌿', effect: '' };
+const DEFAULT_TERP = { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700', emoji: '🌿', effect: '', hex: '#71717a' };
 
 function TerpeneStatsPanel({ terpenes, label }: {
   terpenes: { name: string; count: number; avgPercent: number | null }[];
@@ -332,13 +332,10 @@ function TerpeneStatsPanel({ terpenes, label }: {
                     )}
                   </div>
                 </div>
-                <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-zinc-800 overflow-hidden">
                   <div
-                    className={[
-                      "h-full rounded-full transition-all",
-                      meta.bg,
-                    ].join(" ")}
-                    style={{ width: barWidth + "%" }}
+                    className="h-full rounded-full transition-all"
+                    style={{ width: barWidth + "%", background: meta.hex }}
                   />
                 </div>
               </div>
@@ -612,6 +609,12 @@ export default function DashboardPage() {
             </Section>
           )}
 
+          {(myData.topTerpenes?.length ?? 0) > 0 && (
+            <Section title="Your terpene profile">
+              <TerpeneStatsPanel terpenes={myData.topTerpenes} />
+            </Section>
+          )}
+
           {myData.topDispensaries.length > 0 && (
             <Section title="Top dispensaries">
               <div className="flex flex-wrap gap-2">
@@ -647,12 +650,6 @@ export default function DashboardPage() {
                   </span>
                 ))}
               </div>
-            </Section>
-          )}
-
-          {(myData.topTerpenes?.length ?? 0) > 0 && (
-            <Section title="Your terpene profile">
-              <TerpeneStatsPanel terpenes={myData.topTerpenes} />
             </Section>
           )}
 
