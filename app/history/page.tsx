@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { HistoryClient } from '@/components/history-client';
 
+type Terpene = { name: string; percent: number | null; source?: string };
+
 type ProductLog = {
   id: string;
   brand: string;
@@ -19,6 +21,7 @@ type ProductLog = {
   created_at: string;
   headshot_url: string | null;
   has_review: boolean;
+  terpenes?: Terpene[] | null;
 };
 
 export default async function HistoryPage() {
@@ -32,7 +35,7 @@ export default async function HistoryPage() {
 
   const { data } = await supabase
     .from('product_logs')
-    .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, reviews(id)')
+    .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, terpenes, reviews(id)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(200);
