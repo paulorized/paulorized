@@ -58,61 +58,61 @@ const TERP_META: Record<string, {
   effect: string; description: string; foundIn: string;
 }> = {
   myrcene: {
-    color: 'text-amber-300', bg: 'bg-amber-500/15', border: 'border-amber-500/30', emoji: '≡ƒÑ¡',
+    color: 'text-amber-300', bg: 'bg-amber-500/15', border: 'border-amber-500/30', emoji: '🥭',
     effect: 'Relaxing ┬╖ Earthy',
     description: 'The most abundant terpene in cannabis. Promotes sedation and may enhance cannabinoid absorption ΓÇö often credited with the classic "couch-lock" effect.',
     foundIn: 'Mangoes, hops, lemongrass, thyme',
   },
   limonene: {
-    color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', emoji: '≡ƒìï',
+    color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', emoji: '🍋',
     effect: 'Uplifting ┬╖ Citrus',
     description: 'A bright citrusy terpene associated with elevated mood and stress relief. May have anti-anxiety properties and is often found in sativa-leaning strains.',
     foundIn: 'Citrus fruits, juniper, peppermint, rosemary',
   },
   caryophyllene: {
-    color: 'text-orange-300', bg: 'bg-orange-500/15', border: 'border-orange-500/30', emoji: '≡ƒî╢∩╕Å',
+    color: 'text-orange-300', bg: 'bg-orange-500/15', border: 'border-orange-500/30', emoji: '🌶️',
     effect: 'Calming ┬╖ Spicy',
     description: 'Unique among terpenes ΓÇö it binds directly to CB2 receptors like a cannabinoid. Known for anti-inflammatory and analgesic effects with a peppery aroma.',
     foundIn: 'Black pepper, cloves, cinnamon, basil',
   },
   linalool: {
-    color: 'text-purple-300', bg: 'bg-purple-500/15', border: 'border-purple-500/30', emoji: '≡ƒÆ£',
+    color: 'text-purple-300', bg: 'bg-purple-500/15', border: 'border-purple-500/30', emoji: '💜',
     effect: 'Soothing ┬╖ Floral',
     description: 'Best known from lavender, linalool has calming, anti-anxiety, and sleep-promoting properties. Often used to counteract THC-induced anxiety.',
     foundIn: 'Lavender, mint, coriander, birch trees',
   },
   pinene: {
-    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', emoji: '≡ƒî▓',
+    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', emoji: '🌲',
     effect: 'Alert ┬╖ Pine',
     description: 'The most common terpene in nature. May improve alertness and memory retention, and can act as a bronchodilator. Comes in alpha and beta forms.',
     foundIn: 'Pine trees, rosemary, basil, dill, parsley',
   },
   terpinolene: {
-    color: 'text-sky-300', bg: 'bg-sky-500/15', border: 'border-sky-500/30', emoji: '≡ƒìÅ',
+    color: 'text-sky-300', bg: 'bg-sky-500/15', border: 'border-sky-500/30', emoji: '🍏',
     effect: 'Energetic ┬╖ Fresh',
     description: 'A multifaceted terpene with floral, herbal, and piney notes. Associated with uplifting effects and commonly found in Jack Herer and Ghost Train Haze.',
     foundIn: 'Apples, cumin, lilac, tea tree',
   },
   ocimene: {
-    color: 'text-teal-300', bg: 'bg-teal-500/15', border: 'border-teal-500/30', emoji: '≡ƒî┐',
+    color: 'text-teal-300', bg: 'bg-teal-500/15', border: 'border-teal-500/30', emoji: '🌿',
     effect: 'Uplifting ┬╖ Sweet',
     description: 'A sweet, herbal, and woody terpene with potential antiviral and antifungal properties. Often found in strains like Strawberry Cough and Clementine.',
     foundIn: 'Mint, parsley, orchids, mangoes, basil',
   },
   humulene: {
-    color: 'text-zinc-300', bg: 'bg-zinc-700/40', border: 'border-zinc-600', emoji: '≡ƒì║',
+    color: 'text-zinc-300', bg: 'bg-zinc-700/40', border: 'border-zinc-600', emoji: '🍺',
     effect: 'Appetite suppressing ┬╖ Earthy',
     description: 'Shares its distinctive hoppy aroma with beer. May suppress appetite and has anti-inflammatory properties ΓÇö one of the few terpenes that can reduce hunger.',
     foundIn: 'Hops, cloves, ginger, coriander',
   },
   bisabolol: {
-    color: 'text-pink-300', bg: 'bg-pink-500/15', border: 'border-pink-500/30', emoji: '≡ƒî╕',
+    color: 'text-pink-300', bg: 'bg-pink-500/15', border: 'border-pink-500/30', emoji: '🌸',
     effect: 'Gentle ┬╖ Floral',
     description: 'A delicate floral terpene prized in skincare for its anti-irritant properties. In cannabis it contributes soothing, anti-inflammatory effects with a subtle chamomile scent.',
     foundIn: 'German chamomile, candeia tree',
   },
   nerolidol: {
-    color: 'text-lime-300', bg: 'bg-lime-500/15', border: 'border-lime-500/30', emoji: '≡ƒîÖ',
+    color: 'text-lime-300', bg: 'bg-lime-500/15', border: 'border-lime-500/30', emoji: '🌙',
     effect: 'Sedating ┬╖ Woody',
     description: 'A secondary terpene with a woody, floral aroma. Known for strong sedative and anti-parasitic properties. Found in strains ideal for sleep and relaxation.',
     foundIn: 'Jasmine, lemongrass, ginger, niaouli',
@@ -171,7 +171,7 @@ function getSuggestedTags(strainType: string | null, terpenes: Terpene[] | null 
 
 function getTerpMeta(name: string) {
   return TERP_META[name.toLowerCase()] ?? {
-    color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', emoji: '≡ƒº¬',
+    color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', emoji: '🧪',
     effect: '', description: 'A lesser-documented terpene contributing to this strain\'s unique aroma and effect profile.', foundIn: 'Various plants',
   };
 }
