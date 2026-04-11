@@ -80,10 +80,12 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
   if (leafly) {
     const d = leafly.strain_playlist_details ?? {};
     const strainType = (leafly.category ?? '').toLowerCase();
-    // Build a terpene list from Leafly's most_terpene field (primary terpene)
-    const leaflyTerps = leafly.most_terpene
-      ? [{ name: leafly.most_terpene, percent: null, source: 'leafly' as const }]
-      : [];
+    // Build a terpene list from Leafly data
+    // most_terpene is the primary terpene string if available
+    const leaflyTerps: { name: string; percent: number | null; source: 'leafly' }[] = [];
+    if (leafly.most_terpene) {
+      leaflyTerps.push({ name: leafly.most_terpene, percent: null, source: 'leafly' });
+    }
     return {
       strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
       strain_bio: d.description ?? '',
@@ -112,6 +114,7 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
       cbd_min: result.cbd_min ?? null,
       cbd_max: result.cbd_max ?? null,
       strain_enriched_source: 'ai',
+      terpenes: Array.isArray(result.terpenes) ? result.terpenes : [],
     };
   } catch { return {}; }
 }
