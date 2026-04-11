@@ -68,6 +68,8 @@ function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [hiddenFromDirectory, setHiddenFromDirectory] = useState(false);
   const [tier, setTier] = useState<{ label: string; emoji: string; color: string } | null>(null);
+  const [dispensaries, setDispensaries] = useState<{ id: string; name: string }[]>([]);
+  const [deletingDispId, setDeletingDispId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/profile')
@@ -93,6 +95,22 @@ function ProfilePage() {
       .then(data => { if (data.tier) setTier(data.tier); })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    fetch('/api/dispensaries', { credentials: 'include' })
+      .then(r => r.json())
+      .then(data => setDispensaries(data.dispensaries ?? []))
+      .catch(() => {});
+  }, []);
+
+  const handleDeleteDispensary = async (id: string) => {
+    setDeletingDispId(id);
+    try {
+      const res = await fetch(`/api/dispensaries?id=${id}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) setDispensaries(prev => prev.filter(d => d.id !== id));
+    } catch {}
+    setDeletingDispId(null);
+  };
 
   async function handleAvatarChange(file: File) {
     setAvatarError('');
@@ -281,6 +299,40 @@ function ProfilePage() {
             <span className="text-zinc-500">You can delete any entry at any time.</span>
           </p>
         </form>
+      </div>
+
+      {/* Saved Dispensaries */}
+      <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-zinc-100">Saved Dispensaries</h2>
+            <p className="text-xs text-zinc-500 mt-0.5">Remove places you no longer visit from your autofill</p>
+          </div>
+          <span className="text-xs text-zinc-600">{dispensaries.length} saved</span>
+        </div>
+        {dispensaries.length === 0 ? (
+          <p className="text-xs text-zinc-600 italic">No dispensaries saved yet — they get added automatically when you log a visit.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {dispensaries.map(d => (
+              <div key={d.id} className="flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 pl-3 pr-1.5 py-1.5">
+                <svg width="8" height="10" viewBox="0 0 24 28" fill="currentColor" className="text-red-400 shrink-0">
+                  <path d="M12 0C7.16 0 3.2 3.96 3.2 8.8c0 7.7 8.8 17.6 8.8 17.6s8.8-9.9 8.8-17.6C20.8 3.96 16.84 0 12 0zm0 12a3.2 3.2 0 1 1 0-6.4A3.2 3.2 0 0 1 12 12z"/>
+                </svg>
+                <span className="text-xs text-zinc-300">{d.name}</span>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteDispensary(d.id)}
+                  disabled={deletingDispId === d.id}
+                  title="Remove from autofill"
+                  className="ml-0.5 flex h-5 w-5 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-700 hover:text-rose-400 disabled:opacity-40"
+                >
+                  {deletingDispId === d.id ? '…' : '✕'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add to Home Screen */}

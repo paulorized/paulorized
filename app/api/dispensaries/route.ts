@@ -21,6 +21,27 @@ export async function GET() {
   return NextResponse.json({ dispensaries: data ?? [] });
 }
 
+// DELETE — remove a dispensary from the user's saved list
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+
+  const authClient = await createAuthServerClient();
+  const { data: { user } } = await authClient.auth.getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const supabase = createServerSupabaseClient();
+  const { error } = await supabase
+    .from('dispensaries')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ success: true });
+}
+
 // POST — save a new dispensary name if it doesn't already exist
 export async function POST(request: NextRequest) {
   try {
