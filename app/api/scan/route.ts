@@ -75,18 +75,17 @@ async function claudeStrainFallback(strainName: string) {
 }
 
 async function enrichFromStrainName(strainName: string): Promise<Partial<ExtractedProduct> & { strain_enriched_source?: string }> {
-  // 1. Try Leafly first
+  // 1. Try Leafly first for strain metadata
   const leafly = await fetchLeaflyStrain(strainName);
   if (leafly) {
     const d = leafly.strain_playlist_details ?? {};
     const strainType = (leafly.category ?? '').toLowerCase();
-    // Build a terpene list from Leafly data
-    // most_terpene is the primary terpene string if available
     const leaflyTerps: { name: string; percent: number | null; source: 'leafly' }[] = [];
     if (leafly.most_terpene) {
       leaflyTerps.push({ name: leafly.most_terpene, percent: null, source: 'leafly' });
     }
-    return {
+
+    const leaflyResult = {
       strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
       strain_bio: d.description ?? '',
       typical_effects: d.top_reported_effects ?? [],
@@ -95,12 +94,27 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
       thc_max: d.thc_max ?? null,
       cbd_min: d.cbd_min ?? null,
       cbd_max: d.cbd_max ?? null,
-      strain_enriched_source: 'leafly',
+      strain_enriched_source: 'leafly' as const,
       terpenes: leaflyTerps,
     };
+
+    // Leafly rarely has terpene data — if empty, ask Claude for characteristic terpenes
+    if (leaflyTerps.length === 0) {
+      try {
+        const claudeResult = await claudeStrainFallback(strainName);
+        return {
+          ...leaflyResult,
+          terpenes: Array.isArray(claudeResult.terpenes) ? claudeResult.terpenes : [],
+        };
+      } catch {
+        return leaflyResult;
+      }
+    }
+
+    return leaflyResult;
   }
 
-  // 2. Claude fallback
+  // 2. Full Claude fallback (Leafly had no result)
   try {
     const result = await claudeStrainFallback(strainName);
     const strainType = (result.strain_type ?? '').toLowerCase();
