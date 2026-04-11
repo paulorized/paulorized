@@ -26,6 +26,9 @@ export async function GET(request: Request) {
         would_buy_again,
         effects,
         flavors,
+        burn_speed,
+        canoeing,
+        clogging,
         helpful_count,
         created_at,
         user_id,
@@ -37,7 +40,8 @@ export async function GET(request: Request) {
           product_type,
           thc_percent,
           headshot_url,
-          dispensary_name
+          dispensary_name,
+          terpenes
         )
       `)
       .order('created_at', { ascending: false })
@@ -112,10 +116,14 @@ export async function GET(request: Request) {
         product_type: log?.product_type ?? '',
         thc_percent: log?.thc_percent ?? null,
         nugshot_url: log?.headshot_url ?? null,
+        terpenes: log?.terpenes ?? null,
         rating: r.rating,
         notes: r.notes ?? null,
         effects: r.effects ?? [],
         flavors: r.flavors ?? [],
+        burn_speed: r.burn_speed ?? null,
+        canoeing: r.canoeing ?? null,
+        clogging: r.clogging ?? null,
         would_buy_again: r.would_buy_again,
         helpful_count: r.helpful_count ?? 0,
         i_voted: myVotes.has(r.id),

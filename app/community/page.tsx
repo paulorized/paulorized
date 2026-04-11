@@ -8,13 +8,34 @@ import { FollowButton } from '@/components/follow-button';
 
 interface Tier { label: string; emoji: string; color: string; }
 
+interface Terpene { name: string; percent: number | null; source?: string; }
+
 interface FeedItem {
   id: string; user_id: string; username: string; avatar_url: string | null; tier: Tier;
   brand: string; strain_name: string; strain_type: string; product_type: string;
   thc_percent: number | null; rating: number | null; notes: string | null;
   effects: string[]; flavors: string[]; would_buy_again: boolean | null;
+  burn_speed: string | null; canoeing: boolean | null; clogging: boolean | null;
+  terpenes: Terpene[] | null;
   helpful_count: number; i_voted: boolean; created_at: string; is_mine: boolean;
   nugshot_url: string | null; scan_count: number; dispensary_name: string | null;
+}
+
+// Terpene display meta (shared with history)
+const FEED_TERP_META: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
+  myrcene:       { emoji: '🥭', color: 'text-amber-300',   bg: 'bg-amber-500/15',   border: 'border-amber-500/30'   },
+  limonene:      { emoji: '🍋', color: 'text-yellow-300',  bg: 'bg-yellow-500/15',  border: 'border-yellow-500/30'  },
+  caryophyllene: { emoji: '🌶️', color: 'text-orange-300',  bg: 'bg-orange-500/15',  border: 'border-orange-500/30'  },
+  linalool:      { emoji: '💜', color: 'text-purple-300',  bg: 'bg-purple-500/15',  border: 'border-purple-500/30'  },
+  pinene:        { emoji: '🌲', color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30' },
+  terpinolene:   { emoji: '🍏', color: 'text-sky-300',     bg: 'bg-sky-500/15',     border: 'border-sky-500/30'     },
+  ocimene:       { emoji: '🌿', color: 'text-teal-300',    bg: 'bg-teal-500/15',    border: 'border-teal-500/30'    },
+  humulene:      { emoji: '🍺', color: 'text-zinc-300',    bg: 'bg-zinc-700/40',    border: 'border-zinc-600'        },
+  bisabolol:     { emoji: '🌸', color: 'text-pink-300',    bg: 'bg-pink-500/15',    border: 'border-pink-500/30'    },
+  nerolidol:     { emoji: '🌙', color: 'text-lime-300',    bg: 'bg-lime-500/15',    border: 'border-lime-500/30'    },
+};
+function getFeedTerpMeta(name: string) {
+  return FEED_TERP_META[name.toLowerCase()] ?? { emoji: '🧪', color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700' };
 }
 
 interface UserCard {
@@ -111,8 +132,10 @@ function StatPill({ label, value, color }: { label: string; value: string; color
   );
 }
 
-function FeedCard({ item, onVote, onImageClick, onDelete }: {
+function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete }: {
   item: FeedItem;
+  expanded: boolean;
+  onExpand: (id: string | null) => void;
   onVote: (id: string, voted: boolean) => void;
   onImageClick: (url: string) => void;
   onDelete: (id: string) => void;
@@ -124,6 +147,11 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
   const canVote = !!(item.notes?.trim()) && !item.is_mine;
   const tier = item.tier ?? DEFAULT_TIER;
   const strainType = (item.strain_type ?? 'unknown').toLowerCase();
+  const hasDetails = !!(
+    (item.terpenes?.length) ||
+    item.burn_speed || item.canoeing != null || item.clogging != null ||
+    (item.effects?.length ?? 0) > 3 || (item.flavors?.length ?? 0) > 2
+  );
 
   const handleVote = async () => {
     if (!canVote || voting) return;
@@ -227,7 +255,7 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
         </div>
       )}
 
-      <div className="px-4 py-3 border-t border-zinc-800 flex items-center justify-between">
+      <div className="px-4 py-3 border-t border-zinc-800 flex items-center justify-between gap-2">
         <button onClick={handleVote} disabled={!canVote || voting}
           title={item.is_mine ? 'Your own review' : !item.notes?.trim() ? 'Only reviews with notes can be marked helpful' : localVoted ? 'Remove vote' : 'Mark as helpful'}
           className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition ${!canVote ? 'text-zinc-600 cursor-default' : localVoted ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25' : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700 hover:text-zinc-200'}`}>
@@ -238,7 +266,14 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
           Helpful
           {localCount > 0 && <span className={`ml-0.5 ${localVoted ? 'text-emerald-400' : 'text-zinc-500'}`}>{localCount}</span>}
         </button>
-        <span className={`text-xs font-medium ${tier.color}`}>{tier.emoji} {tier.label}</span>
+        {hasDetails && (
+          <button onClick={() => onExpand(expanded ? null : item.id)}
+            className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium transition ${expanded ? 'bg-zinc-700 text-zinc-200' : 'bg-zinc-800/80 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700'}`}>
+            <span className={`inline-block transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▾</span>
+            {expanded ? 'Less' : 'Details'}
+          </button>
+        )}
+        <span className={`text-xs font-medium ${tier.color} ml-auto`}>{tier.emoji} {tier.label}</span>
         {item.is_mine && (
           <button onClick={async () => {
             if (!window.confirm('Delete your review?')) return;
@@ -253,6 +288,79 @@ function FeedCard({ item, onVote, onImageClick, onDelete }: {
           </button>
         )}
       </div>
+
+      {expanded && (
+        <div className="border-t border-zinc-800 bg-zinc-950/70 px-4 py-5 space-y-5">
+
+          {/* Terpenes */}
+          {(item.terpenes?.length ?? 0) > 0 && (
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Terpenes</p>
+              <div className="flex flex-wrap gap-2">
+                {(item.terpenes ?? []).map(t => {
+                  const m = getFeedTerpMeta(t.name);
+                  return (
+                    <div key={t.name} className={`flex items-center gap-1.5 rounded-xl border ${m.border} ${m.bg} px-3 py-1.5`}>
+                      <span className="text-sm leading-none">{m.emoji}</span>
+                      <span className={`text-xs font-semibold capitalize ${m.color}`}>{t.name}</span>
+                      {t.percent != null && <span className={`text-xs font-bold ${m.color} opacity-80`}>{t.percent}%</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Pre-roll / vape quality */}
+          {(item.burn_speed || item.canoeing != null || item.clogging != null) && (
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Smoke Quality</p>
+              <div className="flex gap-2 flex-wrap">
+                {item.burn_speed && (
+                  <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
+                    <p className="text-[10px] text-zinc-500 mb-1">Burn Speed</p>
+                    <p className="text-sm font-semibold text-zinc-200 capitalize">
+                      {item.burn_speed === 'slow' ? '🐢' : item.burn_speed === 'medium' ? '👌' : '🔥'} {item.burn_speed}
+                    </p>
+                  </div>
+                )}
+                {item.canoeing != null && (
+                  <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
+                    <p className="text-[10px] text-zinc-500 mb-1">Canoeing</p>
+                    <p className={`text-sm font-semibold ${item.canoeing ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {item.canoeing ? '✗ Yes' : '✓ No'}
+                    </p>
+                  </div>
+                )}
+                {item.clogging != null && (
+                  <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
+                    <p className="text-[10px] text-zinc-500 mb-1">Clogging</p>
+                    <p className={`text-sm font-semibold ${item.clogging ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {item.clogging ? '✗ Yes' : '✓ No'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Full effects + flavors */}
+          {((item.effects?.length ?? 0) > 0 || (item.flavors?.length ?? 0) > 0) && (
+            <div className="space-y-2.5">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600">Effects &amp; Flavors</p>
+              <div className="flex flex-wrap gap-1.5">
+                {(item.effects ?? []).map(e => (
+                  <span key={e} className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300">{e}</span>
+                ))}
+                {(item.flavors ?? []).map(f => (
+                  <span key={f} className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300">{f}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
     </div>
   );
 }
@@ -444,6 +552,7 @@ function CommunityPageInner() {
   const [error, setError] = useState('');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [feedLoaded, setFeedLoaded] = useState(false);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
 
@@ -558,7 +667,7 @@ function CommunityPageInner() {
 
           {!loading && feed.length > 0 && (
             <div className="space-y-4">
-              {feed.map(item => <FeedCard key={item.id} item={item} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
+              {feed.map(item => <FeedCard key={item.id} item={item} expanded={expandedCardId === item.id} onExpand={setExpandedCardId} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
               {nextCursor && (
                 <button onClick={handleLoadMore} disabled={loadingMore}
                   className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">
