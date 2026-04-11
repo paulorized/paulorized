@@ -119,6 +119,56 @@ const TERP_META: Record<string, {
   },
 };
 
+// Terpene → suggested effects/flavors
+const TERP_EFFECTS: Record<string, string[]> = {
+  myrcene:       ['Relaxed', 'Sleepy', 'Happy'],
+  limonene:      ['Energetic', 'Euphoric', 'Creative'],
+  caryophyllene: ['Relaxed', 'Creative', 'Pain Relief'],
+  linalool:      ['Relaxed', 'Sleepy', 'Happy'],
+  pinene:        ['Energetic', 'Focused', 'Creative'],
+  terpinolene:   ['Energetic', 'Creative', 'Euphoric'],
+  ocimene:       ['Energetic', 'Euphoric', 'Creative'],
+  humulene:      ['Relaxed', 'Happy'],
+  bisabolol:     ['Relaxed', 'Sleepy', 'Happy'],
+  nerolidol:     ['Relaxed', 'Sleepy'],
+};
+const TERP_FLAVORS: Record<string, string[]> = {
+  myrcene:       ['Earthy'],
+  limonene:      ['Citrus'],
+  caryophyllene: ['Spicy'],
+  linalool:      ['Floral'],
+  pinene:        ['Pine'],
+  terpinolene:   ['Sweet'],
+  ocimene:       ['Sweet', 'Floral'],
+  humulene:      ['Earthy'],
+  bisabolol:     ['Floral', 'Sweet'],
+  nerolidol:     ['Earthy', 'Sweet'],
+};
+const STRAIN_TYPE_EFFECTS: Record<string, string[]> = {
+  sativa:  ['Energetic', 'Creative', 'Focused', 'Euphoric'],
+  indica:  ['Relaxed', 'Sleepy', 'Happy'],
+  hybrid:  ['Relaxed', 'Euphoric', 'Creative', 'Focused'],
+};
+
+function getSuggestedTags(strainType: string | null, terpenes: Terpene[] | null | undefined) {
+  const effectVotes: Record<string, number> = {};
+  const flavorVotes: Record<string, number> = {};
+  // Terpene signals (weighted by order — first terpene is dominant)
+  (terpenes ?? []).forEach((t, i) => {
+    const weight = Math.max(1, 3 - i);
+    const key = t.name.toLowerCase();
+    (TERP_EFFECTS[key] ?? []).forEach(e => { effectVotes[e] = (effectVotes[e] ?? 0) + weight; });
+    (TERP_FLAVORS[key] ?? []).forEach(f => { flavorVotes[f] = (flavorVotes[f] ?? 0) + weight; });
+  });
+  // Strain type boost
+  (STRAIN_TYPE_EFFECTS[(strainType ?? '').toLowerCase()] ?? []).forEach(e => {
+    effectVotes[e] = (effectVotes[e] ?? 0) + 1;
+  });
+  const effects = Object.entries(effectVotes).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([e]) => e);
+  const flavors = Object.entries(flavorVotes).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([f]) => f);
+  return { effects, flavors };
+}
+
 function getTerpMeta(name: string) {
   return TERP_META[name.toLowerCase()] ?? {
     color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', emoji: '🧪',
@@ -444,7 +494,17 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
 
           <div>
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-zinc-500">Your Review</p>
-            <ReviewForm productLogId={log.id} productType={log.product_type} />
+            {(() => {
+              const { effects, flavors } = getSuggestedTags(log.strain_type, log.terpenes);
+              return (
+                <ReviewForm
+                  productLogId={log.id}
+                  productType={log.product_type}
+                  suggestedEffects={effects}
+                  suggestedFlavors={flavors}
+                />
+              );
+            })()}
           </div>
         </div>
       )}
