@@ -10,6 +10,7 @@ type Props = {
 export function NugShot({ logId, initialUrl }: Props) {
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [uploading, setUploading] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [error, setError] = useState('');
@@ -61,6 +62,8 @@ export function NugShot({ logId, initialUrl }: Props) {
       if (!res.ok) throw new Error(data.error ?? 'Upload failed.');
       // Cache-bust so the browser shows the new image
       setUrl(data.url + '?t=' + Date.now());
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed.');
     } finally {
@@ -185,6 +188,7 @@ export function NugShot({ logId, initialUrl }: Props) {
         </div>
       )}
       {uploading && url && <p className="text-xs text-emerald-400">Uploading…</p>}
+      {saved && <p className="text-xs text-emerald-400">✓ Photo saved — no review needed</p>}
       {error && url && <p className="text-xs text-rose-400">{error}</p>}
 
       {/* Hidden file inputs */}
