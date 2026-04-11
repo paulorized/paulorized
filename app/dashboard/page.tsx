@@ -277,7 +277,7 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
 
 
 // Terpene color/emoji meta
-const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string }> = {
+const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string; hex: string }> = {
   myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing',    hex: '#fbbf24' },
   limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting',   hex: '#facc15' },
   caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming',     hex: '#fb923c' },
