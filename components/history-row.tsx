@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReviewForm } from './review-form';
 import { NugShot } from './nug-shot';
@@ -255,6 +255,13 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
   const [refreshingBio, setRefreshingBio] = useState(false);
   const [bioError, setBioError] = useState('');
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (expanded) {
+      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }, [expanded]);
+
   const badgeClass = strainTypeBadge[log.strain_type ?? 'unknown'] ?? strainTypeBadge.unknown;
   const date = new Date(log.created_at).toLocaleDateString('en-US', {
     month: 'short', day: 'numeric', year: 'numeric',
@@ -314,7 +321,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
+      <div ref={cardRef} className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
       {/* Review tick ΓÇö top-right corner */}
       <div
         className="absolute top-0 right-0 z-10"
