@@ -71,14 +71,12 @@ async function claudeStrainFallback(strainName: string) {
   });
   const raw = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
   const cleaned = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
-  console.log('[TERP-DEBUG] claudeStrainFallback raw:', cleaned.slice(0, 300));
   return JSON.parse(cleaned);
 }
 
 async function enrichFromStrainName(strainName: string): Promise<Partial<ExtractedProduct> & { strain_enriched_source?: string }> {
   // 1. Try Leafly first for strain metadata
   const leafly = await fetchLeaflyStrain(strainName);
-  console.log('[TERP-DEBUG] Leafly found:', !!leafly, 'most_terpene:', leafly?.most_terpene);
   if (leafly) {
     const d = leafly.strain_playlist_details ?? {};
     const strainType = (leafly.category ?? '').toLowerCase();
@@ -100,18 +98,15 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
       terpenes: leaflyTerps,
     };
 
-    // Leafly rarely has terpene data — if empty, ask Claude for characteristic terpenes
+    // Leafly rarely has terpene data — if empty, also ask Claude for characteristic terpenes
     if (leaflyTerps.length === 0) {
-      console.log('[TERP-DEBUG] Leafly had no terpenes, calling Claude for:', strainName);
       try {
         const claudeResult = await claudeStrainFallback(strainName);
-        console.log('[TERP-DEBUG] Claude terpenes from Leafly+Claude path:', JSON.stringify(claudeResult.terpenes));
         return {
           ...leaflyResult,
           terpenes: Array.isArray(claudeResult.terpenes) ? claudeResult.terpenes : [],
         };
-      } catch (e) {
-        console.log('[TERP-DEBUG] Claude call failed in Leafly path:', String(e));
+      } catch {
         return leaflyResult;
       }
     }
@@ -120,10 +115,8 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
   }
 
   // 2. Full Claude fallback (Leafly had no result)
-  console.log('[TERP-DEBUG] No Leafly result, calling Claude only for:', strainName);
   try {
     const result = await claudeStrainFallback(strainName);
-    console.log('[TERP-DEBUG] Claude-only terpenes:', JSON.stringify(result.terpenes));
     const strainType = (result.strain_type ?? '').toLowerCase();
     return {
       strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
@@ -137,10 +130,7 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
       strain_enriched_source: 'ai',
       terpenes: Array.isArray(result.terpenes) ? result.terpenes : [],
     };
-  } catch (e) {
-    console.log('[TERP-DEBUG] Full Claude fallback failed:', String(e));
-    return {};
-  }
+  } catch { return {}; }
 }
 
 const EXTRACTION_PROMPT = `You are a cannabis product label parser. Extract the following fields from the product label image(s) provided and return ONLY valid JSON matching this exact structure:
@@ -216,8 +206,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[TERP-DEBUG] GPT strain_name:', extractedData.strain_name, '| GPT terpenes:', JSON.stringify(extractedData.terpenes));
-
     // Normalize THC/CBD — OpenAI sometimes returns "28%" or "28.5%" as strings
     const parsePercent = (val: unknown): number | null => {
       if (val === null || val === undefined || val === '') return null;
@@ -235,27 +223,22 @@ export async function POST(request: NextRequest) {
     const rawStrainType = (extractedData.strain_type ?? '').toLowerCase().trim();
     extractedData.strain_type = REAL_STRAIN_TYPES.includes(rawStrainType) ? rawStrainType : '';
 
-    // If strain name is known and any key fields are missing, enrich via Leafly → Claude
+    // If strain name is known, enrich via Leafly → Claude
     if (extractedData.strain_name) {
       const productTypeLower = (extractedData.product_type ?? '').toLowerCase();
       const isEdible = productTypeLower.includes('edible') || productTypeLower.includes('gummy') || productTypeLower.includes('chocolate');
 
       const missingStrainType = !extractedData.strain_type;
       const missingThc = isEdible ? extractedData.thc_mg == null : extractedData.thc_percent == null;
-      // Treat OCR'd label bios as weak — they're usually marketing taglines ("smooth & relaxing")
-      // rather than real strain info. Anything short, or empty, gets replaced by Leafly/Claude.
       const labelBio = (extractedData.strain_bio ?? '').trim();
       const weakBio = labelBio.length < 80;
 
-      // Always enrich when we have a strain name — the Leafly/Claude bio is the source of truth.
-      // This runs on every scan with a strain, upgrading bios that came from package marketing copy.
       {
         const enriched = await enrichFromStrainName(extractedData.strain_name);
 
         if (missingStrainType && enriched.strain_type) {
           extractedData.strain_type = enriched.strain_type;
         }
-        // Prefer enriched bio over label bio whenever the enriched one is meaningfully longer.
         if (enriched.strain_bio && enriched.strain_bio.length > labelBio.length && (weakBio || enriched.strain_bio.length > labelBio.length + 40)) {
           extractedData.strain_bio = enriched.strain_bio;
         } else if (!labelBio && enriched.strain_bio) {
@@ -264,7 +247,6 @@ export async function POST(request: NextRequest) {
         if (enriched.typical_effects) extractedData.typical_effects = enriched.typical_effects;
         if (enriched.typical_flavors) extractedData.typical_flavors = enriched.typical_flavors;
 
-        // Fill in THC/CBD from strain averages only if the label didn't have them
         if (missingThc) {
           if (isEdible) {
             if (extractedData.thc_mg == null && enriched.thc_max != null) {
@@ -292,7 +274,6 @@ export async function POST(request: NextRequest) {
         if (enriched.terpenes && enriched.terpenes.length > 0 && (!extractedData.terpenes || extractedData.terpenes.length === 0)) {
           extractedData.terpenes = enriched.terpenes;
         }
-        console.log('[TERP-DEBUG] After enrichment, final terpenes:', JSON.stringify(extractedData.terpenes));
       }
     }
 
