@@ -24,11 +24,11 @@ const emptyReview: Review = {
   edible_taste_rating: null, edible_dose_feedback: null,
 };
 
-type Props = { productLogId: string; productType?: string; userId?: string; suggestedEffects?: string[]; suggestedFlavors?: string[]; };
+type Props = { productLogId: string; productType?: string; userId?: string; suggestedEffects?: string[]; suggestedFlavors?: string[]; initialDispensaryName?: string; };
 
-export function ReviewForm({ productLogId, productType, userId, suggestedEffects, suggestedFlavors }: Props) {
+export function ReviewForm({ productLogId, productType, userId, suggestedEffects, suggestedFlavors, initialDispensaryName }: Props) {
   const [review, setReview] = useState<Review>(emptyReview);
-  const [dispensaryName, setDispensaryName] = useState('');
+  const [dispensaryName, setDispensaryName] = useState(initialDispensaryName ?? '');
   const [dispensaries, setDispensaries] = useState<string[]>([]);
   const [showDispSuggestions, setShowDispSuggestions] = useState(false);
   const dispensaryRef = useRef<HTMLDivElement>(null);
@@ -61,6 +61,10 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
       try {
         const res = await fetch(`/api/reviews?product_log_id=${productLogId}`);
         const data = await res.json();
+
+        // Always populate dispensary from the product log — regardless of whether a review exists yet
+        if (data.dispensary_name) setDispensaryName(data.dispensary_name);
+
         if (data.review) {
           setHasExisting(true);
           setReview({
@@ -72,7 +76,6 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
             edible_effect_type: data.review.edible_effect_type ?? null, edible_feelings: data.review.edible_feelings ?? [],
             edible_taste_rating: data.review.edible_taste_rating ?? null, edible_dose_feedback: data.review.edible_dose_feedback ?? null,
           });
-          if (data.dispensary_name) setDispensaryName(data.dispensary_name);
         } else if (suggestedEffects?.length || suggestedFlavors?.length) {
           setReview(prev => ({
             ...prev,

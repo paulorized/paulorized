@@ -500,6 +500,7 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
                 <ReviewForm
                   productLogId={log.id}
                   productType={log.product_type}
+                  initialDispensaryName={log.dispensary_name ?? undefined}
                   suggestedEffects={effects}
                   suggestedFlavors={flavors}
                 />
