@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
@@ -38,8 +38,9 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('date_desc');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => { document.title = 'My Log — CannaBaseAI'; }, []);
+  useEffect(() => { document.title = 'My Log ΓÇö CannaBaseAI'; }, []);
 
   const productTypes = useMemo(() => {
     const types = new Set(logs.map(l => (l.product_type ?? '').toLowerCase()).filter(Boolean));
@@ -117,7 +118,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
             onClick={() => setReviewFilter('needs_review')}
             className="shrink-0 rounded-xl bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-400/20 transition"
           >
-            Finish {needsReviewCount} →
+            Finish {needsReviewCount} ΓåÆ
           </button>
         </div>
       )}
@@ -159,7 +160,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search strain, brand, dispensary…"
+            placeholder="Search strain, brand, dispensaryΓÇª"
             className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/50 focus:outline-none"
           />
           <div className="flex items-center gap-2 shrink-0">
@@ -178,7 +179,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
               <option value="date_asc">Oldest first</option>
               <option value="thc_desc">Highest THC</option>
               <option value="thc_asc">Lowest THC</option>
-              <option value="name_asc">Name A–Z</option>
+              <option value="name_asc">Name AΓÇôZ</option>
             </select>
           </div>
         </div>
@@ -186,7 +187,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
 
       {logs.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/50 py-20 text-center">
-          <div className="mb-3 text-4xl">🌿</div>
+          <div className="mb-3 text-4xl">≡ƒî┐</div>
           <p className="font-medium text-zinc-300">Nothing scanned yet</p>
           <p className="mt-1 text-sm text-zinc-500">Scan your first product to start tracking</p>
           <Link href="/" className="mt-5 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
@@ -210,6 +211,8 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
           {filtered.map((log) => (
             <HistoryRow key={log.id} log={log}
               scanCount={scanCounts.get(((log.brand ?? '') + '__' + (log.strain_name ?? '') + '__' + (log.product_type ?? '')).toLowerCase()) ?? 1}
+              expanded={expandedId === log.id}
+              onExpand={setExpandedId}
             />
           ))}
         </div>
