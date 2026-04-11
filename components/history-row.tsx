@@ -25,6 +25,9 @@ type ProductLog = {
   headshot_url: string | null;
   has_review?: boolean;
   terpenes?: Terpene[] | null;
+  review_rating?: number | null;
+  review_effects?: string[] | null;
+  review_flavors?: string[] | null;
 };
 
 const strainTypeBadge: Record<string, string> = {
@@ -306,6 +309,21 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               <div className="mt-2 flex flex-wrap gap-2">
                 {thc && <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-emerald-400">{thc}</span>}
                 {cbd && <span className="rounded-lg bg-zinc-800 px-2.5 py-1 text-xs font-medium text-sky-400">{cbd}</span>}
+              </div>
+            )}
+            {((log.review_effects?.length ?? 0) > 0 || (log.review_flavors?.length ?? 0) > 0) && (
+              <div className="mt-2 flex flex-wrap gap-1.5 items-center">
+                {log.review_rating != null && (
+                  <span className="flex items-center gap-0.5 rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-400">
+                    ★ {log.review_rating}
+                  </span>
+                )}
+                {(log.review_effects ?? []).slice(0, 3).map(e => (
+                  <span key={e} className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">{e}</span>
+                ))}
+                {(log.review_flavors ?? []).slice(0, 2).map(f => (
+                  <span key={f} className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-400">{f}</span>
+                ))}
               </div>
             )}
             {log.dispensary_name && (

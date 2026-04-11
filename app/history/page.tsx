@@ -21,6 +21,9 @@ type ProductLog = {
   headshot_url: string | null;
   has_review: boolean;
   terpenes?: Terpene[] | null;
+  review_rating?: number | null;
+  review_effects?: string[] | null;
+  review_flavors?: string[] | null;
 };
 
 export default async function HistoryPage() {
@@ -34,16 +37,23 @@ export default async function HistoryPage() {
 
   const { data } = await supabase
     .from('product_logs')
-    .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, terpenes, reviews(id)')
+    .select('id, brand, product_type, strain_name, strain_type, strain_bio, thc_percent, cbd_percent, thc_mg, cbd_mg, mg_per_piece, weight, dispensary_name, created_at, headshot_url, terpenes, reviews(id, rating, effects, flavors)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(200);
 
   // Flatten the joined reviews into a simple has_review boolean
-  const logs: ProductLog[] = (data ?? []).map((row: Record<string, unknown>) => ({
-    ...(row as Omit<ProductLog, 'has_review'>),
-    has_review: Array.isArray(row.reviews) ? row.reviews.length > 0 : false,
-  }));
+  const logs: ProductLog[] = (data ?? []).map((row: Record<string, unknown>) => {
+    const reviews = Array.isArray(row.reviews) ? row.reviews : [];
+    const firstReview = reviews.length > 0 ? reviews[0] as Record<string, unknown> : null;
+    return {
+      ...(row as Omit<ProductLog, 'has_review' | 'review_rating' | 'review_effects' | 'review_flavors'>),
+      has_review: reviews.length > 0,
+      review_rating: firstReview?.rating as number ?? null,
+      review_effects: firstReview?.effects as string[] ?? null,
+      review_flavors: firstReview?.flavors as string[] ?? null,
+    };
+  });
 
   return <HistoryClient logs={logs} />;
 }
