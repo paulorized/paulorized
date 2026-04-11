@@ -13,6 +13,7 @@ const LEAFLY_HEADERS = {
 interface LeaflyStrain {
   name: string;
   category: string;
+  most_terpene?: string | null;
   strain_playlist_details?: {
     thc_max?: number;
     thc_min?: number;
@@ -47,16 +48,19 @@ Return ONLY a JSON object — no markdown, no explanation:
   "thc_max": number or null,
   "cbd_min": number or null,
   "cbd_max": number or null,
-  "confidence": number 0-1
+  "confidence": number 0-1,
+  "terpenes": [{ "name": "string", "percent": null, "source": "ai_estimated" }]
 }
 
 Effects: Relaxed, Happy, Euphoric, Uplifted, Creative, Focused, Sleepy, Hungry, Talkative, Energetic
 Flavors: Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint, Grape, Cheese
+Common terpenes: Myrcene, Limonene, Caryophyllene, Linalool, Pinene, Terpinolene, Ocimene, Humulene
 
 Rules:
 - thc_min/thc_max: typical % range. Null only if truly unknown.
 - cbd_min/cbd_max: null if negligible (<1%)
 - confidence: 1.0=iconic, 0.7=well known, 0.4=moderately known, 0.2=lesser-known but real
+- terpenes: list the 2-4 most characteristic terpenes for this strain. Use source: "ai_estimated".
 - Never invent lineage. Only include genuinely documented info.`;
 
 async function claudeStrainFallback(strainName: string) {
@@ -76,6 +80,10 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
   if (leafly) {
     const d = leafly.strain_playlist_details ?? {};
     const strainType = (leafly.category ?? '').toLowerCase();
+    // Build a terpene list from Leafly's most_terpene field (primary terpene)
+    const leaflyTerps = leafly.most_terpene
+      ? [{ name: leafly.most_terpene, percent: null, source: 'leafly' as const }]
+      : [];
     return {
       strain_type: ['indica', 'sativa', 'hybrid'].includes(strainType) ? strainType : '',
       strain_bio: d.description ?? '',
@@ -86,6 +94,7 @@ async function enrichFromStrainName(strainName: string): Promise<Partial<Extract
       cbd_min: d.cbd_min ?? null,
       cbd_max: d.cbd_max ?? null,
       strain_enriched_source: 'leafly',
+      terpenes: leaflyTerps,
     };
   }
 
@@ -121,10 +130,11 @@ const EXTRACTION_PROMPT = `You are a cannabis product label parser. Extract the 
   "thc_mg": number or null,
   "cbd_mg": number or null,
   "mg_per_piece": number or null,
-  "confidence": number between 0 and 1
+  "confidence": number between 0 and 1,
+  "terpenes": [{ "name": "string", "percent": number or null, "source": "label" }]
 }
 
-For flower/concentrates/vapes use thc_percent and cbd_percent. For edibles use thc_mg (total mg per package), cbd_mg (total mg per package), and mg_per_piece (mg per single piece/serving) — look for values like "100mg THC", "10mg per gummy". If a field is not visible or not applicable, use an empty string for text fields or null for numeric fields. Set confidence to reflect how clearly the label was readable (1.0 = perfectly clear, 0.0 = unreadable). Return ONLY the JSON object, no markdown, no explanation.`;
+For flower/concentrates/vapes use thc_percent and cbd_percent. For edibles use thc_mg (total mg per package), cbd_mg (total mg per package), and mg_per_piece (mg per single piece/serving) — look for values like "100mg THC", "10mg per gummy". For terpenes: read any terpene panel on the label — look for words like Myrcene, Limonene, Caryophyllene, Linalool, Pinene, Terpinolene, Ocimene, Humulene, Bisabolol, Nerolidol and their associated percentages. If no terpene data is visible, return an empty array for terpenes. If a field is not visible or not applicable, use an empty string for text fields or null for numeric fields. Set confidence to reflect how clearly the label was readable (1.0 = perfectly clear, 0.0 = unreadable). Return ONLY the JSON object, no markdown, no explanation.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -248,6 +258,10 @@ export async function POST(request: NextRequest) {
 
         if (enriched.strain_enriched_source) {
           extractedData.strain_enriched_source = enriched.strain_enriched_source;
+        }
+        // Only fill in terps from strain enrichment if label didn't already have them
+        if (enriched.terpenes && enriched.terpenes.length > 0 && (!extractedData.terpenes || extractedData.terpenes.length === 0)) {
+          extractedData.terpenes = enriched.terpenes;
         }
       }
     }

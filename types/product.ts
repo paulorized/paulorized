@@ -1,3 +1,9 @@
+export type Terpene = {
+  name: string;
+  percent: number | null;
+  source?: 'label' | 'ai_estimated' | 'leafly';
+};
+
 export type ExtractedProduct = {
   brand: string;
   product_type: string;
@@ -19,6 +25,7 @@ export type ExtractedProduct = {
   cbd_min?: number | null;
   cbd_max?: number | null;
   strain_enriched_source?: string;
+  terpenes?: Terpene[];
 };
 
 export const emptyProduct: ExtractedProduct = {
@@ -34,4 +41,5 @@ export const emptyProduct: ExtractedProduct = {
   cbd_mg: null,
   mg_per_piece: null,
   confidence: 0,
+  terpenes: [],
 };

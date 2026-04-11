@@ -11,7 +11,7 @@ export async function GET() {
 
     const { data: logs } = await db
       .from('product_logs')
-      .select('id, brand, product_type, strain_type, strain_name, thc_percent, cbd_percent, dispensary_name, created_at, weight')
+      .select('id, brand, product_type, strain_type, strain_name, thc_percent, cbd_percent, dispensary_name, created_at, weight, terpenes')
       .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
@@ -126,6 +126,35 @@ export async function GET() {
     }
     totalGrams = Math.round(totalGrams * 10) / 10;
 
+    // ── Terpene stats ──────────────────────────────────────────────────────────
+    type TerpeneEntry = { name: string; percent: number | null; source?: string };
+    const terpNameCounts: Record<string, number> = {};
+    const terpPercentSums: Record<string, { sum: number; n: number }> = {};
+    for (const log of logs ?? []) {
+      const terps: TerpeneEntry[] = Array.isArray((log as any).terpenes) ? (log as any).terpenes : [];
+      for (const t of terps) {
+        if (!t.name) continue;
+        const n = t.name.toLowerCase();
+        terpNameCounts[n] = (terpNameCounts[n] ?? 0) + 1;
+        if (t.percent != null && t.percent > 0) {
+          if (!terpPercentSums[n]) terpPercentSums[n] = { sum: 0, n: 0 };
+          terpPercentSums[n].sum += t.percent;
+          terpPercentSums[n].n += 1;
+        }
+      }
+    }
+    const topTerpenes = Object.entries(terpNameCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, count]) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        count,
+        avgPercent: terpPercentSums[name]
+          ? Math.round((terpPercentSums[name].sum / terpPercentSums[name].n) * 100) / 100
+          : null,
+      }));
+    const dominantTerpene = topTerpenes[0] ?? null;
+
     // Best (highest THC) product by type — for KPI cards
     const wantedTypes = ['flower', 'pre-roll', 'vape', 'concentrate', 'edible'];
     const highestThcByType: Record<string, { strain_name: string | null; brand: string | null; thc_percent: number }> = {};
@@ -154,6 +183,7 @@ export async function GET() {
       highestThcByType, uniqueStrains, lastLogDate,
       favProductType: favProductType ? { name: favProductType[0], count: favProductType[1] } : null,
       favDispensary: favDispensary ? { name: favDispensary[0], count: favDispensary[1] } : null,
+      topTerpenes, dominantTerpene,
     });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });

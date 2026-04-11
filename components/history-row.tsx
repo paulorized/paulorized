@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { ReviewForm } from './review-form';
 import { NugShot } from './nug-shot';
 
+type Terpene = { name: string; percent: number | null; source?: string };
+
 type ProductLog = {
   id: string;
   brand: string;
@@ -22,6 +24,7 @@ type ProductLog = {
   created_at: string;
   headshot_url: string | null;
   has_review?: boolean;
+  terpenes?: Terpene[] | null;
 };
 
 const strainTypeBadge: Record<string, string> = {
@@ -44,6 +47,77 @@ function cbdDisplay(log: ProductLog): string | null {
   if (log.cbd_percent != null) return `${log.cbd_percent}% CBD`;
   if (log.cbd_mg != null) return `${log.cbd_mg}mg CBD`;
   return null;
+}
+
+// Terpene metadata — color, emoji, effect hint
+const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string }> = {
+  myrcene:       { color: 'text-amber-300',   bg: 'bg-amber-500/15',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing · Earthy' },
+  limonene:      { color: 'text-yellow-300',  bg: 'bg-yellow-500/15',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting · Citrus' },
+  caryophyllene: { color: 'text-orange-300',  bg: 'bg-orange-500/15',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming · Spicy' },
+  linalool:      { color: 'text-purple-300',  bg: 'bg-purple-500/15',  border: 'border-purple-500/30',  emoji: '💜', effect: 'Soothing · Floral' },
+  pinene:        { color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', emoji: '🌲', effect: 'Alert · Pine' },
+  terpinolene:   { color: 'text-sky-300',     bg: 'bg-sky-500/15',     border: 'border-sky-500/30',     emoji: '🍏', effect: 'Energetic · Fresh' },
+  ocimene:       { color: 'text-teal-300',    bg: 'bg-teal-500/15',    border: 'border-teal-500/30',    emoji: '🌿', effect: 'Uplifting · Sweet' },
+  humulene:      { color: 'text-zinc-300',    bg: 'bg-zinc-700/40',    border: 'border-zinc-600',       emoji: '🍺', effect: 'Appetite suppressing · Earthy' },
+  bisabolol:     { color: 'text-pink-300',    bg: 'bg-pink-500/15',    border: 'border-pink-500/30',    emoji: '🌸', effect: 'Gentle · Floral' },
+  nerolidol:     { color: 'text-lime-300',    bg: 'bg-lime-500/15',    border: 'border-lime-500/30',    emoji: '🌙', effect: 'Sedating · Woody' },
+};
+
+function getTerpMeta(name: string) {
+  return TERP_META[name.toLowerCase()] ?? {
+    color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', emoji: '🧪', effect: '',
+  };
+}
+
+function TerpenePanel({ terpenes }: { terpenes: Terpene[] }) {
+  if (!terpenes || terpenes.length === 0) return null;
+  const isEstimated = terpenes.some(t => t.source === 'ai_estimated');
+  const hasPercents = terpenes.some(t => t.percent != null && t.percent > 0);
+  // For bar chart: find max percent
+  const maxPct = hasPercents ? Math.max(...terpenes.map(t => t.percent ?? 0)) : 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Terpenes</p>
+        {isEstimated && (
+          <span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2 py-0.5 text-[10px] text-zinc-500">
+            AI estimated
+          </span>
+        )}
+      </div>
+      <div className="space-y-2">
+        {terpenes.map((t) => {
+          const m = getTerpMeta(t.name);
+          const pctWidth = hasPercents && t.percent != null ? Math.round((t.percent / maxPct) * 100) : 0;
+          return (
+            <div key={t.name} className={`rounded-xl border ${m.border} ${m.bg} px-3 py-2.5`}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base leading-none shrink-0">{m.emoji}</span>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold capitalize ${m.color}`}>{t.name}</p>
+                    {m.effect && <p className="text-[11px] text-zinc-500 mt-0.5">{m.effect}</p>}
+                  </div>
+                </div>
+                {t.percent != null && (
+                  <span className={`text-sm font-bold shrink-0 ${m.color}`}>{t.percent}%</span>
+                )}
+              </div>
+              {hasPercents && t.percent != null && (
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-zinc-800/60">
+                  <div
+                    className={`h-full rounded-full transition-all ${m.bg.replace('/15', '/60').replace('bg-', 'bg-')}`}
+                    style={{ width: `${pctWidth}%`, backgroundColor: undefined }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?: number }) {
@@ -289,6 +363,10 @@ export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?
               )}
               {bioError && <p className="mt-2 text-xs text-rose-400">{bioError}</p>}
             </div>
+          )}
+
+          {log.terpenes && log.terpenes.length > 0 && (
+            <TerpenePanel terpenes={log.terpenes} />
           )}
 
           <div>

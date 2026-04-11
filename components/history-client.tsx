@@ -4,6 +4,12 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { HistoryRow } from '@/components/history-row';
 
+type Terpene = {
+  name: string;
+  percent: number | null;
+  source?: 'label' | 'ai_estimated' | 'leafly';
+};
+
 type ProductLog = {
   id: string;
   brand: string;
@@ -21,6 +27,7 @@ type ProductLog = {
   created_at: string;
   headshot_url: string | null;
   has_review?: boolean;
+  terpenes?: Terpene[] | null;
 };
 
 type SortKey = 'date_desc' | 'date_asc' | 'thc_desc' | 'thc_asc' | 'name_asc';

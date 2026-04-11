@@ -35,7 +35,8 @@ Return ONLY a JSON object — no markdown, no explanation:
   "thc_estimated": true,
   "confidence": number 0-1,
   "typical_effects": ["up to 5 effects"],
-  "typical_flavors": ["up to 3 flavors"]
+  "typical_flavors": ["up to 3 flavors"],
+  "terpenes": [{ "name": "string", "percent": null, "source": "ai_estimated" }]
 }
 
 Rules:
@@ -44,10 +45,12 @@ Rules:
 - strain_type must be: indica, sativa, hybrid, or unknown
 - Do not guess product_type or weight — always empty string.
 - confidence: 1.0=iconic, 0.7=well known, 0.4=moderately known, 0.2=lesser-known
+- terpenes: list 2-4 most characteristic terpenes. Use source: "ai_estimated". Percent null unless well-known.
 - When in doubt return low-confidence result rather than empty
 
 Effects: Relaxed, Happy, Euphoric, Uplifted, Creative, Focused, Sleepy, Hungry, Talkative, Energetic
-Flavors: Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint, Grape, Cheese`;
+Flavors: Earthy, Pine, Sweet, Citrus, Berry, Diesel, Skunk, Spicy, Woody, Floral, Tropical, Mint, Grape, Cheese
+Common terpenes: Myrcene, Limonene, Caryophyllene, Linalool, Pinene, Terpinolene, Ocimene, Humulene`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,6 +69,9 @@ export async function POST(request: NextRequest) {
       if (leafly) {
         const d = leafly.strain_playlist_details ?? {};
         const strainType = (leafly.category ?? 'unknown').toLowerCase();
+        const leaflyTerps = leafly.most_terpene
+          ? [{ name: leafly.most_terpene, percent: null as null, source: 'leafly' as const }]
+          : [];
         const product = {
           brand: (brand ?? '').trim(),
           strain_name: leafly.name,
@@ -82,6 +88,7 @@ export async function POST(request: NextRequest) {
           confidence: 1.0,
           typical_effects: d.top_reported_effects ?? [],
           typical_flavors: d.top_reported_flavors ?? [],
+          terpenes: leaflyTerps,
           source: 'leafly',
         };
         return NextResponse.json({ product });

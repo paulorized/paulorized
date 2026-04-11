@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       extraction_confidence: extractedData.confidence ?? null,
       extracted_data_json: extractedData,
       dispensary_name: dispensaryName?.trim() || null,
+      terpenes: extractedData.terpenes?.length ? extractedData.terpenes : null,
     }).select('id').single();
 
     if (dbError) {

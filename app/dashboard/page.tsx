@@ -32,6 +32,8 @@ type DashboardData = {
   lastLogDate: string | null;
   favProductType: { name: string; count: number } | null;
   favDispensary: { name: string; count: number } | null;
+  topTerpenes: { name: string; count: number; avgPercent: number | null }[];
+  dominantTerpene: { name: string; count: number; avgPercent: number | null } | null;
 };
 
 type CommunityData = {
@@ -273,6 +275,80 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
   );
 }
 
+
+// Terpene color/emoji meta
+const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string }> = {
+  myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing'    },
+  limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting'   },
+  caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming'     },
+  linalool:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  emoji: '💜', effect: 'Sedating'    },
+  pinene:        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', emoji: '🌲', effect: 'Alertness'   },
+  terpinolene:   { color: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    emoji: '🌿', effect: 'Energizing'  },
+  ocimene:       { color: 'text-lime-400',    bg: 'bg-lime-500/10',    border: 'border-lime-500/30',    emoji: '🌸', effect: 'Uplifting'   },
+  humulene:      { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     emoji: '🍺', effect: 'Anti-inflam' },
+  bisabolol:     { color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/30',    emoji: '🌺', effect: 'Soothing'    },
+  nerolidol:     { color: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     emoji: '🏔️', effect: 'Sedating'    },
+};
+const DEFAULT_TERP = { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700', emoji: '🌿', effect: '' };
+
+function TerpeneStatsPanel({ terpenes, label }: {
+  terpenes: { name: string; count: number; avgPercent: number | null }[];
+  label?: string;
+}) {
+  if (!terpenes || terpenes.length === 0) return null;
+  const maxCount = Math.max(...terpenes.map(t => t.count));
+  const hasPercents = terpenes.some(t => t.avgPercent != null && t.avgPercent > 0);
+  const maxPct = hasPercents ? Math.max(...terpenes.filter(t => t.avgPercent).map(t => t.avgPercent!)) : 1;
+  return (
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+          {label ?? 'Terpene Profile'}
+        </p>
+        <p className="mt-0.5 text-xs text-zinc-600">
+          {hasPercents ? 'Bar = avg % from label · frequency shown per terpene' : 'Based on frequency across scanned products'}
+        </p>
+      </div>
+      <div className="space-y-2.5">
+        {terpenes.map((t, i) => {
+          const key = t.name.toLowerCase();
+          const meta = TERP_META[key] ?? DEFAULT_TERP;
+          const barWidth = hasPercents && t.avgPercent
+            ? Math.max(4, Math.round((t.avgPercent / maxPct) * 100))
+            : Math.max(4, Math.round((t.count / maxCount) * 100));
+          return (
+            <div key={i} className="flex items-center gap-3">
+              <span className="w-5 text-center text-base leading-none shrink-0">{meta.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <span className={["text-xs font-semibold", meta.color].join(" ")}>{t.name}</span>
+                  <div className="flex items-center gap-2">
+                    {meta.effect && (
+                      <span className={["text-[10px] opacity-70", meta.color].join(" ")}>{meta.effect}</span>
+                    )}
+                    <span className="text-[10px] text-zinc-600">{t.count}x</span>
+                    {t.avgPercent != null && (
+                      <span className={["text-[10px] font-medium", meta.color].join(" ")}>{t.avgPercent}%</span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                  <div
+                    className={[
+                      "h-full rounded-full transition-all",
+                      meta.bg,
+                    ].join(" ")}
+                    style={{ width: barWidth + "%" }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 function Toggle({ view, onChange }: { view: 'me' | 'all'; onChange: (v: 'me' | 'all') => void }) {
   return (
     <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1 w-fit">
@@ -571,6 +647,12 @@ export default function DashboardPage() {
                   </span>
                 ))}
               </div>
+            </Section>
+          )}
+
+          {(myData.topTerpenes?.length ?? 0) > 0 && (
+            <Section title="Your terpene profile">
+              <TerpeneStatsPanel terpenes={myData.topTerpenes} />
             </Section>
           )}
 
