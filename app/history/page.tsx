@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAuthServerClient } from '@/lib/supabase.server';
 import { HistoryClient } from '@/components/history-client';
-
-type Terpene = { name: string; percent: number | null; source?: string };
+import { type Terpene } from '@/types/product';
 
 type ProductLog = {
   id: string;
@@ -43,8 +42,4 @@ export default async function HistoryPage() {
   // Flatten the joined reviews into a simple has_review boolean
   const logs: ProductLog[] = (data ?? []).map((row: Record<string, unknown>) => ({
     ...(row as Omit<ProductLog, 'has_review'>),
-    has_review: Array.isArray(row.reviews) ? row.reviews.length > 0 : false,
-  }));
-
-  return <HistoryClient logs={logs} />;
-}
+    has_re
