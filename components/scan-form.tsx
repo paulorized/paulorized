@@ -437,7 +437,26 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             </div>
           ))}
 
-          {/* Dispensary */}
+          {/* Terpenes preview */}
+              {result.terpenes && result.terpenes.length > 0 && (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">
+                    Terpenes
+                    {result.terpenes.some(t => t.source === 'ai_estimated') && (
+                      <span className="ml-2 normal-case font-normal text-zinc-700">&middot; AI estimated</span>
+                    )}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {result.terpenes.map((t, i) => (
+                      <span key={i} className="rounded-full border border-zinc-700 bg-zinc-800 px-2.5 py-0.5 text-xs text-zinc-300">
+                        {t.name}{t.percent != null ? ' ' + t.percent + '%' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Dispensary */}
           <div ref={dispensaryRef} className="relative">
             <input className={inputClass} type="text" placeholder="📍 Dispensary (optional)"
               value={dispensaryName}

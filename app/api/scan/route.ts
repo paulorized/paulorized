@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
-      max_tokens: 1000,
+      max_tokens: 1500,
     });
 
     const rawText = completion.choices[0]?.message?.content ?? '';
