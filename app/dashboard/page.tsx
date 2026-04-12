@@ -277,19 +277,19 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
 
 
 // Terpene color/emoji meta
-const TERP_META: Record<string, { color: string; bg: string; border: string; emoji: string; effect: string; hex: string }> = {
-  myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   emoji: '🥭', effect: 'Relaxing',    hex: '#fbbf24' },
-  limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  emoji: '🍋', effect: 'Uplifting',   hex: '#facc15' },
-  caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  emoji: '🌶️', effect: 'Calming',     hex: '#fb923c' },
-  linalool:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  emoji: '💜', effect: 'Sedating',    hex: '#c084fc' },
-  pinene:        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', emoji: '🌲', effect: 'Alertness',   hex: '#34d399' },
-  terpinolene:   { color: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    emoji: '🌿', effect: 'Energizing',  hex: '#2dd4bf' },
-  ocimene:       { color: 'text-lime-400',    bg: 'bg-lime-500/10',    border: 'border-lime-500/30',    emoji: '🌸', effect: 'Uplifting',   hex: '#a3e635' },
-  humulene:      { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     emoji: '🍺', effect: 'Anti-inflam', hex: '#f87171' },
-  bisabolol:     { color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/30',    emoji: '🌺', effect: 'Soothing',    hex: '#f472b6' },
-  nerolidol:     { color: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     emoji: '🏔️', effect: 'Sedating',    hex: '#38bdf8' },
+const TERP_META: Record<string, { color: string; bg: string; border: string; icon: string; effect: string; hex: string }> = {
+  myrcene:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   icon: '/icons/terpene-myrcene.png', effect: 'Relaxing',    hex: '#fbbf24' },
+  limonene:      { color: 'text-yellow-400',  bg: 'bg-yellow-500/10',  border: 'border-yellow-500/30',  icon: '/icons/terpene-limonene.png', effect: 'Uplifting',   hex: '#facc15' },
+  caryophyllene: { color: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30',  icon: '/icons/terpene-caryophyllene.png', effect: 'Calming',     hex: '#fb923c' },
+  linalool:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  icon: '/icons/terpene-linalool.png', effect: 'Sedating',    hex: '#c084fc' },
+  pinene:        { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', icon: '/icons/terpene-pinene.png', effect: 'Alertness',   hex: '#34d399' },
+  terpinolene:   { color: 'text-teal-400',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30',    icon: '/icons/terpene-terpinolene.png', effect: 'Energizing',  hex: '#2dd4bf' },
+  ocimene:       { color: 'text-lime-400',    bg: 'bg-lime-500/10',    border: 'border-lime-500/30',    icon: '/icons/terpene-ocimene.png', effect: 'Uplifting',   hex: '#a3e635' },
+  humulene:      { color: 'text-red-400',     bg: 'bg-red-500/10',     border: 'border-red-500/30',     icon: '/icons/terpene-humulene.png', effect: 'Anti-inflam', hex: '#f87171' },
+  bisabolol:     { color: 'text-pink-400',    bg: 'bg-pink-500/10',    border: 'border-pink-500/30',    icon: '/icons/terpene-bisabolol.png', effect: 'Soothing',    hex: '#f472b6' },
+  nerolidol:     { color: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30',     icon: '/icons/terpene-nerolidol.png', effect: 'Sedating',    hex: '#38bdf8' },
 };
-const DEFAULT_TERP = { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700', emoji: '🌿', effect: '', hex: '#71717a' };
+const DEFAULT_TERP = { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700', icon: '/icons/terpene-terpinolene.png', effect: '', hex: '#71717a' };
 
 function TerpeneStatsPanel({ terpenes, label }: {
   terpenes: { name: string; count: number; avgPercent: number | null }[];
@@ -318,7 +318,7 @@ function TerpeneStatsPanel({ terpenes, label }: {
             : Math.max(4, Math.round((t.count / maxCount) * 100));
           return (
             <div key={i} className="flex items-center gap-3">
-              <span className="w-5 text-center text-base leading-none shrink-0">{meta.emoji}</span>
+              <img src={meta.icon} alt="" className="w-5 h-5 shrink-0" style={{ mixBlendMode: 'screen' }} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className={["text-xs font-semibold", meta.color].join(" ")}>{t.name}</span>
