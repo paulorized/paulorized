@@ -371,7 +371,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
               <div className="mt-2 flex flex-wrap gap-1.5 items-center">
                 {log.review_rating != null && (
                   <span className="flex items-center gap-0.5 rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-400">
-                    <><img src="/icons/ui-star.png" alt="rating" className="w-3 h-3 opacity-80" />{log.review_rating}</>
+                    <><img src="/icons/ui-star.png" alt="rating" className="w-3 h-3 opacity-80" style={{ mixBlendMode: 'screen' }} />{log.review_rating}</>
                   </span>
                 )}
                 {(log.review_effects ?? []).slice(0, 3).map(e => (
@@ -472,7 +472,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                     title="Refresh bio"
                     className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-800 hover:text-emerald-400 disabled:opacity-50"
                   >
-                    <img src="/icons/ui-refresh.png" alt="refresh" className={refreshingBio ? 'w-3.5 h-3.5 opacity-80 animate-spin' : 'w-3.5 h-3.5 opacity-80'} />
+                    <img src="/icons/ui-refresh.png" alt="refresh" className={refreshingBio ? 'w-3.5 h-3.5 opacity-80 animate-spin' : 'w-3.5 h-3.5 opacity-80'} style={{ mixBlendMode: 'screen' }} />
                   </button>
                 ) : (
                   <button

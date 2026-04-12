@@ -301,7 +301,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete }: 
                   const m = getFeedTerpMeta(t.name);
                   return (
                     <div key={t.name} className={`flex items-center gap-1.5 rounded-xl border ${m.border} ${m.bg} px-3 py-1.5`}>
-                      <span className="text-sm leading-none"><img src={m.icon} alt="" className="w-4 h-4 opacity-90" /></span>
+                      <span className="text-sm leading-none"><img src={m.icon} alt="" className="w-4 h-4 opacity-90" style={{ mixBlendMode: 'screen' }} /></span>
                       <span className={`text-xs font-semibold capitalize ${m.color}`}>{t.name}</span>
                       {t.percent != null && <span className={`text-xs font-bold ${m.color} opacity-80`}>{t.percent}%</span>}
                     </div>

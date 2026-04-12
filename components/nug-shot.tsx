@@ -175,7 +175,7 @@ export function NugShot({ logId, initialUrl }: Props) {
             disabled={uploading}
             className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:border-yellow-500/30 hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
           >
-            <><img src="/icons/ui-camera.png" alt="" className="w-3.5 h-3.5 opacity-80" /> Retake</>
+            <><img src="/icons/ui-camera.png" alt="" className="w-3.5 h-3.5 opacity-80" style={{ mixBlendMode: 'screen' }} /> Retake</>
           </button>
           <button
             type="button"
@@ -183,7 +183,7 @@ export function NugShot({ logId, initialUrl }: Props) {
             disabled={uploading}
             className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 py-2 text-xs text-zinc-500 transition hover:border-emerald-500/30 hover:bg-zinc-800 hover:text-zinc-300 disabled:opacity-50"
           >
-            <><img src="/icons/ui-camera.png" alt="" className="w-3.5 h-3.5 opacity-80" /> Replace</>
+            <><img src="/icons/ui-camera.png" alt="" className="w-3.5 h-3.5 opacity-80" style={{ mixBlendMode: 'screen' }} /> Replace</>
           </button>
         </div>
       )}
