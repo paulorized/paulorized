@@ -22,7 +22,7 @@ interface FeedItem {
 }
 
 // Terpene display meta (shared with history)
-const FEED_TERP_META: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
+const FEED_TERP_META: Record<string, { icon: string; color: string; bg: string; border: string }> = {
   myrcene:       { icon: '/icons/terpene-myrcene.png', color: 'text-amber-300',   bg: 'bg-amber-500/15',   border: 'border-amber-500/30'   },
   limonene:      { icon: '/icons/terpene-limonene.png', color: 'text-yellow-300',  bg: 'bg-yellow-500/15',  border: 'border-yellow-500/30'  },
   caryophyllene: { icon: '/icons/terpene-caryophyllene.png', color: 'text-orange-300',  bg: 'bg-orange-500/15',  border: 'border-orange-500/30'  },
