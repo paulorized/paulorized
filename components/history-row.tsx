@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReviewForm } from './review-form';
 import { NugShot } from './nug-shot';
@@ -245,7 +245,7 @@ function TerpenePanel({ terpenes }: { terpenes: Terpene[] }) {
   );
 }
 
-export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: { log: ProductLog; scanCount?: number; expanded?: boolean; onExpand?: (id: string | null) => void }) {
+export function HistoryRow({ log, scanCount = 1 }: { log: ProductLog; scanCount?: number }) {
   const router = useRouter();
   const [duplicating, setDuplicating] = useState(false);
   const [duplicated, setDuplicated] = useState(false);
@@ -255,12 +255,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
   const [refreshingBio, setRefreshingBio] = useState(false);
   const [bioError, setBioError] = useState('');
 
-  const cardRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (expanded) {
-      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
-    }
-  }, [expanded]);
+  const [expanded, setExpanded] = useState(false);
 
   const badgeClass = strainTypeBadge[log.strain_type ?? 'unknown'] ?? strainTypeBadge.unknown;
   const date = new Date(log.created_at).toLocaleDateString('en-US', {
@@ -341,7 +336,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
       </div>
       <button
         type="button"
-        onClick={() => onExpand?.(expanded ? null : log.id)}
+        onClick={() => setExpanded(e => !e)}
         className="w-full text-left px-4 py-4 transition hover:bg-zinc-800/50 active:bg-zinc-800"
       >
         <div className="flex items-start justify-between gap-3">

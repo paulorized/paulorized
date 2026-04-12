@@ -38,7 +38,6 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>('all');
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('date_desc');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => { document.title = 'My Log ΓÇö CannaBaseAI'; }, []);
 
@@ -211,9 +210,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
           {filtered.map((log) => (
             <HistoryRow key={log.id} log={log}
               scanCount={scanCounts.get(((log.brand ?? '') + '__' + (log.strain_name ?? '') + '__' + (log.product_type ?? '')).toLowerCase()) ?? 1}
-              expanded={expandedId === log.id}
-              onExpand={setExpandedId}
-            />
+              />
           ))}
         </div>
       )}
