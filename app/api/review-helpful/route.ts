@@ -43,13 +43,27 @@ export async function POST(request: NextRequest) {
       message: `${actorName} found your review helpful`,
     });
 
-    // Fire-and-forget email notification
-    const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
-    fetch(`${origin}/api/send-notification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'helpful', actor_id: user.id, review_id }),
-    }).catch(() => {});
+    // Send email inline (fire-and-forget fetch doesn't survive Vercel serverless lifecycle)
+    try {
+      const RESEND_API_KEY = process.env.RESEND_API_KEY;
+      if (RESEND_API_KEY) {
+        const { data: prefs } = await db.from('notification_preferences').select('*').eq('user_id', review.user_id).single();
+        if (!prefs || (prefs as unknown as Record<string, boolean>)['email_helpful'] !== false) {
+          const { data: { user: targetUser } } = await db.auth.admin.getUserById(review.user_id);
+          if (targetUser?.email) {
+            const FROM_EMAIL = process.env.NOTIFICATION_FROM_EMAIL || 'CannaBaseAI <notifications@cannabaseai.com>';
+            const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannabaseai.com';
+            const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;background:#09090b;font-family:system-ui,-apple-system,sans-serif"><div style="max-width:480px;margin:0 auto;padding:32px 24px"><div style="margin-bottom:24px"><span style="font-size:20px;font-weight:800;letter-spacing:-0.5px"><span style="color:#34d399">Canna</span><span style="color:#a78bfa">Base</span><span style="color:#fde047">AI</span></span></div><div style="background:#18181b;border:1px solid #27272a;border-radius:16px;padding:24px"><h2 style="color:#f4f4f5;font-size:16px;margin:0 0 12px">Your review was helpful!</h2><p style="color:#a1a1aa;font-size:14px;line-height:1.6;margin:0 0 20px">${actorName} marked one of your reviews as helpful. Keep sharing your experiences!</p><a href="${APP_URL}/community" style="display:inline-block;background:#34d399;color:#09090b;font-weight:600;font-size:14px;padding:10px 24px;border-radius:12px;text-decoration:none">View on CannaBaseAI</a></div><p style="color:#52525b;font-size:11px;margin-top:20px;text-align:center">You can manage your email preferences in your <a href="${APP_URL}/profile?tab=settings" style="color:#34d399">profile settings</a>.</p></div></body></html>`;
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ from: FROM_EMAIL, to: [targetUser.email], subject: `${actorName} found your review helpful`, html }),
+            });
+            await db.from('notifications').update({ emailed: true }).eq('user_id', review.user_id).eq('actor_id', user.id).eq('read', false).order('created_at', { ascending: false }).limit(1);
+          }
+        }
+      }
+    } catch (e) { console.error('[helpful-email]', e); }
   }
 
   // Return new count
