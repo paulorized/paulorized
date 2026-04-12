@@ -258,7 +258,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
   const cardRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (expanded) {
-      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+      setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
     }
   }, [expanded]);
 
