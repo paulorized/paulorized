@@ -11,9 +11,8 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 import { ThemeProvider } from '@/components/theme-provider';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
-const PWAPrompt = dynamic(() => import('@/components/pwa-prompt').then(m => m.PWAPrompt), { ssr: false });
+import { PWAPromptLoader } from '@/components/pwa-prompt-loader';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -126,7 +125,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </div>
           </header>
           <div className="w-full">{children}</div>
-          <PWAPrompt />
+          <PWAPromptLoader />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>
