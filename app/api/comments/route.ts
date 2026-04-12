@@ -138,13 +138,29 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Trigger email notification asynchronously (fire-and-forget)
+  // Trigger email notifications asynchronously (fire-and-forget)
   const origin = new URL(request.url).origin;
-  fetch(`${origin}/api/send-notification`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: parent_comment_id ? 'reply' : 'comment', actor_id: user.id, review_id, comment_id: comment.id }),
-  }).catch(() => {});
+
+  // Email the review owner (if not self)
+  if (review.user_id && review.user_id !== user.id) {
+    fetch(`${origin}/api/send-notification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'comment', actor_id: user.id, target_user_id: review.user_id, review_id }),
+    }).catch(() => {});
+  }
+
+  // Email the parent comment author (if reply, and different from review owner and self)
+  if (parent_comment_id) {
+    const { data: parentComment } = await db.from('comments').select('user_id').eq('id', parent_comment_id).single();
+    if (parentComment?.user_id && parentComment.user_id !== user.id && parentComment.user_id !== review.user_id) {
+      fetch(`${origin}/api/send-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'reply', actor_id: user.id, target_user_id: parentComment.user_id, review_id }),
+      }).catch(() => {});
+    }
+  }
 
   return NextResponse.json({
     success: true,

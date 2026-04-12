@@ -52,7 +52,7 @@ function emailTemplate(heading: string, body: string, ctaUrl: string, ctaLabel: 
 // Called fire-and-forget from other API routes
 export async function POST(request: NextRequest) {
   try {
-    const { type, actor_id, review_id } = await request.json();
+    const { type, actor_id, target_user_id, review_id } = await request.json();
     if (!type || !actor_id) return NextResponse.json({ error: 'type and actor_id required' }, { status: 400 });
 
     const db = createServerSupabaseClient();
@@ -61,17 +61,10 @@ export async function POST(request: NextRequest) {
     const { data: actor } = await db.from('profiles').select('username').eq('id', actor_id).single();
     const actorName = actor?.username ?? 'Someone';
 
-    // Determine who to notify based on type
-    let targetUserId: string | null = null;
+    // Determine who to notify — prefer explicit target_user_id from caller
+    let targetUserId: string | null = target_user_id ?? null;
 
-    if ((type === 'comment' || type === 'reply') && review_id) {
-      const { data: review } = await db.from('reviews').select('user_id').eq('id', review_id).single();
-      targetUserId = review?.user_id ?? null;
-    } else if (type === 'follow') {
-      // For follows, the target is passed directly
-      const body = await request.clone().json();
-      targetUserId = body.target_user_id ?? null;
-    } else if (type === 'helpful' && review_id) {
+    if (!targetUserId && review_id) {
       const { data: review } = await db.from('reviews').select('user_id').eq('id', review_id).single();
       targetUserId = review?.user_id ?? null;
     }
