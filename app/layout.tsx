@@ -11,7 +11,9 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 import { ThemeProvider } from '@/components/theme-provider';
-import { PWAPrompt } from '@/components/pwa-prompt';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+const PWAPrompt = dynamic(() => import('@/components/pwa-prompt').then(m => m.PWAPrompt), { ssr: false });
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -69,6 +71,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+        <link rel="preconnect" href="https://api.supabase.co" />
+        <link rel="dns-prefetch" href="https://api.supabase.co" />
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <ThemeProvider>
@@ -84,7 +88,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 {userId ? (
                   <Link href="/profile" className="flex shrink-0 items-center rounded-full transition hover:opacity-80">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
+                      <Image src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
+                        width={32} height={32} priority unoptimized
                         className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
                     ) : (
                       <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>

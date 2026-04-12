@@ -3,6 +3,7 @@ import { ScanForm } from '@/components/scan-form';
 import { HomeStats } from '@/components/home-stats';
 import { CommunityPreview } from '@/components/community-preview';
 import { PageFooter } from '@/components/page-footer';
+import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 export default async function HomePage() {
@@ -26,11 +27,12 @@ export default async function HomePage() {
     <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
       {/* Hero logo — home page only */}
       <div className="flex flex-col items-center pt-2 pb-1">
-        <img
+        <Image
           src="/logo.png"
           alt="CannaBaseAI"
           width={120}
           height={120}
+          priority
           className="h-[120px] w-[120px] rounded-2xl shadow-lg shadow-emerald-500/10 ring-1 ring-zinc-800/60"
         />
         <div className="mt-3 text-2xl font-bold tracking-tight font-[family-name:var(--font-montserrat)]">
