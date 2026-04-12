@@ -39,7 +39,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('date_desc');
 
-  useEffect(() => { document.title = 'My Log ΓÇö CannaBaseAI'; }, []);
+  useEffect(() => { document.title = 'My Log — CannaBaseAI'; }, []);
 
   const productTypes = useMemo(() => {
     const types = new Set(logs.map(l => (l.product_type ?? '').toLowerCase()).filter(Boolean));
