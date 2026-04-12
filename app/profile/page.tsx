@@ -30,6 +30,14 @@ interface Profile {
   hidden_from_directory: boolean;
 }
 
+interface NotifPrefs {
+  email_comments: boolean;
+  email_replies: boolean;
+  email_follows: boolean;
+  email_helpful: boolean;
+  email_digest: boolean;
+}
+
 function getAge(dob: string): number {
   const birth = new Date(dob);
   const today = new Date();
@@ -50,9 +58,11 @@ function ProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isSetup = searchParams.get('setup') === '1';
+  const initialTab = searchParams.get('tab') === 'settings' ? 'settings' : 'profile';
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,6 +80,18 @@ function ProfilePage() {
   const [tier, setTier] = useState<{ label: string; emoji: string; color: string } | null>(null);
   const [dispensaries, setDispensaries] = useState<{ id: string; name: string }[]>([]);
   const [deletingDispId, setDeletingDispId] = useState<string | null>(null);
+
+  // Notification preferences state
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs | null>(null);
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSuccess, setNotifSuccess] = useState('');
+
+  // Update URL when tab changes
+  function switchTab(tab: string) {
+    setActiveTab(tab);
+    const url = tab === 'settings' ? '/profile?tab=settings' : '/profile';
+    window.history.replaceState(null, '', url);
+  }
 
   useEffect(() => {
     fetch('/api/profile')
@@ -112,6 +134,16 @@ function ProfilePage() {
     setDeletingDispId(null);
   };
 
+  // Fetch notification preferences when settings tab is active
+  useEffect(() => {
+    if (activeTab === 'settings' && !notifPrefs) {
+      fetch('/api/notification-preferences')
+        .then(r => r.json())
+        .then(data => { if (data.preferences) setNotifPrefs(data.preferences); })
+        .catch(() => {});
+    }
+  }, [activeTab, notifPrefs]);
+
   async function handleAvatarChange(file: File) {
     setAvatarError('');
     setAvatarUploading(true);
@@ -146,6 +178,22 @@ function ProfilePage() {
     if (isFirstSave || isSetup) { router.push('/'); } else { router.refresh(); }
   }
 
+  async function handleNotifToggle(key: keyof NotifPrefs) {
+    if (!notifPrefs) return;
+    const newVal = !notifPrefs[key];
+    setNotifPrefs({ ...notifPrefs, [key]: newVal });
+    setNotifSaving(true);
+    setNotifSuccess('');
+    await fetch('/api/notification-preferences', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [key]: newVal }),
+    });
+    setNotifSaving(false);
+    setNotifSuccess('Saved!');
+    setTimeout(() => setNotifSuccess(''), 2000);
+  }
+
   const maxDob = (() => {
     const d = new Date();
     d.setFullYear(d.getFullYear() - 21);
@@ -155,7 +203,7 @@ function ProfilePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-zinc-500 text-sm">Loading…</div>
+        <div className="text-zinc-500 text-sm">Loading...</div>
       </div>
     );
   }
@@ -165,37 +213,37 @@ function ProfilePage() {
 
       {isSetup && (
         <div className="mb-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-5 py-4 text-center">
-          <div className="text-2xl mb-1">👋</div>
+          <div className="text-2xl mb-1">&#128075;</div>
           <p className="text-sm font-semibold text-emerald-300">One last thing before you dive in</p>
           <p className="mt-1 text-xs text-zinc-400">Pick a username so others can recognize you in the community.</p>
         </div>
       )}
 
       {/* Avatar section */}
-      <div className="mb-8 flex flex-col items-center gap-4">
+      <div className="mb-6 flex flex-col items-center gap-4">
         <div className="relative">
           {avatarUrl ? (
             <img src={avatarUrl} alt="Your avatar"
               className="h-24 w-24 rounded-full border-2 border-emerald-500/50 bg-zinc-800 object-cover" />
           ) : (
             <div className="h-24 w-24 rounded-full border-2 border-dashed border-zinc-600 bg-zinc-800 flex items-center justify-center">
-              <span className="text-3xl">👤</span>
+              <span className="text-3xl">&#128100;</span>
             </div>
           )}
           {avatarUploading && (
             <div className="absolute inset-0 rounded-full bg-zinc-950/70 flex items-center justify-center">
-              <span className="text-xs text-zinc-300">Uploading…</span>
+              <span className="text-xs text-zinc-300">Uploading...</span>
             </div>
           )}
         </div>
         <div className="flex gap-3">
           <button type="button" onClick={() => uploadInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400">
-            🖼️ Upload photo
+            Upload photo
           </button>
           <button type="button" onClick={() => cameraInputRef.current?.click()}
             className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-300 transition hover:border-emerald-500 hover:text-emerald-400">
-            📷 Take photo
+            Take photo
           </button>
         </div>
         <input ref={uploadInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="hidden"
@@ -219,87 +267,119 @@ function ProfilePage() {
         </div>
       </div>
 
-      {/* Profile form */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
-        <h2 className="mb-6 text-base font-semibold text-zinc-100">Profile details</h2>
-        <form onSubmit={handleSave} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">Username <span className="text-rose-400">*</span></label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">@</span>
-              <input type="text" required value={username}
-                onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                placeholder="your_username" maxLength={20}
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-800 pl-8 pr-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none" />
-            </div>
-            <p className="text-xs text-zinc-600">3–20 characters, letters, numbers, underscores only.</p>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">Date of birth <span className="text-rose-400">*</span></label>
-            <input type="date" required value={dob} max={maxDob} onChange={e => setDob(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none" />
-            <p className="text-xs text-zinc-600">You must be 21 or older to use CannaBaseAI.</p>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">State</label>
-            <select value={state} onChange={e => setState(e.target.value)}
-              className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none">
-              <option value="">Select your region…</option>
-              <optgroup label="🇺🇸 United States">
-                {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-              </optgroup>
-              <optgroup label="🇨🇦 Canada">
-                {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
-              </optgroup>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-zinc-400">Sex</label>
-            <div className="flex gap-3">
-              {[
-                { value: 'male', label: 'Male' },
-                { value: 'female', label: 'Female' },
-                { value: 'prefer_not_to_say', label: 'Prefer not to say' },
-              ].map(opt => (
-                <button key={opt.value} type="button"
-                  onClick={() => setSex(sex === opt.value ? '' : opt.value)}
-                  className={`flex-1 rounded-xl border px-3 py-2.5 text-xs font-medium transition ${
-                    sex === opt.value
-                      ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
-                      : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
-                  }`}>
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Privacy toggle */}
-          <div className="flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-800/50 px-4 py-3">
-            <button type="button" onClick={() => setHiddenFromDirectory(h => !h)}
-              className={`mt-0.5 shrink-0 h-5 w-9 rounded-full border transition-colors ${hiddenFromDirectory ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-600 bg-zinc-700'}`}
-              role="switch" aria-checked={hiddenFromDirectory}>
-              <span className={`block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5 ${hiddenFromDirectory ? 'translate-x-4' : 'translate-x-0'}`} />
+      {/* Tab bar */}
+      {!isSetup && (
+        <div className="mb-6 flex gap-1 rounded-xl border border-zinc-800 bg-zinc-900/50 p-1">
+          {[{ key: 'profile', label: 'Profile' }, { key: 'settings', label: 'Settings' }].map(tab => (
+            <button key={tab.key} onClick={() => switchTab(tab.key)}
+              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition ${
+                activeTab === tab.key
+                  ? 'bg-zinc-800 text-zinc-100'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}>
+              {tab.label}
             </button>
-            <div>
-              <p className="text-xs font-medium text-zinc-300">Hide from user directory</p>
-              <p className="text-xs text-zinc-600 mt-0.5">Your profile won&apos;t appear in the Community Users tab. People who know your username can still visit your profile page directly.</p>
-            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ============ PROFILE TAB ============ */}
+      {(activeTab === 'profile' || isSetup) && (
+        <>
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
+            <h2 className="mb-6 text-base font-semibold text-zinc-100">Profile details</h2>
+            <form onSubmit={handleSave} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-zinc-400">Username <span className="text-rose-400">*</span></label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm">@</span>
+                  <input type="text" required value={username}
+                    onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
+                    placeholder="your_username" maxLength={20}
+                    className="w-full rounded-xl border border-zinc-700 bg-zinc-800 pl-8 pr-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none" />
+                </div>
+                <p className="text-xs text-zinc-600">3-20 characters, letters, numbers, underscores only.</p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-zinc-400">Date of birth <span className="text-rose-400">*</span></label>
+                <input type="date" required value={dob} max={maxDob} onChange={e => setDob(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none" />
+                <p className="text-xs text-zinc-600">You must be 21 or older to use CannaBaseAI.</p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-zinc-400">State</label>
+                <select value={state} onChange={e => setState(e.target.value)}
+                  className="w-full rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-3 text-sm text-zinc-100 focus:border-emerald-500 focus:outline-none">
+                  <option value="">Select your region...</option>
+                  <optgroup label="United States">
+                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </optgroup>
+                  <optgroup label="Canada">
+                    {CA_PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+                  </optgroup>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-zinc-400">Sex</label>
+                <div className="flex gap-3">
+                  {[
+                    { value: 'male', label: 'Male' },
+                    { value: 'female', label: 'Female' },
+                    { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+                  ].map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => setSex(sex === opt.value ? '' : opt.value)}
+                      className={`flex-1 rounded-xl border px-3 py-2.5 text-xs font-medium transition ${
+                        sex === opt.value
+                          ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-zinc-600'
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Privacy toggle */}
+              <div className="flex items-start gap-3 rounded-xl border border-zinc-700 bg-zinc-800/50 px-4 py-3">
+                <button type="button" onClick={() => setHiddenFromDirectory(h => !h)}
+                  className={`mt-0.5 shrink-0 h-5 w-9 rounded-full border transition-colors ${hiddenFromDirectory ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-600 bg-zinc-700'}`}
+                  role="switch" aria-checked={hiddenFromDirectory}>
+                  <span className={`block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5 ${hiddenFromDirectory ? 'translate-x-4' : 'translate-x-0'}`} />
+                </button>
+                <div>
+                  <p className="text-xs font-medium text-zinc-300">Hide from user directory</p>
+                  <p className="text-xs text-zinc-600 mt-0.5">Your profile won&apos;t appear in the Community Users tab. People who know your username can still visit your profile page directly.</p>
+                </div>
+              </div>
+
+              {error && <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>}
+              {success && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>}
+              <button type="submit" disabled={saving}
+                className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50">
+                {saving ? 'Saving...' : 'Save profile'}
+              </button>
+              <p className="text-center text-xs text-zinc-600 leading-relaxed">
+                Your data is private and never shared. Scan photos are discarded after AI processing and never stored.
+                Product photos you upload are stored securely in your account.{' '}
+                <span className="text-zinc-500">You can delete any entry at any time.</span>
+              </p>
+            </form>
           </div>
 
-          {error && <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">{error}</p>}
-          {success && <p className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-400">{success}</p>}
-          <button type="submit" disabled={saving}
-            className="w-full rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300 active:scale-95 disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save profile'}
+          {/* Add to Home Screen */}
+          <button
+            type="button"
+            onClick={() => (window as Window & { __pwaInstall?: () => void }).__pwaInstall?.()}
+            className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left mt-4"
+          >
+            <span className="text-2xl">&#128242;</span>
+            <div>
+              <p className="font-medium text-zinc-200 text-sm">Add to Home Screen</p>
+              <p className="text-xs text-zinc-500 mt-0.5">Install CannaBaseAI as an app on your device</p>
+            </div>
+            <span className="ml-auto text-zinc-500 text-lg">&rarr;</span>
           </button>
-          <p className="text-center text-xs text-zinc-600 leading-relaxed">
-            🔐 Your data is private and never shared. Scan photos are discarded after AI processing and never stored.
-            Product photos you upload are stored securely in your account.{' '}
-            <span className="text-zinc-500">You can delete any entry at any time.</span>
-          </p>
-        </form>
-      </div>
 
       {/* Saved Dispensaries */}
       <div className="mt-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-5">
@@ -352,52 +432,108 @@ function ProfilePage() {
       {/* Discord */}
       <a href="https://discord.gg/MTNvDM4MS" target="_blank" rel="noopener noreferrer"
         className="mt-4 flex items-center gap-4 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-5 py-4 transition hover:border-indigo-500/40 hover:bg-indigo-500/10">
-        <span className="text-2xl">💬</span>
+        <span className="text-2xl">&#128172;</span>
         <div>
           <p className="font-medium text-indigo-300 text-sm">Join our Discord community</p>
           <p className="text-xs text-zinc-500 mt-0.5">Share feedback, chat with other users, and get updates</p>
         </div>
-        <span className="ml-auto text-indigo-400 text-lg">→</span>
+        <span className="ml-auto text-indigo-400 text-lg">&rarr;</span>
       </a>
 
-      {/* Sign out */}
-      <button
-        type="button"
-        onClick={async () => {
-          const supabase = createBrowserSupabaseClient();
-          await supabase.auth.signOut({ scope: 'global' });
-          await fetch('/api/auth/session', { method: 'DELETE' });
-          window.location.replace('/login');
-        }}
-        className="mt-4 w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
-        Sign out
-      </button>
-
-      {/* Danger zone */}
-      <details className="mt-6 group">
-        <summary className="cursor-pointer text-xs text-zinc-700 hover:text-zinc-500 transition select-none list-none text-center">
-          Danger zone ↓
-        </summary>
-        <div className="mt-3 rounded-2xl border border-rose-900/40 bg-rose-950/20 px-5 py-4 space-y-3">
-          <p className="text-xs text-zinc-500">Deleting your account is permanent. All your logs, reviews, and data will be erased immediately.</p>
+          {/* Sign out */}
           <button
             type="button"
             onClick={async () => {
-              if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
-              const res = await fetch('/api/account', { method: 'DELETE' });
-              if (res.ok) {
-                await fetch('/api/auth/session', { method: 'DELETE' });
-                window.location.replace('/welcome');
-              } else {
-                const d = await res.json();
-                alert(d.error ?? 'Could not delete account. Please try again.');
-              }
+              const supabase = createBrowserSupabaseClient();
+              await supabase.auth.signOut({ scope: 'global' });
+              await fetch('/api/auth/session', { method: 'DELETE' });
+              window.location.replace('/login');
             }}
-            className="w-full rounded-xl border border-rose-700/50 bg-rose-900/20 py-2.5 text-sm font-medium text-rose-400 transition hover:bg-rose-900/40 hover:text-rose-300">
-            Delete my account
+            className="mt-4 w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
+            Sign out
+          </button>
+
+          {/* Danger zone */}
+          <details className="mt-6 group">
+            <summary className="cursor-pointer text-xs text-zinc-700 hover:text-zinc-500 transition select-none list-none text-center">
+              Danger zone
+            </summary>
+            <div className="mt-3 rounded-2xl border border-rose-900/40 bg-rose-950/20 px-5 py-4 space-y-3">
+              <p className="text-xs text-zinc-500">Deleting your account is permanent. All your logs, reviews, and data will be erased immediately.</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+                  const res = await fetch('/api/account', { method: 'DELETE' });
+                  if (res.ok) {
+                    await fetch('/api/auth/session', { method: 'DELETE' });
+                    window.location.replace('/welcome');
+                  } else {
+                    const d = await res.json();
+                    alert(d.error ?? 'Could not delete account. Please try again.');
+                  }
+                }}
+                className="w-full rounded-xl border border-rose-700/50 bg-rose-900/20 py-2.5 text-sm font-medium text-rose-400 transition hover:bg-rose-900/40 hover:text-rose-300">
+                Delete my account
+              </button>
+            </div>
+          </details>
+        </>
+      )}
+
+      {/* ============ SETTINGS TAB ============ */}
+      {activeTab === 'settings' && !isSetup && (
+        <div className="space-y-6">
+          {/* Email Notifications */}
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-base font-semibold text-zinc-100">Email notifications</h2>
+              {notifSaving && <span className="text-[10px] text-zinc-500">Saving...</span>}
+              {notifSuccess && <span className="text-[10px] text-emerald-400">{notifSuccess}</span>}
+            </div>
+            <p className="text-xs text-zinc-500 mb-5">Choose which events send you an email. You&apos;ll always see notifications in the app.</p>
+
+            {notifPrefs ? (
+              <div className="space-y-3">
+                {[
+                  { key: 'email_comments' as keyof NotifPrefs, label: 'Comments on your reviews', desc: 'When someone comments on a review you wrote' },
+                  { key: 'email_replies' as keyof NotifPrefs, label: 'Replies to your comments', desc: 'When someone replies to a comment you left' },
+                  { key: 'email_follows' as keyof NotifPrefs, label: 'New followers', desc: 'When someone starts following you' },
+                  { key: 'email_helpful' as keyof NotifPrefs, label: 'Helpful votes', desc: 'When someone marks your review as helpful' },
+                  { key: 'email_digest' as keyof NotifPrefs, label: 'Weekly digest', desc: 'A weekly summary of activity on your reviews' },
+                ].map(item => (
+                  <div key={item.key} className="flex items-start gap-3 rounded-xl border border-zinc-700/50 bg-zinc-800/30 px-4 py-3">
+                    <button type="button" onClick={() => handleNotifToggle(item.key)}
+                      className={`mt-0.5 shrink-0 h-5 w-9 rounded-full border transition-colors ${notifPrefs[item.key] ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-600 bg-zinc-700'}`}
+                      role="switch" aria-checked={notifPrefs[item.key]}>
+                      <span className={`block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform mx-0.5 ${notifPrefs[item.key] ? 'translate-x-4' : 'translate-x-0'}`} />
+                    </button>
+                    <div>
+                      <p className="text-xs font-medium text-zinc-300">{item.label}</p>
+                      <p className="text-[11px] text-zinc-600 mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs text-zinc-600">Loading preferences...</div>
+            )}
+          </div>
+
+          {/* Sign out (also available on settings tab) */}
+          <button
+            type="button"
+            onClick={async () => {
+              const supabase = createBrowserSupabaseClient();
+              await supabase.auth.signOut({ scope: 'global' });
+              await fetch('/api/auth/session', { method: 'DELETE' });
+              window.location.replace('/login');
+            }}
+            className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/50 py-3.5 text-sm font-medium text-zinc-500 transition hover:border-rose-500/30 hover:bg-rose-500/5 hover:text-rose-400">
+            Sign out
           </button>
         </div>
-      </details>
+      )}
 
     </div>
   );

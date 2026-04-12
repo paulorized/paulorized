@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
+import { CommentSection } from '@/components/comment-thread';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +20,7 @@ interface FeedItem {
   terpenes: Terpene[] | null;
   helpful_count: number; i_voted: boolean; created_at: string; is_mine: boolean;
   nugshot_url: string | null; scan_count: number; dispensary_name: string | null;
+  comment_count: number;
 }
 
 // Terpene display meta (shared with history)
@@ -132,13 +134,14 @@ function StatPill({ label, value, color }: { label: string; value: string; color
   );
 }
 
-function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete }: {
+function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, currentUserId }: {
   item: FeedItem;
   expanded: boolean;
   onExpand: (id: string | null) => void;
   onVote: (id: string, voted: boolean) => void;
   onImageClick: (url: string) => void;
   onDelete: (id: string) => void;
+  currentUserId: string | null;
 }) {
   const [voting, setVoting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -361,6 +364,11 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete }: 
 
         </div>
       )}
+
+      {/* Comments */}
+      <div className="px-4 pb-3">
+        <CommentSection reviewId={item.id} currentUserId={currentUserId} />
+      </div>
     </div>
   );
 }
@@ -553,6 +561,7 @@ function CommunityPageInner() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [feedLoaded, setFeedLoaded] = useState(false);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => { document.title = 'Community — CannaBaseAI'; }, []);
 
@@ -567,7 +576,7 @@ function CommunityPageInner() {
   useEffect(() => {
     if (feedLoaded) return;
     loadFeed()
-      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setLoading(false); setFeedLoaded(true); })
+      .then(data => { setFeed(data.feed ?? []); setNextCursor(data.next_cursor ?? null); setCurrentUserId(data.current_user_id ?? null); setLoading(false); setFeedLoaded(true); })
       .catch(err => { setError(String(err?.message ?? err)); setLoading(false); });
   }, [loadFeed, feedLoaded]);
 
@@ -667,7 +676,7 @@ function CommunityPageInner() {
 
           {!loading && feed.length > 0 && (
             <div className="space-y-4">
-              {feed.map(item => <FeedCard key={item.id} item={item} expanded={expandedCardId === item.id} onExpand={setExpandedCardId} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} />)}
+              {feed.map(item => <FeedCard key={item.id} item={item} expanded={expandedCardId === item.id} onExpand={setExpandedCardId} onVote={handleVote} onImageClick={setLightboxUrl} onDelete={handleDelete} currentUserId={currentUserId} />)}
               {nextCursor && (
                 <button onClick={handleLoadMore} disabled={loadingMore}
                   className="w-full rounded-xl border border-zinc-700 bg-zinc-800 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-700 disabled:opacity-50">

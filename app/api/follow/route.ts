@@ -33,6 +33,25 @@ export async function POST(request: NextRequest) {
   }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // Create notification for the followed user
+  const { data: followerProfile } = await db.from('profiles').select('username').eq('id', user.id).single();
+  const actorName = followerProfile?.username ?? 'Someone';
+  await db.from('notifications').insert({
+    user_id: user_id,
+    type: 'follow',
+    actor_id: user.id,
+    reference_id: user.id,
+    message: `${actorName} started following you`,
+  });
+
+  // Fire-and-forget email notification
+  const origin = request.headers.get('origin') || request.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
+  fetch(`${origin}/api/send-notification`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'follow', actor_id: user.id, target_user_id: user_id }),
+  }).catch(() => {});
+
   return NextResponse.json({ success: true, following: true });
 }
 

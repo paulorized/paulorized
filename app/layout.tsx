@@ -13,6 +13,7 @@ const montserrat = Montserrat({
 import { ThemeProvider } from '@/components/theme-provider';
 import Image from 'next/image';
 import { PWAPromptLoader } from '@/components/pwa-prompt-loader';
+import { NotificationBell } from '@/components/notification-bell';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 
@@ -77,7 +78,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <ThemeProvider>
           <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
             <div className="mx-auto w-full max-w-2xl px-4">
-              {/* Row 1: Logo + Avatar */}
+              {/* Row 1: Logo + Bell + Avatar */}
               <div className="flex items-center justify-between py-2.5">
                 <Link href="/?reset=1" className="flex items-center gap-2 shrink-0">
                   <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-montserrat)]">
@@ -85,19 +86,22 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                   </span>
                 </Link>
                 {userId ? (
-                  <Link href="/profile" className="flex shrink-0 items-center rounded-full transition hover:opacity-80">
-                    {avatarUrl ? (
-                      <Image src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
-                        width={32} height={32} priority unoptimized
-                        className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
-                    ) : (
-                      <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
-                          <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
-                        </svg>
-                      </div>
-                    )}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <NotificationBell />
+                    <Link href="/profile" className="flex shrink-0 items-center rounded-full transition hover:opacity-80">
+                      {avatarUrl ? (
+                        <Image src={avatarUrl} alt="Profile" referrerPolicy="no-referrer"
+                          width={32} height={32} priority unoptimized
+                          className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
+                      ) : (
+                        <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
+                            <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
+                          </svg>
+                        </div>
+                      )}
+                    </Link>
+                  </div>
                 ) : (
                   <div className="flex items-center gap-3">
                     <Link href="/login" className="rounded-lg px-3 py-1.5 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100">Sign in</Link>

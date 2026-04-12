@@ -56,7 +56,7 @@ export async function GET(request: Request) {
 
     const rows = reviews ?? [];
     if (rows.length === 0) {
-      return NextResponse.json({ feed: [], next_cursor: null });
+      return NextResponse.json({ feed: [], next_cursor: null, current_user_id: currentUserId });
     }
 
     const userIds = [...new Set(rows.map(r => r.user_id))];
@@ -98,6 +98,17 @@ export async function GET(request: Request) {
       myVotes = new Set((votes ?? []).map(v => v.review_id));
     }
 
+    // Get comment counts for all reviews in one query
+    const reviewIds = rows.map(r => r.id);
+    const { data: commentCountRows } = await db
+      .from('comments')
+      .select('review_id')
+      .in('review_id', reviewIds);
+    const commentCounts: Record<string, number> = {};
+    for (const row of commentCountRows ?? []) {
+      commentCounts[row.review_id] = (commentCounts[row.review_id] ?? 0) + 1;
+    }
+
     const feed = rows.map(r => {
       const log = Array.isArray(r.product_logs) ? r.product_logs[0] : r.product_logs;
       const profile = profileMap[r.user_id];
@@ -127,6 +138,7 @@ export async function GET(request: Request) {
         would_buy_again: r.would_buy_again,
         helpful_count: r.helpful_count ?? 0,
         i_voted: myVotes.has(r.id),
+        comment_count: commentCounts[r.id] ?? 0,
         created_at: r.created_at,
         is_mine: r.user_id === currentUserId,
       };
@@ -135,6 +147,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       feed,
       next_cursor: rows.length === limit ? rows[rows.length - 1].created_at : null,
+      current_user_id: currentUserId,
     });
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Error' }, { status: 500 });
