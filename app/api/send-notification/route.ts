@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
     // Check user's notification preferences
     const prefCol = TYPE_TO_PREF[type];
     if (prefCol) {
-      const { data: prefs } = await db.from('notification_preferences').select(prefCol).eq('user_id', targetUserId).single();
-      if (prefs && (prefs as Record<string, boolean>)[prefCol] === false) {
+      const { data: prefs } = await db.from('notification_preferences').select('*').eq('user_id', targetUserId).single();
+      if (prefs && (prefs as unknown as Record<string, boolean>)[prefCol] === false) {
         return NextResponse.json({ skipped: true, reason: 'User opted out' });
       }
     }
