@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   const db = createServerSupabaseClient();
   const { data, error } = await db
     .from('comments')
-    .select('id, review_id, user_id, parent_comment_id, body, created_at, updated_at, profiles(username, avatar_url)')
+    .select('id, review_id, user_id, parent_comment_id, body, created_at, updated_at, profiles!comments_user_id_profiles_fkey(username, avatar_url)')
     .eq('review_id', reviewId)
     .order('created_at', { ascending: true });
 
