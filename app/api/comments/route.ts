@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({ from: FROM_EMAIL, to: [targetUser.email], subject, html }),
       });
       // Mark emailed
-      await db.from('notifications').update({ emailed: true }).eq('user_id', targetUserId).eq('actor_id', user.id).eq('read', false).order('created_at', { ascending: false }).limit(1);
+      await db.from('notifications').update({ emailed: true }).eq('user_id', targetUserId).eq('actor_id', user!.id).eq('read', false).order('created_at', { ascending: false }).limit(1);
     } catch (e) { console.error('[comment-email]', e); }
   }
 
