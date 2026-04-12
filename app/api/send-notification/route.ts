@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const prefCol = TYPE_TO_PREF[type];
     if (prefCol) {
       const { data: prefs } = await db.from('notification_preferences').select(prefCol).eq('user_id', targetUserId).single();
-      if (prefs && prefs[prefCol] === false) {
+      if (prefs && (prefs as Record<string, boolean>)[prefCol] === false) {
         return NextResponse.json({ skipped: true, reason: 'User opted out' });
       }
     }
