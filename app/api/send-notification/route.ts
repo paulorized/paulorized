@@ -90,15 +90,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get target user's email from auth.users
-    const { data: { users }, error: listErr } = await db.auth.admin.listUsers({ filter: `id:eq:${targetUserId}` });
-    if (listErr || !users?.length) {
-      // Fallback: try getting email via raw query
-      const { data: authUser } = await db.rpc('get_user_email', { uid: targetUserId }).single();
-      if (!authUser?.email) return NextResponse.json({ skipped: true, reason: 'No email found' });
+    const { data: { user: targetUser }, error: userErr } = await db.auth.admin.getUserById(targetUserId);
+    if (userErr || !targetUser?.email) {
+      return NextResponse.json({ skipped: true, reason: 'No email found' });
     }
 
-    const targetEmail = users?.[0]?.email;
-    if (!targetEmail) return NextResponse.json({ skipped: true, reason: 'No email' });
+    const targetEmail = targetUser.email;
 
     // Build email content based on type
     let subject = '';
