@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -40,7 +40,7 @@ const strainTypeBadge: Record<string, string> = {
 function thcDisplay(log: ProductLog): string {
   if (log.thc_percent != null) return `${log.thc_percent}% THC`;
   if (log.thc_mg != null) {
-    const perPiece = log.mg_per_piece != null ? ` ┬╖ ${log.mg_per_piece}mg/pc` : '';
+    const perPiece = log.mg_per_piece != null ? ` · ${log.mg_per_piece}mg/pc` : '';
     return `${log.thc_mg}mg THC${perPiece}`;
   }
   return null as unknown as string;
@@ -52,74 +52,74 @@ function cbdDisplay(log: ProductLog): string | null {
   return null;
 }
 
-// Terpene metadata ΓÇö color, emoji, effect hint, description, found-in
+// Terpene metadata — color, emoji, effect hint, description, found-in
 const TERP_META: Record<string, {
   color: string; bg: string; border: string; emoji: string;
   effect: string; description: string; foundIn: string;
 }> = {
   myrcene: {
     color: 'text-amber-300', bg: 'bg-amber-500/15', border: 'border-amber-500/30', emoji: '🥭',
-    effect: 'Relaxing ┬╖ Earthy',
-    description: 'The most abundant terpene in cannabis. Promotes sedation and may enhance cannabinoid absorption ΓÇö often credited with the classic "couch-lock" effect.',
+    effect: 'Relaxing · Earthy',
+    description: 'The most abundant terpene in cannabis. Promotes sedation and may enhance cannabinoid absorption — often credited with the classic "couch-lock" effect.',
     foundIn: 'Mangoes, hops, lemongrass, thyme',
   },
   limonene: {
     color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', emoji: '🍋',
-    effect: 'Uplifting ┬╖ Citrus',
+    effect: 'Uplifting · Citrus',
     description: 'A bright citrusy terpene associated with elevated mood and stress relief. May have anti-anxiety properties and is often found in sativa-leaning strains.',
     foundIn: 'Citrus fruits, juniper, peppermint, rosemary',
   },
   caryophyllene: {
     color: 'text-orange-300', bg: 'bg-orange-500/15', border: 'border-orange-500/30', emoji: '🌶️',
-    effect: 'Calming ┬╖ Spicy',
-    description: 'Unique among terpenes ΓÇö it binds directly to CB2 receptors like a cannabinoid. Known for anti-inflammatory and analgesic effects with a peppery aroma.',
+    effect: 'Calming · Spicy',
+    description: 'Unique among terpenes — it binds directly to CB2 receptors like a cannabinoid. Known for anti-inflammatory and analgesic effects with a peppery aroma.',
     foundIn: 'Black pepper, cloves, cinnamon, basil',
   },
   linalool: {
     color: 'text-purple-300', bg: 'bg-purple-500/15', border: 'border-purple-500/30', emoji: '💜',
-    effect: 'Soothing ┬╖ Floral',
+    effect: 'Soothing · Floral',
     description: 'Best known from lavender, linalool has calming, anti-anxiety, and sleep-promoting properties. Often used to counteract THC-induced anxiety.',
     foundIn: 'Lavender, mint, coriander, birch trees',
   },
   pinene: {
     color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', emoji: '🌲',
-    effect: 'Alert ┬╖ Pine',
+    effect: 'Alert · Pine',
     description: 'The most common terpene in nature. May improve alertness and memory retention, and can act as a bronchodilator. Comes in alpha and beta forms.',
     foundIn: 'Pine trees, rosemary, basil, dill, parsley',
   },
   terpinolene: {
     color: 'text-sky-300', bg: 'bg-sky-500/15', border: 'border-sky-500/30', emoji: '🍏',
-    effect: 'Energetic ┬╖ Fresh',
+    effect: 'Energetic · Fresh',
     description: 'A multifaceted terpene with floral, herbal, and piney notes. Associated with uplifting effects and commonly found in Jack Herer and Ghost Train Haze.',
     foundIn: 'Apples, cumin, lilac, tea tree',
   },
   ocimene: {
     color: 'text-teal-300', bg: 'bg-teal-500/15', border: 'border-teal-500/30', emoji: '🌿',
-    effect: 'Uplifting ┬╖ Sweet',
+    effect: 'Uplifting · Sweet',
     description: 'A sweet, herbal, and woody terpene with potential antiviral and antifungal properties. Often found in strains like Strawberry Cough and Clementine.',
     foundIn: 'Mint, parsley, orchids, mangoes, basil',
   },
   humulene: {
     color: 'text-zinc-300', bg: 'bg-zinc-700/40', border: 'border-zinc-600', emoji: '🍺',
-    effect: 'Appetite suppressing ┬╖ Earthy',
-    description: 'Shares its distinctive hoppy aroma with beer. May suppress appetite and has anti-inflammatory properties ΓÇö one of the few terpenes that can reduce hunger.',
+    effect: 'Appetite suppressing · Earthy',
+    description: 'Shares its distinctive hoppy aroma with beer. May suppress appetite and has anti-inflammatory properties — one of the few terpenes that can reduce hunger.',
     foundIn: 'Hops, cloves, ginger, coriander',
   },
   bisabolol: {
     color: 'text-pink-300', bg: 'bg-pink-500/15', border: 'border-pink-500/30', emoji: '🌸',
-    effect: 'Gentle ┬╖ Floral',
+    effect: 'Gentle · Floral',
     description: 'A delicate floral terpene prized in skincare for its anti-irritant properties. In cannabis it contributes soothing, anti-inflammatory effects with a subtle chamomile scent.',
     foundIn: 'German chamomile, candeia tree',
   },
   nerolidol: {
     color: 'text-lime-300', bg: 'bg-lime-500/15', border: 'border-lime-500/30', emoji: '🌙',
-    effect: 'Sedating ┬╖ Woody',
+    effect: 'Sedating · Woody',
     description: 'A secondary terpene with a woody, floral aroma. Known for strong sedative and anti-parasitic properties. Found in strains ideal for sleep and relaxation.',
     foundIn: 'Jasmine, lemongrass, ginger, niaouli',
   },
 };
 
-// Terpene ΓåÆ suggested effects/flavors
+// Terpene → suggested effects/flavors
 const TERP_EFFECTS: Record<string, string[]> = {
   myrcene:       ['Relaxed', 'Sleepy', 'Happy'],
   limonene:      ['Energetic', 'Euphoric', 'Creative'],
@@ -153,7 +153,7 @@ const STRAIN_TYPE_EFFECTS: Record<string, string[]> = {
 function getSuggestedTags(strainType: string | null, terpenes: Terpene[] | null | undefined) {
   const effectVotes: Record<string, number> = {};
   const flavorVotes: Record<string, number> = {};
-  // Terpene signals (weighted by order ΓÇö first terpene is dominant)
+  // Terpene signals (weighted by order — first terpene is dominant)
   (terpenes ?? []).forEach((t, i) => {
     const weight = Math.max(1, 3 - i);
     const key = t.name.toLowerCase();
@@ -217,7 +217,7 @@ function TerpenePanel({ terpenes }: { terpenes: Terpene[] }) {
                     {t.percent != null && (
                       <span className={`text-sm font-bold ${m.color}`}>{t.percent}%</span>
                     )}
-                    <span className={`text-[11px] text-zinc-600 transition-transform duration-200 inline-block ${isActive ? 'rotate-180' : ''}`}>Γû╛</span>
+                    <span className={`text-[11px] text-zinc-600 transition-transform duration-200 inline-block ${isActive ? 'rotate-180' : ''}`}>▾</span>
                   </div>
                 </div>
                 {hasPercents && t.percent != null && (
@@ -233,7 +233,7 @@ function TerpenePanel({ terpenes }: { terpenes: Terpene[] }) {
                 <div className={`mt-1 rounded-xl border ${m.border} bg-zinc-950/80 px-3 py-3 space-y-1.5`}>
                   <p className="text-xs text-zinc-300 leading-relaxed">{m.description}</p>
                   <p className="text-[11px] text-zinc-500">
-                    <span className="text-zinc-600">Found in ┬╖ </span>{m.foundIn}
+                    <span className="text-zinc-600">Found in · </span>{m.foundIn}
                   </p>
                 </div>
               )}
@@ -321,8 +321,8 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
   };
 
   return (
-      <div ref={cardRef} className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
-      {/* Review tick ΓÇö top-right corner */}
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/50">
+      {/* Review tick — top-right corner */}
       <div
         className="absolute top-0 right-0 z-10"
         title={log.has_review ? 'Reviewed' : 'No review yet'}
@@ -347,7 +347,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-zinc-100 truncate">{log.brand || 'ΓÇö'}</span>
+              <span className="font-semibold text-zinc-100 truncate">{log.brand || '—'}</span>
               {log.strain_type && (
                 <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium capitalize ${badgeClass}`}>
                   {log.strain_type}
@@ -356,9 +356,9 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
             </div>
             <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-zinc-400">
               {log.product_type && <span>{log.product_type}</span>}
-              {log.weight && <><span className="text-zinc-600">┬╖</span><span>{log.weight}</span></>}
+              {log.weight && <><span className="text-zinc-600">·</span><span>{log.weight}</span></>}
               {log.strain_name && (
-                <><span className="text-zinc-600">┬╖</span><span className="italic text-zinc-400">{log.strain_name}</span></>
+                <><span className="text-zinc-600">·</span><span className="italic text-zinc-400">{log.strain_name}</span></>
               )}
             </div>
             {(thc || cbd) && (
@@ -371,7 +371,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
               <div className="mt-2 flex flex-wrap gap-1.5 items-center">
                 {log.review_rating != null && (
                   <span className="flex items-center gap-0.5 rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-400">
-                    Γÿà {log.review_rating}
+                    ★ {log.review_rating}
                   </span>
                 )}
                 {(log.review_effects ?? []).slice(0, 3).map(e => (
@@ -437,7 +437,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                 </button>
               </div>
             )}
-            <span className="text-xs text-zinc-600">{expanded ? 'Γû┤' : 'Γû╛'}</span>
+            <span className="text-xs text-zinc-600">{expanded ? '▴' : '▾'}</span>
           </div>
         </div>
       </button>
@@ -472,7 +472,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                     title="Refresh bio"
                     className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-800 hover:text-emerald-400 disabled:opacity-50"
                   >
-                    <span className={refreshingBio ? 'inline-block animate-spin text-xs' : 'text-xs'}>Γå╗</span>
+                    <span className={refreshingBio ? 'inline-block animate-spin text-xs' : 'text-xs'}>↻</span>
                   </button>
                 ) : (
                   <button
@@ -481,14 +481,14 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                     disabled={refreshingBio}
                     className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
                   >
-                    {refreshingBio ? 'FetchingΓÇª' : 'Γ£¿ Fetch bio'}
+                    {refreshingBio ? 'Fetching…' : '✨ Fetch bio'}
                   </button>
                 )}
               </div>
               {bio ? (
                 <p className="text-sm leading-relaxed text-zinc-300 italic">{bio}</p>
               ) : (
-                <p className="text-sm text-zinc-500 italic">No bio yet ΓÇö click &ldquo;Fetch bio&rdquo; to pull one from Leafly + Claude.</p>
+                <p className="text-sm text-zinc-500 italic">No bio yet — click &ldquo;Fetch bio&rdquo; to pull one from Leafly + Claude.</p>
               )}
               {bioError && <p className="mt-2 text-xs text-rose-400">{bioError}</p>}
             </div>
