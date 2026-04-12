@@ -1,6 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+// Golf ball: 45.93g  |  AA battery: 23g  |  iPhone 15: 171g  |  can of soda: 354g
+const COMPARISONS = [
+  { label: 'golf balls', grams: 45.93, emoji: '⛳' },
+  { label: 'AA batteries', grams: 23, emoji: '🔋' },
+  { label: 'iPhones', grams: 171, emoji: '📱' },
+  { label: 'cans of soda', grams: 354, emoji: '🥤' },
+];
 
 interface WeightWidgetProps {
   totalGrams: number;
@@ -13,65 +19,44 @@ export function WeightWidget({
   label = 'Total Weight Logged',
   sublabel = 'across all your logs',
 }: WeightWidgetProps) {
-  const [comparison, setComparison] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [revealed, setRevealed] = useState(false);
-
-  const fetchComparison = async () => {
-    setLoading(true);
-    setComparison('');
-    try {
-      const res = await fetch('/api/weight-fun', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ grams: totalGrams }),
-      });
-      const data = await res.json();
-      setComparison(data.comparison ?? '');
-      setRevealed(true);
-    } catch {}
-    finally { setLoading(false); }
-  };
-
   if (totalGrams <= 0) return null;
+
+  const displayWeight =
+    totalGrams >= 1000
+      ? (totalGrams / 1000).toFixed(2) + ' kg'
+      : totalGrams.toFixed(1) + 'g';
 
   return (
     <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400 mb-1">{label}</p>
-          <p className="text-3xl font-bold text-zinc-100">
-            {totalGrams >= 1000
-              ? (totalGrams / 1000).toFixed(2) + ' kg'
-              : totalGrams.toFixed(1) + 'g'}
-          </p>
+          <p className="text-3xl font-bold text-zinc-100">{displayWeight}</p>
           <p className="text-xs text-zinc-500 mt-0.5">{sublabel}</p>
         </div>
         <span className="text-3xl">🌿</span>
       </div>
 
-      {revealed && comparison ? (
-        <div className="mt-4 rounded-xl bg-zinc-900/60 px-4 py-3">
-          <p className="text-sm text-zinc-300 leading-relaxed">{comparison}</p>
-          <button
-            type="button"
-            onClick={fetchComparison}
-            disabled={loading}
-            className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition disabled:opacity-50"
-          >
-            {loading ? 'thinking...' : '↺ Try another'}
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={fetchComparison}
-          disabled={loading}
-          className="mt-4 w-full rounded-xl bg-emerald-500/20 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/30 active:scale-95 disabled:opacity-50"
-        >
-          {loading ? '🤔 thinking...' : '✨ What does this weigh as much as?'}
-        </button>
-      )}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {COMPARISONS.map(({ label: unit, grams, emoji }) => {
+          const count = totalGrams / grams;
+          const display = count >= 10
+            ? Math.round(count).toLocaleString()
+            : count.toFixed(1);
+          return (
+            <div
+              key={unit}
+              className="rounded-xl bg-zinc-900/60 px-3 py-2.5 flex items-center gap-2"
+            >
+              <span className="text-lg leading-none">{emoji}</span>
+              <div>
+                <p className="text-sm font-semibold text-zinc-100">{display}</p>
+                <p className="text-[11px] text-zinc-500">{unit}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
