@@ -33,8 +33,8 @@ interface StrainRow {
   leafly_url: string | null;
 }
 
-export default async function StrainDetailPage({ params }: { params: Promise<{ slug: string }> | { slug: string } }) {
-  const { slug } = 'then' in params ? await params : params;
+export default async function StrainDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
 
   const db = createServerSupabaseClient();
   const { data } = await db
