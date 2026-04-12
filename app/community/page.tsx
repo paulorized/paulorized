@@ -46,7 +46,7 @@ interface UserCard {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_TIER: Tier = { label: 'Seedling', icon: '/icons/terpene-ocimene.png', color: 'text-zinc-400' };
+const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
 const strainColors: Record<string, string> = {
   indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
   sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
@@ -620,7 +620,7 @@ function CommunityPageInner() {
             <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {[
-                { icon: '/icons/terpene-ocimene.png', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
+                { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
                 { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
                 { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
                 { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
