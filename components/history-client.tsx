@@ -117,7 +117,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
             onClick={() => setReviewFilter('needs_review')}
             className="shrink-0 rounded-xl bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-400/20 transition"
           >
-            Finish {needsReviewCount} ΓåÆ
+            Finish {needsReviewCount} →
           </button>
         </div>
       )}
