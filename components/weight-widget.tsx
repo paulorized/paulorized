@@ -114,7 +114,7 @@ export function WeightWidget({
           {unlockedClubs.map(m => (
             <span key={m.label}
               className="inline-flex items-center gap-1 rounded-full bg-yellow-500/15 border border-yellow-500/30 px-2.5 py-1 text-xs font-semibold text-yellow-300">
-              🏆 {m.label}
+              <><img src="/icons/ui-trophy.png" alt="trophy" className="w-3.5 h-3.5 opacity-90" />{m.label}</>
             </span>
           ))}
         </div>
@@ -126,7 +126,7 @@ export function WeightWidget({
         <div className="flex justify-between items-center mb-2">
           <p className="text-[11px] text-zinc-500">0g</p>
           <p className="text-[11px] text-emerald-400 font-semibold">
-            🎯 Next: {nextClub.label} ({(nextClub.grams - totalGrams).toFixed(0)}g to go)
+            <><img src="/icons/ui-target.png" alt="target" className="w-3 h-3 inline mr-1 opacity-80" />Next:</> {nextClub.label} ({(nextClub.grams - totalGrams).toFixed(0)}g to go)
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export function WeightWidget({
       ) : (
         <button onClick={fetchFunFact} disabled={loadingFact}
           className="w-full rounded-xl bg-zinc-900/40 py-2 text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/60 transition disabled:opacity-50">
-          {loadingFact ? 'thinking…' : '✨ get a fun comparison'}
+          {loadingFact ? 'thinking…' : ' get a fun comparison'}
         </button>
       )}
 

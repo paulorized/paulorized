@@ -23,19 +23,19 @@ interface FeedItem {
 
 // Terpene display meta (shared with history)
 const FEED_TERP_META: Record<string, { emoji: string; color: string; bg: string; border: string }> = {
-  myrcene:       { emoji: '🥭', color: 'text-amber-300',   bg: 'bg-amber-500/15',   border: 'border-amber-500/30'   },
-  limonene:      { emoji: '🍋', color: 'text-yellow-300',  bg: 'bg-yellow-500/15',  border: 'border-yellow-500/30'  },
-  caryophyllene: { emoji: '🌶️', color: 'text-orange-300',  bg: 'bg-orange-500/15',  border: 'border-orange-500/30'  },
-  linalool:      { emoji: '💜', color: 'text-purple-300',  bg: 'bg-purple-500/15',  border: 'border-purple-500/30'  },
-  pinene:        { emoji: '🌲', color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30' },
-  terpinolene:   { emoji: '🍏', color: 'text-sky-300',     bg: 'bg-sky-500/15',     border: 'border-sky-500/30'     },
-  ocimene:       { emoji: '🌿', color: 'text-teal-300',    bg: 'bg-teal-500/15',    border: 'border-teal-500/30'    },
-  humulene:      { emoji: '🍺', color: 'text-zinc-300',    bg: 'bg-zinc-700/40',    border: 'border-zinc-600'        },
-  bisabolol:     { emoji: '🌸', color: 'text-pink-300',    bg: 'bg-pink-500/15',    border: 'border-pink-500/30'    },
-  nerolidol:     { emoji: '🌙', color: 'text-lime-300',    bg: 'bg-lime-500/15',    border: 'border-lime-500/30'    },
+  myrcene:       { icon: '/icons/terpene-myrcene.png', color: 'text-amber-300',   bg: 'bg-amber-500/15',   border: 'border-amber-500/30'   },
+  limonene:      { icon: '/icons/terpene-limonene.png', color: 'text-yellow-300',  bg: 'bg-yellow-500/15',  border: 'border-yellow-500/30'  },
+  caryophyllene: { icon: '/icons/terpene-caryophyllene.png', color: 'text-orange-300',  bg: 'bg-orange-500/15',  border: 'border-orange-500/30'  },
+  linalool:      { icon: '/icons/terpene-linalool.png', color: 'text-purple-300',  bg: 'bg-purple-500/15',  border: 'border-purple-500/30'  },
+  pinene:        { icon: '/icons/terpene-pinene.png', color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30' },
+  terpinolene:   { icon: '/icons/terpene-terpinolene.png', color: 'text-sky-300',     bg: 'bg-sky-500/15',     border: 'border-sky-500/30'     },
+  ocimene:       { icon: '/icons/terpene-ocimene.png', color: 'text-teal-300',    bg: 'bg-teal-500/15',    border: 'border-teal-500/30'    },
+  humulene:      { icon: '/icons/terpene-humulene.png', color: 'text-zinc-300',    bg: 'bg-zinc-700/40',    border: 'border-zinc-600'        },
+  bisabolol:     { icon: '/icons/terpene-bisabolol.png', color: 'text-pink-300',    bg: 'bg-pink-500/15',    border: 'border-pink-500/30'    },
+  nerolidol:     { icon: '/icons/terpene-nerolidol.png', color: 'text-lime-300',    bg: 'bg-lime-500/15',    border: 'border-lime-500/30'    },
 };
 function getFeedTerpMeta(name: string) {
-  return FEED_TERP_META[name.toLowerCase()] ?? { emoji: '🧪', color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700' };
+  return FEED_TERP_META[name.toLowerCase()] ?? { icon: '/icons/ui-leaf.png', color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700' };
 }
 
 interface UserCard {
@@ -46,7 +46,7 @@ interface UserCard {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
+const DEFAULT_TIER: Tier = { label: 'Seedling', icon: '/icons/terpene-ocimene.png', color: 'text-zinc-400' };
 const strainColors: Record<string, string> = {
   indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
   sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
@@ -301,7 +301,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete }: 
                   const m = getFeedTerpMeta(t.name);
                   return (
                     <div key={t.name} className={`flex items-center gap-1.5 rounded-xl border ${m.border} ${m.bg} px-3 py-1.5`}>
-                      <span className="text-sm leading-none">{m.emoji}</span>
+                      <span className="text-sm leading-none"><img src={m.icon} alt="" className="w-4 h-4 opacity-90" /></span>
                       <span className={`text-xs font-semibold capitalize ${m.color}`}>{t.name}</span>
                       {t.percent != null && <span className={`text-xs font-bold ${m.color} opacity-80`}>{t.percent}%</span>}
                     </div>
@@ -620,7 +620,7 @@ function CommunityPageInner() {
             <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {[
-                { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
+                { icon: '/icons/terpene-ocimene.png', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
                 { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
                 { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
                 { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },

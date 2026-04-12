@@ -54,65 +54,65 @@ function cbdDisplay(log: ProductLog): string | null {
 
 // Terpene metadata — color, emoji, effect hint, description, found-in
 const TERP_META: Record<string, {
-  color: string; bg: string; border: string; emoji: string;
+  color: string; bg: string; border: string; icon: string;
   effect: string; description: string; foundIn: string;
 }> = {
   myrcene: {
-    color: 'text-amber-300', bg: 'bg-amber-500/15', border: 'border-amber-500/30', emoji: '🥭',
+    color: 'text-amber-300', bg: 'bg-amber-500/15', border: 'border-amber-500/30', icon: '/icons/terpene-myrcene.png',
     effect: 'Relaxing · Earthy',
     description: 'The most abundant terpene in cannabis. Promotes sedation and may enhance cannabinoid absorption — often credited with the classic "couch-lock" effect.',
     foundIn: 'Mangoes, hops, lemongrass, thyme',
   },
   limonene: {
-    color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', emoji: '🍋',
+    color: 'text-yellow-300', bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', icon: '/icons/terpene-limonene.png',
     effect: 'Uplifting · Citrus',
     description: 'A bright citrusy terpene associated with elevated mood and stress relief. May have anti-anxiety properties and is often found in sativa-leaning strains.',
     foundIn: 'Citrus fruits, juniper, peppermint, rosemary',
   },
   caryophyllene: {
-    color: 'text-orange-300', bg: 'bg-orange-500/15', border: 'border-orange-500/30', emoji: '🌶️',
+    color: 'text-orange-300', bg: 'bg-orange-500/15', border: 'border-orange-500/30', icon: '/icons/terpene-caryophyllene.png',
     effect: 'Calming · Spicy',
     description: 'Unique among terpenes — it binds directly to CB2 receptors like a cannabinoid. Known for anti-inflammatory and analgesic effects with a peppery aroma.',
     foundIn: 'Black pepper, cloves, cinnamon, basil',
   },
   linalool: {
-    color: 'text-purple-300', bg: 'bg-purple-500/15', border: 'border-purple-500/30', emoji: '💜',
+    color: 'text-purple-300', bg: 'bg-purple-500/15', border: 'border-purple-500/30', icon: '/icons/terpene-linalool.png',
     effect: 'Soothing · Floral',
     description: 'Best known from lavender, linalool has calming, anti-anxiety, and sleep-promoting properties. Often used to counteract THC-induced anxiety.',
     foundIn: 'Lavender, mint, coriander, birch trees',
   },
   pinene: {
-    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', emoji: '🌲',
+    color: 'text-emerald-300', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', icon: '/icons/terpene-pinene.png',
     effect: 'Alert · Pine',
     description: 'The most common terpene in nature. May improve alertness and memory retention, and can act as a bronchodilator. Comes in alpha and beta forms.',
     foundIn: 'Pine trees, rosemary, basil, dill, parsley',
   },
   terpinolene: {
-    color: 'text-sky-300', bg: 'bg-sky-500/15', border: 'border-sky-500/30', emoji: '🍏',
+    color: 'text-sky-300', bg: 'bg-sky-500/15', border: 'border-sky-500/30', icon: '/icons/terpene-terpinolene.png',
     effect: 'Energetic · Fresh',
     description: 'A multifaceted terpene with floral, herbal, and piney notes. Associated with uplifting effects and commonly found in Jack Herer and Ghost Train Haze.',
     foundIn: 'Apples, cumin, lilac, tea tree',
   },
   ocimene: {
-    color: 'text-teal-300', bg: 'bg-teal-500/15', border: 'border-teal-500/30', emoji: '🌿',
+    color: 'text-teal-300', bg: 'bg-teal-500/15', border: 'border-teal-500/30', icon: '/icons/terpene-ocimene.png',
     effect: 'Uplifting · Sweet',
     description: 'A sweet, herbal, and woody terpene with potential antiviral and antifungal properties. Often found in strains like Strawberry Cough and Clementine.',
     foundIn: 'Mint, parsley, orchids, mangoes, basil',
   },
   humulene: {
-    color: 'text-zinc-300', bg: 'bg-zinc-700/40', border: 'border-zinc-600', emoji: '🍺',
+    color: 'text-zinc-300', bg: 'bg-zinc-700/40', border: 'border-zinc-600', icon: '/icons/terpene-humulene.png',
     effect: 'Appetite suppressing · Earthy',
     description: 'Shares its distinctive hoppy aroma with beer. May suppress appetite and has anti-inflammatory properties — one of the few terpenes that can reduce hunger.',
     foundIn: 'Hops, cloves, ginger, coriander',
   },
   bisabolol: {
-    color: 'text-pink-300', bg: 'bg-pink-500/15', border: 'border-pink-500/30', emoji: '🌸',
+    color: 'text-pink-300', bg: 'bg-pink-500/15', border: 'border-pink-500/30', icon: '/icons/terpene-bisabolol.png',
     effect: 'Gentle · Floral',
     description: 'A delicate floral terpene prized in skincare for its anti-irritant properties. In cannabis it contributes soothing, anti-inflammatory effects with a subtle chamomile scent.',
     foundIn: 'German chamomile, candeia tree',
   },
   nerolidol: {
-    color: 'text-lime-300', bg: 'bg-lime-500/15', border: 'border-lime-500/30', emoji: '🌙',
+    color: 'text-lime-300', bg: 'bg-lime-500/15', border: 'border-lime-500/30', icon: '/icons/terpene-nerolidol.png',
     effect: 'Sedating · Woody',
     description: 'A secondary terpene with a woody, floral aroma. Known for strong sedative and anti-parasitic properties. Found in strains ideal for sleep and relaxation.',
     foundIn: 'Jasmine, lemongrass, ginger, niaouli',
@@ -171,7 +171,7 @@ function getSuggestedTags(strainType: string | null, terpenes: Terpene[] | null 
 
 function getTerpMeta(name: string) {
   return TERP_META[name.toLowerCase()] ?? {
-    color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', emoji: '🧪',
+    color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', icon: '/icons/ui-leaf.png',
     effect: '', description: 'A lesser-documented terpene contributing to this strain\'s unique aroma and effect profile.', foundIn: 'Various plants',
   };
 }
@@ -207,7 +207,7 @@ function TerpenePanel({ terpenes }: { terpenes: Terpene[] }) {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base leading-none shrink-0">{m.emoji}</span>
+                    <img src={m.icon} alt="" className="w-5 h-5 shrink-0 opacity-90" />
                     <div className="min-w-0">
                       <p className={`text-sm font-semibold capitalize ${m.color}`}>{t.name}</p>
                       {m.effect && <p className="text-[11px] text-zinc-500 mt-0.5">{m.effect}</p>}
@@ -371,7 +371,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
               <div className="mt-2 flex flex-wrap gap-1.5 items-center">
                 {log.review_rating != null && (
                   <span className="flex items-center gap-0.5 rounded-full bg-yellow-500/10 px-2 py-0.5 text-[10px] font-semibold text-yellow-400">
-                    ★ {log.review_rating}
+                    <><img src="/icons/ui-star.png" alt="rating" className="w-3 h-3 opacity-80" />{log.review_rating}</>
                   </span>
                 )}
                 {(log.review_effects ?? []).slice(0, 3).map(e => (
@@ -472,7 +472,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                     title="Refresh bio"
                     className="flex h-6 w-6 items-center justify-center rounded-full text-zinc-600 transition hover:bg-zinc-800 hover:text-emerald-400 disabled:opacity-50"
                   >
-                    <span className={refreshingBio ? 'inline-block animate-spin text-xs' : 'text-xs'}>↻</span>
+                    <img src="/icons/ui-refresh.png" alt="refresh" className={refreshingBio ? 'w-3.5 h-3.5 opacity-80 animate-spin' : 'w-3.5 h-3.5 opacity-80'} />
                   </button>
                 ) : (
                   <button
@@ -481,7 +481,7 @@ export function HistoryRow({ log, scanCount = 1, expanded = false, onExpand }: {
                     disabled={refreshingBio}
                     className="rounded-lg border border-zinc-700 bg-zinc-900 px-2.5 py-1 text-xs font-medium text-zinc-400 transition hover:border-emerald-500/40 hover:text-emerald-400 disabled:opacity-50"
                   >
-                    {refreshingBio ? 'Fetching…' : '✨ Fetch bio'}
+                    {refreshingBio ? 'Fetching…' : ' Fetch bio'}
                   </button>
                 )}
               </div>
