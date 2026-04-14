@@ -1,5 +1,6 @@
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
 import { ScanForm } from '@/components/scan-form';
+import { HomeScanReveal } from '@/components/home-scan-reveal';
 import { HomeStats } from '@/components/home-stats';
 import { CommunityPreview } from '@/components/community-preview';
 import { PageFooter } from '@/components/page-footer';
@@ -57,7 +58,7 @@ export default async function HomePage() {
                 />
               </a>
               <a
-                href="#scan-section"
+                href="#scan-section-reveal"
                 aria-label="Try it out first"
                 className="absolute left-[7%] top-[85%] w-[18%] h-[9%] rounded-lg transition hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
@@ -71,8 +72,10 @@ export default async function HomePage() {
               </a>
             </div>
           </section>
-          <div id="scan-section" className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
-            <ScanForm isGuest={isGuest} />
+          <div className="mx-auto w-full max-w-2xl px-4 py-6 space-y-4">
+            <HomeScanReveal>
+              <ScanForm isGuest={isGuest} />
+            </HomeScanReveal>
           </div>
         </>
       ) : (
