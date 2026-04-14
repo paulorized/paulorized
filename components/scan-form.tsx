@@ -51,11 +51,14 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   const [helpAutoShown, setHelpAutoShown] = useState(false);
 
   // Auto-show the scan tutorial once on first visit (unless user opted out)
+  // Suppressed for logged-out visitors — they see the marketing hero instead.
   useEffect(() => {
+    if (isGuest) return;
     if (shouldAutoShowScanTutorial()) {
       setShowHelp(true);
       setHelpAutoShown(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 // Manual entry search state
