@@ -1,36 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   CannaBaseAI Design Tokens
+   ============================================================ */
 :root {
   color-scheme: dark;
+
+  /* Brand tri-color */
+  --brand-canna:  #34d399;
+  --brand-base:   #c084fc;
+  --brand-ai:     #fde047;
+
+  /* Surfaces */
+  --bg:           #09090b;
+  --bg-elevated:  #18181b;
+  --bg-input:     #27272a;
+  --bg-subtle:    #3f3f46;
+  --card:         rgba(24,24,27,0.5);
+  --card-hover:   rgba(24,24,27,0.6);
+
+  /* Foreground */
+  --fg-1: #fafafa; --fg-2: #f4f4f5; --fg-3: #e4e4e7;
+  --fg-4: #d4d4d8; --fg-5: #a1a1aa; --fg-6: #71717a; --fg-7: #52525b;
+
+  /* Borders */
+  --border:        #27272a;
+  --border-strong: #3f3f46;
+
+  /* Chip trios */
+  --chip-emerald-bg:    rgba(16,185,129,0.10);
+  --chip-emerald-border:rgba(16,185,129,0.30);
+  --chip-emerald-fg:    #6ee7b7;
+  --chip-purple-bg:     rgba(168,85,247,0.10);
+  --chip-purple-border: rgba(168,85,247,0.30);
+  --chip-purple-fg:     #d8b4fe;
+  --chip-amber-bg:      rgba(245,158,11,0.10);
+  --chip-amber-border:  rgba(245,158,11,0.30);
+  --chip-amber-fg:      #fcd34d;
+  --chip-yellow-bg:     rgba(234,179,8,0.20);
+  --chip-yellow-border: rgba(234,179,8,0.30);
+  --chip-yellow-fg:     #fde047;
+  --chip-sky-bg:        rgba(14,165,233,0.10);
+  --chip-sky-border:    rgba(14,165,233,0.30);
+  --chip-sky-fg:        #7dd3fc;
+  --chip-rose-bg:       rgba(244,63,94,0.10);
+  --chip-rose-border:   rgba(244,63,94,0.30);
+  --chip-rose-fg:       #fda4af;
+  --chip-zinc-bg:       rgba(63,63,70,0.40);
+  --chip-zinc-border:   rgba(82,82,91,0.40);
+  --chip-zinc-fg:       #d4d4d8;
+
+  /* Tier colors */
+  --tier-seedling:    #a1a1aa;
+  --tier-grower:      #a3e635;
+  --tier-connoisseur: #34d399;
+  --tier-legend:      #facc15;
+
+  /* Fonts */
+  --font-display: "Montserrat", system-ui, -apple-system, sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Motion */
+  --dur: 150ms;
+  --ease: cubic-bezier(0.4,0,0.2,1);
 }
 
 body {
   @apply min-h-screen bg-zinc-950 text-zinc-50;
+  font-family: var(--font-body);
 }
 
-/* Light mode overrides — header stays dark always */
+/* Hide scrollbar on nav row */
+.nav-scroll::-webkit-scrollbar { display: none; }
+.nav-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+
+/* Light mode overrides */
 html.light-mode {
   color-scheme: light;
+  --bg: #f4f4f5; --bg-elevated: #ffffff;
+  --card: #ffffff; --card-hover: #fafafa;
+  --fg-2: #18181b; --fg-3: #27272a; --fg-4: #3f3f46;
+  --fg-5: #52525b; --fg-6: #71717a;
+  --border: #e4e4e7; --border-strong: #d4d4d8;
 }
 
 html.light-mode body {
   @apply bg-zinc-100 text-zinc-900;
 }
 
-html.light-mode .light-card {
-  @apply bg-white border-zinc-200 text-zinc-900;
-}
+html.light-mode .light-card   { @apply bg-white border-zinc-200 text-zinc-900; }
+html.light-mode .light-surface { @apply bg-zinc-50 text-zinc-800; }
+html.light-mode .light-muted  { @apply text-zinc-500; }
+html.light-mode .light-input  { @apply bg-white border-zinc-300 text-zinc-900; }
 
-html.light-mode .light-surface {
-  @apply bg-zinc-50 text-zinc-800;
-}
-
-html.light-mode .light-muted {
-  @apply text-zinc-500;
-}
-
-html.light-mode .light-input {
-  @apply bg-white border-zinc-300 text-zinc-900;
-}
+/* Tier badge mini-star spin on scan extracting state */
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,8 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Montserrat } from 'next/font/google';
+import { Montserrat, Inter } from 'next/font/google';
 import { createAuthServerClient, createServerSupabaseClient } from '@/lib/supabase.server';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -58,7 +65,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const bubbleColor = userId ? getBubbleColor(userId) : 'bg-zinc-700';
 
   return (
-    <html lang="en" className={montserrat.variable}>
+    <html lang="en" className={`${montserrat.variable} ${inter.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
         {/* PWA */}
@@ -94,7 +101,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                           width={32} height={32} priority unoptimized
                           className="h-8 w-8 rounded-full object-cover border border-zinc-700" />
                       ) : (
-                        <div className={'h-8 w-8 rounded-full flex items-center justify-center ' + bubbleColor}>
+                        <div className='h-8 w-8 rounded-full flex items-center justify-center' style={{ background: 'linear-gradient(135deg, var(--purple-500,#a855f7), var(--brand-canna,#34d399))' }}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-white opacity-90">
                             <path d="M12 2C9.243 2 7 4.243 7 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5zm0 8c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zm9 11v-1c0-3.859-3.141-7-7-7h-4c-3.859 0-7 3.141-7 7v1h2v-1c0-2.757 2.243-5 5-5h4c2.757 0 5 2.243 5 5v1h2z"/>
                           </svg>
@@ -111,7 +118,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               </div>
               {/* Row 2: Nav links (only when logged in) */}
               {userId && (
-                <nav className="flex items-center justify-between border-t border-zinc-800/40 pb-1.5 pt-1">
+                <nav className="nav-scroll flex items-center justify-between border-t border-zinc-800/40 pb-1.5 pt-1 overflow-x-auto">
                   <Link href="/?reset=1" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
                   <Link href="/history" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
                   <Link href="/dashboard" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
