@@ -29,7 +29,37 @@ const strainTypeBadge: Record<string, string> = {
   unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
 };
 
-export function StrainDetailClient({ result }: { result: StrainResult }) {
+export function StrainDetailClient({ result: initialResult, slug }: { result: StrainResult | null; slug?: string }) {
+  const [result, setResult] = useState<StrainResult | null>(initialResult);
+  const [loading, setLoading] = useState(!initialResult && !!slug);
+
+  useEffect(() => {
+    if (initialResult || !slug) return;
+    // AI fallback for strains not in the DB index
+    async function load() {
+      setLoading(true);
+      try {
+        const idxRes = await fetch('/api/strain-by-slug', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug }),
+        });
+        if (idxRes.ok) {
+          const d = await idxRes.json();
+          if (d.result) { setResult(d.result); setLoading(false); return; }
+        }
+        const name = slug.replace(/-/g, ' ');
+        const searchRes = await fetch('/api/strain-search', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: name }),
+        });
+        const sd = await searchRes.json();
+        if (sd.result && !sd.result.not_found) setResult(sd.result);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [slug, initialResult]);
   const router = useRouter();
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);

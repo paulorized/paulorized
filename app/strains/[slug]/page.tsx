@@ -1,10 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase.server';
 import { StrainDetailClient } from './strain-detail-client';
-import { notFound } from 'next/navigation';
 
-export const revalidate = 3600; // ISR: re-build each strain page at most once per hour
+export const revalidate = 3600;
 
-// Pre-generate the top 100 strains at build time so they're served from edge
 export async function generateStaticParams() {
   try {
     const db = createServerSupabaseClient();
@@ -36,32 +34,37 @@ interface StrainRow {
 export default async function StrainDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  const db = createServerSupabaseClient();
-  const { data } = await db
-    .from('strains')
-    .select('name, strain_type, strain_bio, typical_effects, typical_flavors, thc_min, thc_max, cbd_min, cbd_max, nugshot_url, leafly_url')
-    .eq('slug', slug)
-    .single<StrainRow>();
+  let result = null;
 
-  if (!data) notFound();
+  try {
+    const db = createServerSupabaseClient();
+    const { data } = await db
+      .from('strains')
+      .select('name, strain_type, strain_bio, typical_effects, typical_flavors, thc_min, thc_max, cbd_min, cbd_max, nugshot_url, leafly_url')
+      .eq('slug', slug)
+      .single<StrainRow>();
 
-  const result = {
-    strain_name: data.name,
-    strain_type: data.strain_type ?? 'unknown',
-    strain_bio: data.strain_bio ?? '',
-    typical_effects: data.typical_effects ?? [],
-    typical_flavors: data.typical_flavors ?? [],
-    thc_min: data.thc_min ?? null,
-    thc_max: data.thc_max ?? null,
-    cbd_min: data.cbd_min ?? null,
-    cbd_max: data.cbd_max ?? null,
-    best_for: '',
-    also_known_as: [] as string[],
-    confidence: 1.0,
-    source: 'index' as const,
-    nugshot_url: data.nugshot_url ?? null,
-    leafly_url: data.leafly_url ?? null,
-  };
+    if (data) {
+      result = {
+        strain_name: data.name,
+        strain_type: data.strain_type ?? 'unknown',
+        strain_bio: data.strain_bio ?? '',
+        typical_effects: data.typical_effects ?? [],
+        typical_flavors: data.typical_flavors ?? [],
+        thc_min: data.thc_min ?? null,
+        thc_max: data.thc_max ?? null,
+        cbd_min: data.cbd_min ?? null,
+        cbd_max: data.cbd_max ?? null,
+        best_for: '',
+        also_known_as: [] as string[],
+        confidence: 1.0,
+        source: 'index' as const,
+        nugshot_url: data.nugshot_url ?? null,
+        leafly_url: data.leafly_url ?? null,
+      };
+    }
+  } catch {}
 
-  return <StrainDetailClient result={result} />;
+  // Pass slug so client can do AI fallback lookup for strains not yet in the DB
+  return <StrainDetailClient result={result} slug={slug} />;
 }
