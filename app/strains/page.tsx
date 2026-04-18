@@ -83,7 +83,7 @@ function StrainCard({ strain }: { strain: StrainHit }) {
       {/* Top row: name + type badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={`leading-none ${type.color}`}>{TYPE_ICONS[key] ?? TYPE_ICONS.unknown}</span>
+          <span className={`leading-none ${type.color}`}>{TYPE_ICONS[strain.strain_type ?? 'unknown'] ?? TYPE_ICONS.unknown}</span>
           <p className="text-sm font-bold text-zinc-100 leading-snug truncate">{strain.name}</p>
         </div>
         <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${type.color} ${type.bg}`}>
