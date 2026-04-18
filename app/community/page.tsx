@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { IconSearch, IconLeaf } from '@/components/icons';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
 import { CommentSection } from '@/components/comment-thread';
@@ -521,7 +522,7 @@ function FollowingView() {
       )}
       {!loading && users.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
-          <div className="text-4xl mb-2">{tab === 'following' ? '🔍' : '👋'}</div>
+          <div className="mb-2 flex justify-center">{tab === 'following' ? <IconSearch size={36} className="text-zinc-600" /> : <span className="text-4xl">👋</span>}</div>
           <p className="text-sm text-zinc-400">
             {tab === 'following' ? "You aren't following anyone yet" : "Nobody is following you yet"}
           </p>
@@ -668,7 +669,7 @@ function CommunityPageInner() {
 
           {!loading && feed.length === 0 && !error && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center space-y-2">
-              <div className="text-4xl">🌿</div>
+              <div className="flex justify-center text-zinc-600"><IconLeaf size={40} /></div>
               <p className="text-sm font-medium text-zinc-300">No reviews yet</p>
               <p className="text-sm text-zinc-500">Be the first — scan something and leave a review.</p>
             </div>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { WeightWidget } from '@/components/weight-widget';
+import { IconJoint, IconBong, IconBowl, IconVape, IconEdible, IconLeaf, IconIndica, IconSativa, IconHybrid } from '@/components/icons';
 import { StatsCard } from '@/components/stats-card';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -89,7 +90,7 @@ function Empty({ msg }: { msg: string }) {
 
 function StrainKpiCard({ label, icon, record, emptyMsg }: {
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   record: ThcRecord | null | undefined;
   emptyMsg: string;
 }) {
@@ -125,12 +126,12 @@ function StrainKpiCard({ label, icon, record, emptyMsg }: {
 }
 
 function SimpleKpiCard({ label, icon, value, sub, href }: {
-  label: string; icon: string; value: string; sub?: string; href?: string;
+  label: string; icon: React.ReactNode; value: string; sub?: string; href?: string;
 }) {
   const cls = "rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition" + (href ? " hover:border-zinc-700 hover:bg-zinc-900 block" : "");
   const content = (
     <>
-      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1">{icon} {label}</p>
       <p className="mt-2 text-2xl font-bold text-zinc-100">{value}</p>
       {sub && <p className="mt-1 text-xs text-zinc-500 truncate">{sub}</p>}
     </>
@@ -203,14 +204,14 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
   const [active, setActive] = useState<string | null>(null);
 
   const units = [
-    { key: 'joint',    icon: '🚬', name: 'Standard Joints',  grams: 0.35,  color: 'emerald' },
-    { key: 'king',     icon: '👑', name: 'King Size Joints', grams: 0.5,   color: 'yellow'  },
-    { key: 'blunt',    icon: '🌿', name: 'Blunts',           grams: 1.0,   color: 'amber'   },
-    { key: 'bong',     icon: '💨', name: 'Bong Rips',        grams: 0.25,  color: 'sky'     },
-    { key: 'bowl',     icon: '🫙', name: 'Bowl Packs',       grams: 0.3,   color: 'purple'  },
-    { key: 'eighth',   icon: '⅛',  name: 'Eighths',          grams: 3.5,   color: 'teal'    },
-    { key: 'quarter',  icon: '¼',  name: 'Quarters',         grams: 7.0,   color: 'pink'    },
-    { key: 'brownie',  icon: '🍪', name: 'Pot Brownies',     grams: 1.0,   color: 'orange'  },
+    { key: 'joint',    icon: <IconJoint size={18} />,   name: 'Standard Joints',  grams: 0.35,  color: 'emerald' },
+    { key: 'king',     icon: <IconJoint size={18} />,   name: 'King Size Joints', grams: 0.5,   color: 'yellow'  },
+    { key: 'blunt',    icon: <IconLeaf size={18} />,    name: 'Blunts',           grams: 1.0,   color: 'amber'   },
+    { key: 'bong',     icon: <IconBong size={18} />,    name: 'Bong Rips',        grams: 0.25,  color: 'sky'     },
+    { key: 'bowl',     icon: <IconBowl size={18} />,    name: 'Bowl Packs',       grams: 0.3,   color: 'purple'  },
+    { key: 'eighth',   icon: <IconLeaf size={18} />,    name: 'Eighths',          grams: 3.5,   color: 'teal'    },
+    { key: 'quarter',  icon: <IconLeaf size={18} />,    name: 'Quarters',         grams: 7.0,   color: 'pink'    },
+    { key: 'brownie',  icon: <IconEdible size={18} />,  name: 'Pot Brownies',     grams: 1.0,   color: 'orange'  },
   ];
 
   const colorMap: Record<string, { bg: string; border: string; text: string; numText: string }> = {
@@ -462,13 +463,13 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <StrainKpiCard
               label="Highest THC Flower"
-              icon="🌿"
+              icon={<IconLeaf size={13} />}
               record={myData.highestThcByType?.['flower']}
               emptyMsg="No flower logged yet"
             />
             <StrainKpiCard
               label="Highest THC Pre-roll"
-              icon="🚬"
+              icon={<IconJoint size={13} />}
               record={myData.highestThcByType?.['pre-roll']}
               emptyMsg="No pre-rolls logged yet"
             />
@@ -713,13 +714,13 @@ export default function DashboardPage() {
             {/* Most popular product type */}
             {communityData.topProductTypes[0] ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">💨 Most Popular Type</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconLeaf size={11} /> Most Popular Type</p>
                 <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{communityData.topProductTypes[0].name}</p>
                 <p className="mt-1 text-xs text-zinc-500">{communityData.topProductTypes[0].count} logs</p>
               </div>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">💨 Most Popular Type</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconLeaf size={11} /> Most Popular Type</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -729,7 +730,7 @@ export default function DashboardPage() {
               const counts = communityData.strainTypeCounts;
               const winner = Object.entries(counts).filter(([k]) => k !== 'unknown').sort((a, b) => b[1] - a[1])[0];
               const total = Object.values(counts).reduce((a, b) => a + b, 0);
-              const icons: Record<string, string> = { sativa: '☀️', indica: '🌙', hybrid: '⚡', unknown: '🌿' };
+              const icons: Record<string, React.ReactNode> = { sativa: <IconSativa size={14} />, indica: <IconIndica size={14} />, hybrid: <IconHybrid size={14} />, unknown: <IconLeaf size={14} /> };
               return winner ? (
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🧬 Community Leans</p>

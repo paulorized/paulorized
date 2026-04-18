@@ -1,6 +1,7 @@
 ﻿'use client';
 
-import { useMemo, useRef, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
+import { IconIndica, IconSativa, IconHybrid, IconUnknown, IconSearch, IconWarning } from '@/components/icons';
 import { useSearchParams } from 'next/navigation';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
 import { ReviewForm } from './review-form';
@@ -622,7 +623,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                   <button type="button" onClick={() => { closeCamera(); runScan(); }}
                     disabled={isScanning}
                     className="rounded-xl bg-zinc-700 px-4 py-3 text-sm font-semibold text-zinc-100 transition hover:bg-zinc-600 active:bg-zinc-500 disabled:opacity-50">
-                    {isScanning ? '🔍 Scanning…' : 'Done ✓'}
+                    {isScanning ? <span className="flex items-center gap-1.5 justify-center"><IconSearch size={14} /> Scanning…</span> : 'Done ✓'}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { closeCamera(); setMode('choose'); }}
@@ -645,7 +646,9 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               <p className="text-xs text-zinc-600">💡 Best results: front label, back label, and potency panel.</p>
               <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
                 type="submit" disabled={isScanning}>
-                {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+                {isScanning
+                  ? <span className="flex items-center gap-1.5 justify-center"><IconSearch size={16} /> Scanning…</span>
+                  : <span className="flex items-center gap-1.5 justify-center"><IconSearch size={16} /> Scan label</span>}
               </button>
               <p className="text-center text-xs text-zinc-700">or hit Done ✓ in the camera view to scan immediately</p>
               {error && <p className="text-sm text-rose-400">{error}</p>}
@@ -686,7 +689,9 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
           <form onSubmit={handleScan}>
             <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
               type="submit" disabled={isScanning || fileCount === 0}>
-              {isScanning ? '🔍 Scanning…' : '🔍 Scan label'}
+              {isScanning
+                ? <span className="flex items-center gap-1.5 justify-center"><IconSearch size={16} /> Scanning…</span>
+                : <span className="flex items-center gap-1.5 justify-center"><IconSearch size={16} /> Scan label</span>}
             </button>
             {error && <p className="mt-3 text-sm text-rose-400">{error}</p>}
           </form>
@@ -697,11 +702,11 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
 
   // ── Manual entry mode ──
   if (mode === 'manual') {
-    const typeConfig: Record<string, {color: string; icon: string}> = {
-      indica:  { color: 'text-purple-300 border-purple-500/30 bg-purple-500/10', icon: '🌙' },
-      sativa:  { color: 'text-yellow-300 border-yellow-500/30 bg-yellow-500/10', icon: '☀️' },
-      hybrid:  { color: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10', icon: '⚡' },
-      unknown: { color: 'text-zinc-400 border-zinc-600 bg-zinc-800/50', icon: '🌿' },
+    const typeConfig: Record<string, {color: string; icon: React.ReactNode}> = {
+      indica:  { color: 'text-purple-300 border-purple-500/30 bg-purple-500/10', icon: <IconIndica size={12} /> },
+      sativa:  { color: 'text-yellow-300 border-yellow-500/30 bg-yellow-500/10', icon: <IconSativa size={12} /> },
+      hybrid:  { color: 'text-emerald-300 border-emerald-500/30 bg-emerald-500/10', icon: <IconHybrid size={12} /> },
+      unknown: { color: 'text-zinc-400 border-zinc-600 bg-zinc-800/50', icon: <IconUnknown size={12} /> },
     };
 
     const handleStrainSearch = (q: string) => {

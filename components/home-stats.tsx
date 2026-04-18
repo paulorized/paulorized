@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { IconIndica, IconSativa, IconHybrid } from '@/components/icons';
 
 interface Stats {
   total: number;
@@ -13,10 +14,10 @@ interface Stats {
   typeCounts: { indica: number; sativa: number; hybrid: number };
 }
 
-const typeColors: Record<string, { bar: string; label: string; icon: string }> = {
-  indica: { bar: 'bg-purple-500', label: 'text-purple-300', icon: '🌙' },
-  sativa: { bar: 'bg-yellow-400', label: 'text-yellow-300', icon: '☀️' },
-  hybrid: { bar: 'bg-emerald-500', label: 'text-emerald-300', icon: '⚡' },
+const typeColors: Record<string, { bar: string; label: string; icon: React.ReactNode }> = {
+  indica: { bar: 'bg-purple-500', label: 'text-purple-300', icon: <IconIndica size={10} /> },
+  sativa: { bar: 'bg-yellow-400', label: 'text-yellow-300', icon: <IconSativa size={10} /> },
+  hybrid: { bar: 'bg-emerald-500', label: 'text-emerald-300', icon: <IconHybrid size={10} /> },
 };
 
 export function HomeStats() {
