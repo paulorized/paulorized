@@ -169,8 +169,16 @@ function getSuggestedTags(strainType: string | null, terpenes: Terpene[] | null 
   return { effects, flavors };
 }
 
+function normalizeTerpName(name: string): string {
+  // Lowercase and strip common prefixes: alpha-, beta-, a-, b-, d-, dl-
+  return name.toLowerCase()
+    .replace(/^(alpha|beta|a|b|d|dl)-\s*/i, '')
+    .trim();
+}
+
 function getTerpMeta(name: string) {
-  return TERP_META[name.toLowerCase()] ?? {
+  const key = normalizeTerpName(name);
+  return TERP_META[key] ?? TERP_META[name.toLowerCase()] ?? {
     color: 'text-zinc-400', bg: 'bg-zinc-800/60', border: 'border-zinc-700', icon: '/icons/ui-leaf.png',
     effect: '', description: 'A lesser-documented terpene contributing to this strain\'s unique aroma and effect profile.', foundIn: 'Various plants',
   };
