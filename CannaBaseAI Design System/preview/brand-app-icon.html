@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#09090b;color:#d4d4d8;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+.wrap{padding:20px;width:700px}
+.eyebrow{font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:#71717a;margin-bottom:14px}
+.mono{font-family:var(--font-mono);font-size:11px;color:#71717a;line-height:1.7}
+.row{display:flex;gap:24px;align-items:flex-end}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px}
+.icon{display:block;border:1px solid #27272a;background:#09090b}
+.r192{border-radius:24px}
+.r180{border-radius:22px}
+.r512{border-radius:32px}
+.size{font-family:var(--font-mono);font-size:10px;color:#a1a1aa}
+.path{font-family:var(--font-mono);font-size:10px;color:#52525b}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:9999px;font-size:10px;font-weight:600;background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.30);color:#6ee7b7}
+</style></head><body><div class="wrap">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+  <div class="eyebrow" style="margin-bottom:0">PWA app icon</div>
+  <span class="pill">✓ from public/logo.png</span>
+</div>
+<div style="font-size:11px;color:#71717a;margin-bottom:18px">Square periodic-table mark. Same file served at all three PWA icon slots.</div>
+
+<div class="row">
+  <div class="tile">
+    <img class="icon r180" src="../assets/logos/apple-touch-icon.png" width="60" height="60">
+    <div class="size">60 × 60</div>
+    <div class="path">apple-touch-icon</div>
+  </div>
+  <div class="tile">
+    <img class="icon r192" src="../assets/logos/icon-192.png" width="96" height="96">
+    <div class="size">96 × 96</div>
+    <div class="path">icon-192 · thumbnail</div>
+  </div>
+  <div class="tile">
+    <img class="icon r192" src="../assets/logos/icon-192.png" width="120" height="120">
+    <div class="size">120 × 120</div>
+    <div class="path">icon-192 · homescreen</div>
+  </div>
+  <div class="tile">
+    <img class="icon r512" src="../assets/logos/icon-512.png" width="160" height="160">
+    <div class="size">160 × 160</div>
+    <div class="path">icon-512 · splash</div>
+  </div>
+</div>
+</div></body></html>

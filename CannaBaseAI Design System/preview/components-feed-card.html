@@ -1,0 +1,49 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#09090b;color:#d4d4d8;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+.wrap{padding:20px;width:700px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:#71717a;margin-bottom:8px}
+.grid{display:grid;gap:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:500;border:1px solid transparent}
+.card{background:rgba(24,24,27,0.5);border:1px solid #27272a;border-radius:16px;padding:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:inherit}
+.mono{font-family:var(--font-mono);font-size:11px;color:#71717a}
+.sw{border-radius:12px;border:1px solid #27272a}
+img.terp{mix-blend-mode:screen}
+.wordmark{font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:-0.01em;font-size:24px;line-height:1}
+</style></head><body><div class="wrap">
+<div class="eyebrow">Community feed card</div>
+<div class="card" style="margin-top:10px;padding:0;overflow:hidden">
+  <div style="padding:14px 16px 10px;display:flex;gap:12px">
+    <div style="position:relative;flex-shrink:0">
+      <div style="width:40px;height:40px;border-radius:9999px;background:#059669;display:flex;align-items:center;justify-content:center;color:white;font-weight:700">P</div>
+      <span style="position:absolute;bottom:-4px;right:-4px;font-size:14px">🍃</span>
+    </div>
+    <div style="flex:1">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-weight:600;font-size:13px;color:#f4f4f5">paulorized</span>
+        <span style="font-size:11px;color:#52525b">127 logs</span>
+        <span style="font-size:11px;color:#52525b;margin-left:auto">2h ago</span>
+      </div>
+      <div style="margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-weight:600;font-size:13px;color:#fde047">Apples & Bananas</span>
+        <span style="font-size:11px;color:#71717a">Cookies</span>
+        <span class="chip" style="padding:2px 8px;font-size:10px;border-color:rgba(16,185,129,0.3);background:rgba(16,185,129,0.2);color:#6ee7b7">hybrid</span>
+        <span style="font-size:11px;color:#10b981;font-weight:500">THC 31%</span>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 16px 10px;display:flex;gap:2px">
+    <span style="color:#fbbf24;font-size:14px">★</span><span style="color:#fbbf24;font-size:14px">★</span><span style="color:#fbbf24;font-size:14px">★</span><span style="color:#fbbf24;font-size:14px">★</span><span style="color:#fbbf24;font-size:14px">★</span>
+    <span style="font-size:11px;color:#34d399;margin-left:10px;align-self:center">✓ Would buy again</span>
+  </div>
+  <div style="padding:0 16px 12px;font-size:13px;color:#d4d4d8;font-style:italic;line-height:1.55">“Exceptional. Smooth smoke, very strong. Would roll again.”</div>
+  <div style="padding:12px 16px;border-top:1px solid #27272a;display:flex;align-items:center;gap:8px">
+    <button class="btn" style="padding:6px 12px;background:#27272a;border-color:#3f3f46;color:#a1a1aa;font-size:11px;font-weight:500">👍 Helpful 14</button>
+    <span style="font-size:11px;font-weight:500;color:#34d399;margin-left:auto">🍃 Connoisseur</span>
+  </div>
+</div></div></body></html>

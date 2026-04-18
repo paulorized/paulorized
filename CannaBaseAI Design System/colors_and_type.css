@@ -1,0 +1,306 @@
+/* ============================================================
+   CannaBaseAI — Design Tokens
+   Source of truth for colors, type, spacing, radii, and accents.
+   Dark mode is the base; light mode mirrors only a few tokens.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/Montserrat-VariableFont_wght.ttf') format('truetype-variations'),
+       url('fonts/Montserrat-VariableFont_wght.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('fonts/Montserrat-Italic-VariableFont_wght.ttf') format('truetype-variations'),
+       url('fonts/Montserrat-Italic-VariableFont_wght.ttf') format('truetype');
+}
+
+:root {
+  /* ─── Brand tri-color ─── */
+  --brand-canna:  #34d399; /* emerald-400 — primary CTA, hybrid, "verified" */
+  --brand-base:   #c084fc; /* purple-400  — wishlist, indica, edibles */
+  --brand-ai:     #fde047; /* yellow-300  — StrainAI, sativa, ratings, warnings */
+
+  /* ─── Zinc surface scale (bg) ─── */
+  --bg:           #09090b; /* zinc-950  — page */
+  --bg-elevated:  #18181b; /* zinc-900  — card base */
+  --bg-input:     #27272a; /* zinc-800  — input, selected tab */
+  --bg-subtle:    #3f3f46; /* zinc-700  — hover border */
+
+  /* Card backgrounds use alpha over --bg */
+  --card:         rgba(24, 24, 27, 0.5);  /* bg-zinc-900/50 */
+  --card-hover:   rgba(24, 24, 27, 0.6);  /* bg-zinc-900/60 */
+
+  /* ─── Foreground scale ─── */
+  --fg-1:         #fafafa; /* zinc-50  — rarely */
+  --fg-2:         #f4f4f5; /* zinc-100 — headlines, values */
+  --fg-3:         #e4e4e7; /* zinc-200 — headings in context */
+  --fg-4:         #d4d4d8; /* zinc-300 — primary text */
+  --fg-5:         #a1a1aa; /* zinc-400 — secondary text */
+  --fg-6:         #71717a; /* zinc-500 — muted text, labels */
+  --fg-7:         #52525b; /* zinc-600 — placeholder, disabled */
+  --fg-8:         #3f3f46; /* zinc-700 — borders, chart ticks */
+
+  /* ─── Borders ─── */
+  --border:           #27272a; /* zinc-800 — card edge */
+  --border-strong:    #3f3f46; /* zinc-700 — input edge */
+  --border-hover:     #52525b; /* zinc-600 — input hover */
+
+  /* ─── Accent hues (for chips, states, charts) ─── */
+  --emerald-300:  #6ee7b7;
+  --emerald-400:  #34d399;
+  --emerald-500:  #10b981;
+  --emerald-600:  #059669;
+
+  --purple-300:   #d8b4fe;
+  --purple-400:   #c084fc;
+  --purple-500:   #a855f7;
+  --purple-600:   #9333ea;
+
+  --yellow-300:   #fde047;
+  --yellow-400:   #facc15;
+  --amber-300:    #fcd34d;
+  --amber-400:    #fbbf24;
+  --amber-500:    #f59e0b;
+
+  --orange-400:   #fb923c;
+  --teal-400:     #2dd4bf;
+  --sky-400:      #38bdf8;
+  --rose-400:     #fb7185;
+  --rose-500:     #f43f5e;
+  --lime-400:     #a3e635;
+  --pink-400:     #f472b6;
+  --red-400:      #f87171;
+  --indigo-600:   #4f46e5;
+
+  /* ─── Chip pattern tokens (the accent-tint trio) ─── */
+  /* Use as:  background: var(--chip-emerald-bg); border: 1px solid var(--chip-emerald-border); color: var(--chip-emerald-fg); */
+  --chip-emerald-bg:     rgba(16, 185, 129, 0.10);
+  --chip-emerald-border: rgba(16, 185, 129, 0.30);
+  --chip-emerald-fg:     #6ee7b7; /* emerald-300 */
+
+  --chip-purple-bg:      rgba(168, 85, 247, 0.10);
+  --chip-purple-border:  rgba(168, 85, 247, 0.30);
+  --chip-purple-fg:      #d8b4fe;
+
+  --chip-amber-bg:       rgba(245, 158, 11, 0.10);
+  --chip-amber-border:   rgba(245, 158, 11, 0.30);
+  --chip-amber-fg:       #fcd34d;
+
+  --chip-yellow-bg:      rgba(234, 179, 8,  0.20);
+  --chip-yellow-border:  rgba(234, 179, 8,  0.30);
+  --chip-yellow-fg:      #fde047;
+
+  --chip-sky-bg:         rgba(14, 165, 233, 0.10);
+  --chip-sky-border:     rgba(14, 165, 233, 0.30);
+  --chip-sky-fg:         #7dd3fc;
+
+  --chip-rose-bg:        rgba(244, 63, 94,  0.10);
+  --chip-rose-border:    rgba(244, 63, 94,  0.30);
+  --chip-rose-fg:        #fda4af;
+
+  --chip-zinc-bg:        rgba(63, 63, 70,   0.40);
+  --chip-zinc-border:    rgba(82, 82, 91,   0.40);
+  --chip-zinc-fg:        #d4d4d8;
+
+  /* ─── Strain-type colors (semantic) ─── */
+  --strain-sativa: #f59e0b; /* amber-500 */
+  --strain-indica: #8b5cf6; /* violet-500 */
+  --strain-hybrid: #10b981; /* emerald-500 */
+  --strain-unknown: #52525b; /* zinc-600 */
+
+  /* ─── Tier colors ─── */
+  --tier-seedling:    #a1a1aa; /* zinc-400 */
+  --tier-grower:      #a3e635; /* lime-400 */
+  --tier-connoisseur: #34d399; /* emerald-400 */
+  --tier-legend:      #facc15; /* yellow-400 */
+
+  /* ─── Type ─── */
+  --font-display: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body:    "Inter", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  /* Font sizes — match Tailwind defaults used in the app */
+  --fs-10:  0.625rem; /* 10px */
+  --fs-11:  0.6875rem;/* 11px */
+  --fs-xs:  0.75rem;  /* 12px */
+  --fs-sm:  0.875rem; /* 14px */
+  --fs-base:1rem;     /* 16px */
+  --fs-lg:  1.125rem; /* 18px */
+  --fs-xl:  1.25rem;  /* 20px */
+  --fs-2xl: 1.5rem;   /* 24px — page titles */
+  --fs-3xl: 1.875rem; /* 30px — KPI numbers */
+  --fs-4xl: 2.25rem;  /* 36px */
+
+  /* Line heights */
+  --lh-tight: 1.1;
+  --lh-snug:  1.25;
+  --lh-body:  1.5;
+  --lh-loose: 1.6;
+
+  /* Weights */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-semibold:600;
+  --fw-bold:    700;
+  --fw-extra:   800;
+
+  /* Tracking */
+  --tracking-tight: -0.01em;
+  --tracking-wide:  0.05em;
+  --tracking-widest:0.15em; /* used on uppercase eyebrows */
+
+  /* ─── Radii ─── */
+  --radius-sm:   0.5rem;  /*  8px — tabs, nav items */
+  --radius-md:   0.75rem; /* 12px — buttons, inputs */
+  --radius-lg:   1rem;    /* 16px — cards, KPI tiles */
+  --radius-xl:   1.25rem; /* 20px — rare, big containers */
+  --radius-full: 9999px;  /*       — pills, chips, avatars */
+
+  /* ─── Spacing (8px rhythm, matches Tailwind) ─── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10:2.5rem;
+  --space-12:3rem;
+
+  /* ─── Shadow (sparse) ─── */
+  --shadow-xl:  0 20px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.6);
+
+  /* ─── Motion ─── */
+  --ease:       cubic-bezier(0.4, 0, 0.2, 1); /* Tailwind default */
+  --dur-fast:   120ms;
+  --dur:        150ms;
+  --dur-slow:   200ms;
+
+  /* ─── Container ─── */
+  --container:  42rem; /* max-w-2xl = 672px */
+
+  /* ─── Z-index ─── */
+  --z-header:  50;
+  --z-lightbox:50;
+  --z-suggest: 20;
+}
+
+/* ============================================================
+   Semantic type utilities
+   ============================================================ */
+
+.type-wordmark {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+}
+
+.type-h1,
+h1.display {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-2xl);
+  color: var(--fg-2);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+}
+
+.type-h2 {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xl);
+  color: var(--fg-2);
+  line-height: var(--lh-snug);
+}
+
+.type-kpi {
+  font-family: var(--font-body);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-3xl);
+  color: var(--fg-2);
+  line-height: var(--lh-tight);
+}
+
+.type-eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-widest);
+  color: var(--fg-6);
+}
+
+.type-body {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-sm);
+  color: var(--fg-4);
+  line-height: var(--lh-body);
+}
+
+.type-body-quote {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: var(--fs-sm);
+  color: var(--fg-4);
+  line-height: var(--lh-loose);
+}
+
+.type-meta {
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  color: var(--fg-6);
+}
+
+.type-label {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  color: var(--fg-3);
+}
+
+.type-button {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+.type-chip {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+}
+
+.type-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+/* ============================================================
+   Light mode (rarely used; header stays dark always)
+   ============================================================ */
+html.light-mode {
+  --bg:         #f4f4f5;
+  --bg-elevated:#ffffff;
+  --card:       #ffffff;
+  --card-hover: #fafafa;
+  --fg-2:       #18181b;
+  --fg-3:       #27272a;
+  --fg-4:       #3f3f46;
+  --fg-5:       #52525b;
+  --fg-6:       #71717a;
+  --border:     #e4e4e7;
+  --border-strong: #d4d4d8;
+}

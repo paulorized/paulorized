@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#09090b;color:#d4d4d8;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+.wrap{padding:20px;width:700px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:#71717a;margin-bottom:8px}
+.grid{display:grid;gap:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:500;border:1px solid transparent}
+.card{background:rgba(24,24,27,0.5);border:1px solid #27272a;border-radius:16px;padding:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:inherit}
+.mono{font-family:var(--font-mono);font-size:11px;color:#71717a}
+.sw{border-radius:12px;border:1px solid #27272a}
+img.terp{mix-blend-mode:screen}
+.wordmark{font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:-0.01em;font-size:24px;line-height:1}
+</style></head><body><div class="wrap">
+<div class="eyebrow">Toggle chips — selected vs idle</div>
+<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+  <button class="btn" style="padding:8px 16px;background:rgba(16,185,129,0.2);color:#6ee7b7;border-color:rgba(16,185,129,0.5);font-size:13px">👍 Yes</button>
+  <button class="btn" style="padding:8px 16px;background:#18181b;color:#a1a1aa;border-color:#3f3f46;font-size:13px">👎 No</button>
+</div>
+<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+  <button class="btn" style="padding:8px 16px;background:rgba(14,165,233,0.2);color:#7dd3fc;border-color:rgba(14,165,233,0.5);font-size:13px">🐢 Slow</button>
+  <button class="btn" style="padding:8px 16px;background:#18181b;color:#a1a1aa;border-color:#3f3f46;font-size:13px">👌 Medium</button>
+  <button class="btn" style="padding:8px 16px;background:#18181b;color:#a1a1aa;border-color:#3f3f46;font-size:13px">🔥 Fast</button>
+</div>
+<div style="margin-top:16px;display:flex;padding:4px;background:rgba(39,39,42,0.6);border-radius:12px;width:fit-content">
+  <button class="btn" style="padding:8px 16px;background:#3f3f46;color:#f4f4f5;border-radius:8px;font-size:13px;font-weight:600">Feed</button>
+  <button class="btn" style="padding:8px 16px;background:transparent;color:#71717a;border-radius:8px;font-size:13px;font-weight:600">Users</button>
+  <button class="btn" style="padding:8px 16px;background:transparent;color:#71717a;border-radius:8px;font-size:13px;font-weight:600">Following</button>
+</div></div></body></html>

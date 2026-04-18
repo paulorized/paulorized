@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Preview base</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg-4); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  .wrap { padding: 20px; min-height: 100vh; }
+  .eyebrow { font-family: var(--font-body); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--fg-6); }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .swatch { width: 64px; height: 64px; border-radius: 16px; border: 1px solid var(--border); }
+  .swatch-lbl { font-size: 11px; color: var(--fg-6); margin-top: 6px; font-family: var(--font-mono); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; padding: 4px 12px; font-size: 12px; font-weight: 500; border-width: 1px; border-style: solid; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; border: 1px solid transparent; cursor: pointer; }
+</style>
+</head><body><div class="wrap"></div></body></html>

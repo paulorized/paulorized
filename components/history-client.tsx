@@ -159,7 +159,7 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search strain, brand, dispensaryΓÇª"
+            placeholder="Search strain, brand, dispensary…"
             className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500/50 focus:outline-none"
           />
           <div className="flex items-center gap-2 shrink-0">
@@ -178,39 +178,46 @@ export function HistoryClient({ logs }: { logs: ProductLog[] }) {
               <option value="date_asc">Oldest first</option>
               <option value="thc_desc">Highest THC</option>
               <option value="thc_asc">Lowest THC</option>
-              <option value="name_asc">Name AΓÇôZ</option>
+              <option value="name_asc">Name A–Z</option>
             </select>
           </div>
         </div>
       )}
 
       {logs.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/50 py-20 text-center">
-          <div className="mb-3 text-4xl">≡ƒî┐</div>
-          <p className="font-medium text-zinc-300">Nothing scanned yet</p>
-          <p className="mt-1 text-sm text-zinc-500">Scan your first product to start tracking</p>
-          <Link href="/" className="mt-5 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/30 py-20 text-center px-6 gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-4xl">
+            🌿
+          </div>
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-zinc-200">Your log is empty</p>
+            <p className="text-sm text-zinc-500">Scan your first cannabis product label to start tracking your collection.</p>
+          </div>
+          <Link href="/" className="mt-1 rounded-xl bg-emerald-400 px-6 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-emerald-300 active:scale-95">
             Scan a product
           </Link>
         </div>
       )}
 
       {filtered.length === 0 && logs.length > 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/50 py-12 text-center">
-          <p className="text-sm text-zinc-500">No results found.</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900/40 py-14 text-center px-6 gap-3">
+          <div className="text-3xl">🔍</div>
+          <p className="text-sm font-medium text-zinc-400">No results match your filters</p>
           <button onClick={() => { setFilter('all'); setSearch(''); setReviewFilter('all'); }}
-            className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 transition">
-            Clear filters
+            className="rounded-xl border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-700 transition">
+            Clear all filters
           </button>
         </div>
       )}
 
       {filtered.length > 0 && (
         <div className="flex flex-col gap-3">
-          {filtered.map((log) => (
-            <HistoryRow key={log.id} log={log}
+          {filtered.map((log, i) => (
+            <div key={log.id} className="animate-fade-up" style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}>
+            <HistoryRow log={log}
               scanCount={scanCounts.get(((log.brand ?? '') + '__' + (log.strain_name ?? '') + '__' + (log.product_type ?? '')).toLowerCase()) ?? 1}
               />
+            </div>
           ))}
         </div>
       )}

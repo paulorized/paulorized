@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/components/toast';
+import { StrainDetailSkeleton } from '@/components/skeleton';
 
 interface StrainResult {
   strain_name: string;
@@ -27,6 +29,13 @@ const strainTypeBadge: Record<string, string> = {
   sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
   hybrid: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
   unknown: 'bg-zinc-700/50 text-zinc-400 border-zinc-600',
+};
+
+const strainTypeTheme: Record<string, { card: string; glow: string; accent: string }> = {
+  indica:  { card: 'border-purple-500/30',  glow: 'shadow-purple-500/10 shadow-xl', accent: 'bg-purple-500/5' },
+  sativa:  { card: 'border-yellow-400/30',  glow: 'shadow-yellow-400/10 shadow-xl', accent: 'bg-yellow-400/5' },
+  hybrid:  { card: 'border-emerald-500/30', glow: 'shadow-emerald-500/10 shadow-xl', accent: 'bg-emerald-500/5' },
+  unknown: { card: 'border-zinc-700',        glow: '',                                accent: '' },
 };
 
 export function StrainDetailClient({ result: initialResult, slug }: { result: StrainResult | null; slug?: string }) {
@@ -61,6 +70,7 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
   }, [slug, initialResult]);
 
   const router = useRouter();
+  const { toast } = useToast();
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
@@ -71,9 +81,11 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
       if (wishlisted) {
         await fetch('/api/wishlist', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ strain_name: result!.strain_name }) });
         setWishlisted(false);
+        toast(`${result!.strain_name} removed from wishlist`, 'info');
       } else {
         await fetch('/api/wishlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ strain_name: result!.strain_name, strain_type: result!.strain_type }) });
         setWishlisted(true);
+        toast(`${result!.strain_name} added to wishlist ✓`);
       }
     } finally {
       setWishlistLoading(false);
@@ -87,13 +99,7 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
   };
 
   if (loading) {
-    return (
-      <div className="mx-auto w-full max-w-2xl px-4 py-8">
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center text-zinc-500 text-sm">
-          Looking up strain info…
-        </div>
-      </div>
-    );
+    return <StrainDetailSkeleton />;
   }
 
   if (!result) {
@@ -106,12 +112,14 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
     );
   }
 
+  const theme = strainTypeTheme[(result.strain_type ?? 'unknown').toLowerCase()] ?? strainTypeTheme.unknown;
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <button onClick={() => router.back()} className="mb-4 text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1">
         ← Back to results
       </button>
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 divide-y divide-zinc-800">
+      <div className={`rounded-2xl border ${theme.card} ${theme.glow} ${theme.accent} bg-zinc-900/60 divide-y divide-zinc-800/60`}>
         <div className="px-6 py-5 flex items-start justify-between gap-3">
           <div>
             <h1 className="text-xl font-bold text-zinc-100">{result.strain_name}</h1>

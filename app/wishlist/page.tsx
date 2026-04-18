@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useToast } from '@/components/toast';
+import { WishlistCardSkeleton } from '@/components/skeleton';
 
 interface WishlistItem {
   id: string;
@@ -65,6 +67,7 @@ function StrainCard({ item, onRemove }: { item: WishlistItem; onRemove: (id: str
 }
 
 export default function WishlistPage() {
+  const { toast } = useToast();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,6 +102,7 @@ export default function WishlistPage() {
     });
     setItems(prev => prev.filter(i => i.id !== id));
     setRemoving(null);
+    toast(`${strain_name} removed from wishlist`, 'info');
   };
 
   const counts = { indica: 0, sativa: 0, hybrid: 0, unknown: 0 };
@@ -151,9 +155,7 @@ export default function WishlistPage() {
       {/* Loading */}
       {loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 animate-pulse h-48" />
-          ))}
+          {[1,2,3,4,5,6].map(i => <WishlistCardSkeleton key={i} />)}
         </div>
       )}
 
@@ -173,8 +175,11 @@ export default function WishlistPage() {
       {!loading && items.length > 0 && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {items.map(item => (
-              <div key={item.id} className={removing === item.id ? 'opacity-50 pointer-events-none' : ''}>
+            {items.map((item, i) => (
+              <div key={item.id}
+                className={`animate-scale-in ${removing === item.id ? 'opacity-50 pointer-events-none' : ''}`}
+                style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
+              >
                 <StrainCard item={item} onRemove={handleRemove} />
               </div>
             ))}
