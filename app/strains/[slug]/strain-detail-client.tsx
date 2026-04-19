@@ -86,6 +86,8 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
     return `${min ?? max}%`;
   };
 
+  if (!result) return null;
+
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
       <button onClick={() => router.back()} className="mb-4 text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1">
