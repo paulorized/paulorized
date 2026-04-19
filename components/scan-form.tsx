@@ -509,80 +509,84 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   // ── Choose mode screen ──
   if (mode === 'choose') {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <ScanHelpModal open={showHelp} onClose={() => setShowHelp(false)} allowSuppress={helpAutoShown} />
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="font-semibold text-zinc-100">How would you like to log?</h2>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[10px] text-zinc-600">
-                <svg width="9" height="11" viewBox="0 0 814 1000" fill="currentColor" className="opacity-50 shrink-0">
-                  <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-194.3 127.4-297.5 252.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
-                </svg>
-                iOS — coming soon
-              </span>
-              <button
-                type="button"
-                onClick={() => { setShowHelp(true); setHelpAutoShown(false); }}
-                aria-label="How to scan"
-                title="How to scan"
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-400 transition hover:border-emerald-500/50 hover:text-emerald-400"
-              >
-                ?
-              </button>
+
+        {/* Header row */}
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">How would you like to log?</p>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/60 px-2.5 py-1 text-[10px] text-zinc-600">
+              <svg width="9" height="11" viewBox="0 0 814 1000" fill="currentColor" className="opacity-40 shrink-0">
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-194.3 127.4-297.5 252.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z"/>
+              </svg>
+              iOS — coming soon
+            </span>
+            <button
+              type="button"
+              onClick={() => { setShowHelp(true); setHelpAutoShown(false); }}
+              aria-label="How to scan"
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-400 transition hover:border-emerald-500/50 hover:text-emerald-400"
+            >?</button>
+          </div>
+        </div>
+
+        {/* Hero — Scan with camera */}
+        <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
+          className="group w-full relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/10 via-zinc-900 to-zinc-900 p-6 text-left transition hover:border-amber-500/40 hover:from-amber-500/15 active:scale-[0.99]">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="rounded-full bg-amber-500/15 border border-amber-500/20 px-2 py-0.5 text-[10px] font-semibold text-amber-400 uppercase tracking-wide">Recommended</span>
+              </div>
+              <p className="text-lg font-bold text-zinc-100 leading-snug">Scan with camera</p>
+              <p className="mt-1.5 text-sm text-zinc-400 leading-relaxed">Point at the front, back &amp; potency label. Take multiple shots — nothing saves to your camera roll.</p>
+              <div className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-amber-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition group-hover:bg-amber-300">
+                <IconCamera size={15} />
+                Open camera
+              </div>
+            </div>
+            <div className="shrink-0 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-400/10 border border-amber-500/20">
+              <IconCamera size={32} className="text-amber-400" />
             </div>
           </div>
+        </button>
 
-          {/* Camera */}
-          <button type="button" onClick={() => { setMode('camera'); openCamera(); }}
-            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-yellow-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-yellow-400/10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-300">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-              </svg>
-            </span>
-            <div>
-              <p className="font-semibold text-zinc-100 text-sm">Scan with camera</p>
-              <p className="text-xs text-zinc-500 mt-0.5">Capture front, back &amp; potency label. Multiple shots welcome — nothing saves to your camera roll.</p>
-            </div>
-            <span className="ml-auto text-zinc-600 text-lg">›</span>
-          </button>
+        {/* Secondary row */}
+        <div className="grid grid-cols-2 gap-3">
 
-          {/* Upload photo */}
+          {/* Upload from photos */}
           <label className="cursor-pointer block">
             <input className="hidden" type="file" accept="image/*" multiple
               onChange={(e) => {
                 const selected = Array.from(e.target.files || []);
                 if (selected.length > 0) { setFiles(selected); setMode('upload'); }
               }} />
-            <div className="flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-emerald-500/40 hover:bg-zinc-800/60 active:scale-[0.99]">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
-                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                </svg>
-              </span>
-              <div>
-                <p className="font-semibold text-zinc-100 text-sm">Upload from photos</p>
-                <p className="text-xs text-zinc-500 mt-0.5">Already took pics? Pick them from your camera roll — all sides, THC%, strain, brand.</p>
+            <div className="group flex flex-col gap-3 rounded-2xl border border-zinc-700/60 bg-zinc-900/60 p-4 transition hover:border-emerald-500/30 hover:bg-zinc-900 active:scale-[0.98] h-full">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <IconScan size={20} className="text-emerald-400" />
               </div>
-              <span className="ml-auto text-zinc-600 text-lg">›</span>
+              <div>
+                <p className="font-semibold text-zinc-100 text-sm">Upload photos</p>
+                <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">Already took pics? Pick from your camera roll.</p>
+              </div>
+              <span className="mt-auto text-xs text-zinc-600 group-hover:text-emerald-500 transition">Choose files →</span>
             </div>
           </label>
 
           {/* Manual entry */}
           <button type="button" onClick={() => setMode('manual')}
-            className="w-full flex items-center gap-4 rounded-2xl border border-zinc-700 bg-zinc-900 px-5 py-4 transition hover:border-purple-500/40 hover:bg-zinc-800/60 active:scale-[0.99] text-left">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/15">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-            </span>
-            <div>
-              <p className="font-semibold text-zinc-100 text-sm">Search &amp; enter manually</p>
-              <p className="text-xs text-zinc-500 mt-0.5">AI pulls deep strain intel — type, THC/CBD range, bio, typical effects &amp; flavors — from Leafly + Claude. Just type a name.</p>
+            className="group flex flex-col gap-3 rounded-2xl border border-zinc-700/60 bg-zinc-900/60 p-4 transition hover:border-purple-500/30 hover:bg-zinc-900 active:scale-[0.98] text-left w-full">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <IconSearch size={20} className="text-purple-400" />
             </div>
-            <span className="ml-auto text-zinc-600 text-lg">›</span>
+            <div>
+              <p className="font-semibold text-zinc-100 text-sm">Search manually</p>
+              <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">AI pulls strain intel from Leafly + Claude.</p>
+            </div>
+            <span className="mt-auto text-xs text-zinc-600 group-hover:text-purple-400 transition">Type a name →</span>
           </button>
+
         </div>
       </div>
     );
