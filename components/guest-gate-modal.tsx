@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { IconLeaf } from '@/components/icons';
 
 type Props = {
   reason: 'limit' | 'save';
@@ -20,8 +21,8 @@ export function GuestGateModal({ reason, onClose }: Props) {
       <div className="relative w-full max-w-sm rounded-3xl border border-zinc-700 bg-zinc-900 p-6 space-y-5 shadow-2xl">
         {/* Icon */}
         <div className="flex justify-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-3xl">
-            🌿
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
+            <IconLeaf size={28} />
           </span>
         </div>
 

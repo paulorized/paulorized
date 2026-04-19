@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { IconSearch, IconLeaf } from '@/components/icons';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
 import { CommentSection } from '@/components/comment-thread';
+import { IconLeaf, IconPeople, IconSearch, IconTurtle, IconOkHand, IconFire, TierIcon } from '@/components/icons';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Tier { label: string; emoji: string; color: string; }
+interface Tier { label: string; emoji: string; icon?: string; color: string; }
 
 interface Terpene { name: string; percent: number | null; source?: string; }
 
@@ -49,7 +49,7 @@ interface UserCard {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
+const DEFAULT_TIER: Tier = { label: 'Seedling', emoji: '🌿', icon: 'seedling', color: 'text-zinc-400' };
 const strainColors: Record<string, string> = {
   indica: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
   sativa: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
@@ -180,7 +180,9 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
           <a href={`/u/${item.username}?from=feed`}>
             <Avatar username={item.username} userId={item.user_id} avatarUrl={item.avatar_url} size={10} />
           </a>
-          <span className="absolute -bottom-1 -right-1 text-sm leading-none" title={tier.label}>{tier.emoji}</span>
+          <span className="absolute -bottom-1 -right-1 leading-none" title={tier.label}>
+            {tier.icon ? <TierIcon name={tier.icon} size={16} /> : tier.emoji}
+          </span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -227,7 +229,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
           <Stars rating={item.rating} />
           {item.would_buy_again != null && (
             <span className={`text-xs font-medium ${item.would_buy_again ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {item.would_buy_again ? '✓ Would buy again' : '✗ Would not buy again'}
+              {item.would_buy_again ? '&#10003; Would buy again' : '&#10007; Would not buy again'}
             </span>
           )}
         </div>
@@ -277,7 +279,9 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
             {expanded ? 'Less' : 'Details'}
           </button>
         )}
-        <span className={`text-xs font-medium ${tier.color} ml-auto`}>{tier.emoji} {tier.label}</span>
+        <span className={`flex items-center gap-1 text-xs font-medium ${tier.color} ml-auto`}>
+          {tier.icon ? <TierIcon name={tier.icon} size={12} /> : tier.emoji} {tier.label}
+        </span>
         {item.is_mine && (
           <button onClick={async () => {
             if (!window.confirm('Delete your review?')) return;
@@ -323,8 +327,8 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
                 {item.burn_speed && (
                   <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
                     <p className="text-[10px] text-zinc-500 mb-1">Burn Speed</p>
-                    <p className="text-sm font-semibold text-zinc-200 capitalize">
-                      {item.burn_speed === 'slow' ? '🐢' : item.burn_speed === 'medium' ? '👌' : '🔥'} {item.burn_speed}
+                    <p className="text-sm font-semibold text-zinc-200 capitalize flex items-center gap-1 justify-center">
+                      {item.burn_speed === 'slow' ? <IconTurtle size={14} /> : item.burn_speed === 'medium' ? <IconOkHand size={14} /> : <IconFire size={14} />} {item.burn_speed}
                     </p>
                   </div>
                 )}
@@ -332,7 +336,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
                   <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
                     <p className="text-[10px] text-zinc-500 mb-1">Canoeing</p>
                     <p className={`text-sm font-semibold ${item.canoeing ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {item.canoeing ? '✗ Yes' : '✓ No'}
+                      {item.canoeing ? '&#10007; Yes' : '&#10003; No'}
                     </p>
                   </div>
                 )}
@@ -340,7 +344,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
                   <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
                     <p className="text-[10px] text-zinc-500 mb-1">Clogging</p>
                     <p className={`text-sm font-semibold ${item.clogging ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {item.clogging ? '✗ Yes' : '✓ No'}
+                      {item.clogging ? '&#10007; Yes' : '&#10003; No'}
                     </p>
                   </div>
                 )}
@@ -381,7 +385,9 @@ function UserRow({ user, fromTab }: { user: UserCard; fromTab: string }) {
       className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 hover:border-zinc-700 hover:bg-zinc-800/60 transition group">
       <div className="relative shrink-0">
         <Avatar username={user.username} userId={user.id} avatarUrl={user.avatar_url} size={11} />
-        <span className="absolute -bottom-1 -right-1 text-sm leading-none">{tier.emoji}</span>
+        <span className="absolute -bottom-1 -right-1 leading-none">
+          {tier.icon ? <TierIcon name={tier.icon} size={16} /> : tier.emoji}
+        </span>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -463,7 +469,7 @@ function UsersView() {
       )}
       {!loading && users.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
-          <div className="text-4xl mb-2">👥</div>
+          <div className="flex justify-center mb-2 text-zinc-500"><IconPeople size={36} /></div>
           <p className="text-sm text-zinc-400">No users found</p>
         </div>
       )}
@@ -522,7 +528,9 @@ function FollowingView() {
       )}
       {!loading && users.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center">
-          <div className="mb-2 flex justify-center">{tab === 'following' ? <IconSearch size={36} className="text-zinc-600" /> : <span className="text-4xl">👋</span>}</div>
+          <div className="flex justify-center mb-2 text-zinc-500">
+            {tab === 'following' ? <IconSearch size={36} /> : <IconPeople size={36} />}
+          </div>
           <p className="text-sm text-zinc-400">
             {tab === 'following' ? "You aren't following anyone yet" : "Nobody is following you yet"}
           </p>
@@ -630,13 +638,13 @@ function CommunityPageInner() {
             <p className="text-xs text-zinc-600">Your rank is based on helpful votes your reviews receive from the community.</p>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
               {[
-                { emoji: '🌿', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
-                { emoji: '🌱', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
-                { emoji: '🍃', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
-                { emoji: '🌳', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
+                { icon: 'seedling', label: 'Seedling', sub: '0+ votes', color: 'text-zinc-400' },
+                { icon: 'grower', label: 'Grower', sub: '5+ votes', color: 'text-lime-400' },
+                { icon: 'connoisseur', label: 'Connoisseur', sub: '20+ votes', color: 'text-emerald-400' },
+                { icon: 'legend', label: 'Legend', sub: '50+ votes', color: 'text-yellow-400' },
               ].map(t => (
-                <div key={t.label} className="flex items-center gap-1.5">
-                  <span>{t.emoji}</span>
+                <div key={t.label} className={`flex items-center gap-1.5 ${t.color}`}>
+                  <TierIcon name={t.icon} size={14} />
                   <span className={`text-xs font-semibold ${t.color}`}>{t.label}</span>
                   <span className="text-xs text-zinc-600">{t.sub}</span>
                 </div>
@@ -669,7 +677,7 @@ function CommunityPageInner() {
 
           {!loading && feed.length === 0 && !error && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center space-y-2">
-              <div className="flex justify-center text-zinc-600"><IconLeaf size={40} /></div>
+              <div className="flex justify-center text-emerald-400"><IconLeaf size={40} /></div>
               <p className="text-sm font-medium text-zinc-300">No reviews yet</p>
               <p className="text-sm text-zinc-500">Be the first — scan something and leave a review.</p>
             </div>

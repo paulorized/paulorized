@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { IconCamera, IconCheck } from '@/components/icons';
 
 type Props = {
   logId: string;
@@ -124,7 +125,7 @@ export function NugShot({ logId, initialUrl }: Props) {
       ) : (
         /* Upload prompt */
         <div className="flex flex-col gap-2">
-          <p className="text-xs text-yellow-400/80">Show off your bud to the community — your nugg-shot gets posted with your review. 📸</p>
+          <p className="text-xs text-yellow-400/80 flex items-center gap-1"><IconCamera size={11} /> Show off your bud to the community — your nugg-shot gets posted with your review.</p>
           <div className="flex gap-2">
             {/* Camera capture */}
             <button
@@ -188,7 +189,7 @@ export function NugShot({ logId, initialUrl }: Props) {
         </div>
       )}
       {uploading && url && <p className="text-xs text-emerald-400">Uploading…</p>}
-      {saved && <p className="text-xs text-emerald-400">✓ Photo saved — no review needed</p>}
+      {saved && <p className="text-xs text-emerald-400 flex items-center gap-1"><IconCheck size={11} /> Photo saved — no review needed</p>}
       {error && url && <p className="text-xs text-rose-400">{error}</p>}
 
       {/* Hidden file inputs */}
@@ -206,9 +207,9 @@ export function NugShot({ logId, initialUrl }: Props) {
           <button
             type="button"
             onClick={() => setLightbox(false)}
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 transition text-lg z-10"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 transition z-10"
           >
-            ✕
+            &#x2715;
           </button>
           <img
             src={url}

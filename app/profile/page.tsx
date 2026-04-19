@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
-import { IconPhone } from '@/components/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { TierIcon, IconPhone } from '@/components/icons';
 
 const US_STATES = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
@@ -78,7 +78,7 @@ function ProfilePage() {
   const [sex, setSex] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [hiddenFromDirectory, setHiddenFromDirectory] = useState(false);
-  const [tier, setTier] = useState<{ label: string; emoji: string; color: string } | null>(null);
+  const [tier, setTier] = useState<{ label: string; emoji: string; icon: string; color: string } | null>(null);
   const [dispensaries, setDispensaries] = useState<{ id: string; name: string }[]>([]);
   const [deletingDispId, setDeletingDispId] = useState<string | null>(null);
 
@@ -258,7 +258,7 @@ function ProfilePage() {
           </h1>
           {tier && (
             <div className="mt-1 flex items-center justify-center gap-1.5">
-              <span className="text-base">{tier.emoji}</span>
+              <TierIcon name={tier.icon} size={18} />
               <span className={`text-sm font-semibold ${tier.color}`}>{tier.label}</span>
             </div>
           )}
@@ -422,7 +422,7 @@ function ProfilePage() {
         onClick={() => (window as Window & { __pwaInstall?: () => void }).__pwaInstall?.()}
         className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left mt-4"
       >
-        <IconPhone size={22} className="text-zinc-400 shrink-0" />
+        <span className="text-zinc-400"><IconPhone size={24} /></span>
         <div>
           <p className="font-medium text-zinc-200 text-sm">Add to Home Screen</p>
           <p className="text-xs text-zinc-500 mt-0.5">Install CannaBaseAI as an app on your device</p>

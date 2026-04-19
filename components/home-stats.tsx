@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { IconIndica, IconSativa, IconHybrid } from '@/components/icons';
 
@@ -15,9 +15,9 @@ interface Stats {
 }
 
 const typeColors: Record<string, { bar: string; label: string; icon: React.ReactNode }> = {
-  indica: { bar: 'bg-purple-500', label: 'text-purple-300', icon: <IconIndica size={10} /> },
-  sativa: { bar: 'bg-yellow-400', label: 'text-yellow-300', icon: <IconSativa size={10} /> },
-  hybrid: { bar: 'bg-emerald-500', label: 'text-emerald-300', icon: <IconHybrid size={10} /> },
+  indica: { bar: 'bg-purple-500', label: 'text-purple-300', icon: <IconIndica size={11} /> },
+  sativa: { bar: 'bg-yellow-400', label: 'text-yellow-300', icon: <IconSativa size={11} /> },
+  hybrid: { bar: 'bg-emerald-500', label: 'text-emerald-300', icon: <IconHybrid size={11} /> },
 };
 
 export function HomeStats() {
@@ -78,7 +78,7 @@ export function HomeStats() {
         <div className="flex gap-3">
           {(['indica', 'sativa', 'hybrid'] as const).map(t => (
             typeCounts[t] > 0 && (
-              <span key={t} className={`text-[10px] ${typeColors[t].label} flex items-center gap-1`}>
+              <span key={t} className={`flex items-center gap-0.5 text-[10px] ${typeColors[t].label}`}>
                 {typeColors[t].icon} {typeCounts[t]} {t}
               </span>
             )

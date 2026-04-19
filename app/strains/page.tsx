@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { IconIndica, IconSativa, IconHybrid, IconLeaf, IconSearch } from '@/components/icons';
 import { incrementGuestScanCount, isGuestLimitReached } from '@/components/guest-banner';
 import { GuestGateModal } from '@/components/guest-gate-modal';
+import { IconIndica, IconSativa, IconHybrid, IconUnknown, IconLeaf } from '@/components/icons';
 
 interface StrainHit {
   slug: string;
@@ -20,17 +20,17 @@ interface StrainHit {
 }
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
-  indica:  <IconIndica size={14} />,
-  sativa:  <IconSativa size={14} />,
-  hybrid:  <IconHybrid size={14} />,
-  unknown: <IconLeaf size={14} />,
+  indica: <IconIndica size={18} />,
+  sativa: <IconSativa size={18} />,
+  hybrid: <IconHybrid size={18} />,
+  unknown: <IconUnknown size={18} />,
 };
 
-const typeConfig: Record<string, { label: string; color: string; bg: string; bar: string }> = {
-  indica:  { label: 'Indica',  color: 'text-purple-300', bg: 'bg-purple-500/10 border-purple-500/20', bar: 'bg-purple-500' },
-  sativa:  { label: 'Sativa',  color: 'text-yellow-300', bg: 'bg-yellow-500/10 border-yellow-500/20', bar: 'bg-yellow-400' },
-  hybrid:  { label: 'Hybrid',  color: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/20', bar: 'bg-emerald-500' },
-  unknown: { label: 'Unknown', color: 'text-zinc-400', bg: 'bg-zinc-800/50 border-zinc-700', bar: 'bg-zinc-600' },
+const typeConfig: Record<string, { label: string; color: string; bg: string; bar: string; icon: React.ReactNode }> = {
+  indica:  { label: 'Indica',  color: 'text-purple-300', bg: 'bg-purple-500/10 border-purple-500/20', bar: 'bg-purple-500', icon: TYPE_ICONS.indica },
+  sativa:  { label: 'Sativa',  color: 'text-yellow-300', bg: 'bg-yellow-500/10 border-yellow-500/20', bar: 'bg-yellow-400', icon: TYPE_ICONS.sativa },
+  hybrid:  { label: 'Hybrid',  color: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/20', bar: 'bg-emerald-500', icon: TYPE_ICONS.hybrid },
+  unknown: { label: 'Unknown', color: 'text-zinc-400', bg: 'bg-zinc-800/50 border-zinc-700', bar: 'bg-zinc-600', icon: TYPE_ICONS.unknown },
 };
 
 // THC bar — prominent visual range bar
@@ -83,7 +83,7 @@ function StrainCard({ strain }: { strain: StrainHit }) {
       {/* Top row: name + type badge */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={`leading-none ${type.color}`}>{TYPE_ICONS[strain.strain_type ?? 'unknown'] ?? TYPE_ICONS.unknown}</span>
+          <span className="text-lg leading-none">{type.icon}</span>
           <p className="text-sm font-bold text-zinc-100 leading-snug truncate">{strain.name}</p>
         </div>
         <span className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${type.color} ${type.bg}`}>
@@ -259,17 +259,17 @@ function StrainsInner() {
 
       {/* Empty state */}
       {!loading && query && results.length === 0 && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center flex flex-col items-center gap-2">
-          <IconSearch size={28} className="text-zinc-500" />
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
+          <div className="flex justify-center text-zinc-600 mb-2"><IconLeaf size={36} /></div>
           <p className="text-sm font-medium text-zinc-300">No strains found for &quot;{query}&quot;</p>
-          <p className="text-xs text-zinc-500">Try a different name or check the spelling.</p>
+          <p className="text-xs text-zinc-500 mt-1">Try a different name or check the spelling.</p>
         </div>
       )}
 
       {/* Initial empty state */}
       {!loading && !query && (
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center flex flex-col items-center gap-2">
-          <IconLeaf size={28} className="text-emerald-500/50" />
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
+          <div className="flex justify-center text-emerald-400/60 mb-2"><IconLeaf size={36} /></div>
           <p className="text-sm text-zinc-400">Type a strain name above to search.</p>
         </div>
       )}

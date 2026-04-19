@@ -3,10 +3,11 @@
 import { useState, useEffect, use } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FollowButton } from '@/components/follow-button';
+import { IconLeaf, TierIcon } from '@/components/icons';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Tier { label: string; emoji: string; color: string; }
+interface Tier { label: string; emoji: string; icon?: string; color: string; }
 
 interface ProfileData {
   id: string;
@@ -159,7 +160,7 @@ function ReviewCard({ review }: { review: Review }) {
           )}
           {review.would_buy_again != null && (
             <span className={`text-xs font-medium ${review.would_buy_again ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {review.would_buy_again ? '✓ Would buy again' : '✗ Would not buy again'}
+              {review.would_buy_again ? '&#10003; Would buy again' : '&#10007; Would not buy again'}
             </span>
           )}
         </div>
@@ -255,7 +256,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
   if (notFound || !profile) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-16 text-center space-y-3">
-        <div className="text-5xl">🌿</div>
+        <div className="flex justify-center text-emerald-400"><IconLeaf size={48} /></div>
         <h1 className="text-xl font-bold text-zinc-100">User not found</h1>
         <p className="text-sm text-zinc-500">@{username} doesn&apos;t exist or has a private profile.</p>
         <a href={backHref} className="inline-block mt-4 rounded-xl bg-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 hover:bg-emerald-300 transition">
@@ -265,7 +266,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
     );
   }
 
-  const tier = stats?.tier ?? { label: 'Seedling', emoji: '🌿', color: 'text-zinc-400' };
+  const tier = stats?.tier ?? { label: 'Seedling', emoji: '🌿', icon: 'seedling', color: 'text-zinc-400' };
   const bubbleColor = getBubbleColor(profile.id);
   const strainTypeEntries = Object.entries(stats?.strainTypeCounts ?? {}).filter(([,v]) => v > 0).sort(([,a],[,b]) => b - a);
   const strainTotal = strainTypeEntries.reduce((s,[,v]) => s + v, 0);
@@ -296,7 +297,9 @@ export default function UserProfilePage({ params }: { params: Promise<{ username
                 {profile.username.charAt(0).toUpperCase()}
               </div>
             )}
-            <span className="absolute -bottom-1 -right-1 text-xl leading-none" title={tier.label}>{tier.emoji}</span>
+            <span className="absolute -bottom-1 -right-1 leading-none" title={tier.label}>
+              {tier.icon ? <TierIcon name={tier.icon} size={18} /> : tier.emoji}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3 flex-wrap">

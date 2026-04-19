@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { IconTurtle, IconOkHand, IconFire, IconMuscle, IconBrain, IconSparkle, IconArrowUp, IconArrowDown, IconThumbsUp, IconThumbsDown } from '@/components/icons';
 
 const EFFECTS = ['Relaxed', 'Euphoric', 'Creative', 'Focused', 'Sleepy', 'Happy', 'Hungry', 'Energetic', 'Pain Relief', 'Anxious'];
 const FLAVORS = ['Earthy', 'Citrus', 'Pine', 'Sweet', 'Diesel', 'Floral', 'Berry', 'Spicy'];
@@ -191,27 +192,27 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
               {(['slow', 'medium', 'fast'] as const).map((speed) => (
                 <button key={speed} type="button" onClick={() => set('burn_speed', review.burn_speed === speed ? null : speed)}
                   className={`rounded-xl border px-4 py-2 text-sm font-medium capitalize transition ${review.burn_speed === speed ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                >{speed === 'slow' ? '🐢 Slow' : speed === 'medium' ? '👌 Medium' : '🔥 Fast'}</button>
+                ><span className="flex items-center gap-1.5 justify-center">{speed === 'slow' ? <IconTurtle size={14} /> : speed === 'medium' ? <IconOkHand size={14} /> : <IconFire size={14} />}{speed === 'slow' ? 'Slow' : speed === 'medium' ? 'Medium' : 'Fast'}</span></button>
               ))}
             </div>
           </div>
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it canoe?</p>
             <div className="flex gap-2">
-              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('canoeing', review.canoeing === value ? null : value)}
                   className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.canoeing === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                >{label}</button>
+                  dangerouslySetInnerHTML={{ __html: label }} />
               ))}
             </div>
           </div>
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
             <div className="flex gap-2">
-              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
                   className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                >{label}</button>
+                  dangerouslySetInnerHTML={{ __html: label }} />
               ))}
             </div>
           </div>
@@ -266,7 +267,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
               {['Body', 'Head', 'Both'].map(opt => (
                 <button key={opt} type="button" onClick={() => set('edible_effect_type', review.edible_effect_type === opt ? null : opt)}
                   className={`flex-1 rounded-xl border px-3 py-2 text-sm font-medium transition ${review.edible_effect_type === opt ? 'border-purple-500/50 bg-purple-500/20 text-purple-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'}`}
-                >{opt === 'Body' ? '💪 Body' : opt === 'Head' ? '🧠 Head' : '✨ Both'}</button>
+                ><span className="flex items-center gap-1.5 justify-center">{opt === 'Body' ? <IconMuscle size={14} /> : opt === 'Head' ? <IconBrain size={14} /> : <IconSparkle size={14} />}{opt}</span></button>
               ))}
             </div>
           </div>
@@ -292,10 +293,14 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Would you take the same dose again?</p>
             <div className="flex gap-2">
-              {[{ value: 'same', label: '👌 Same dose' }, { value: 'lower', label: '⬇️ Go lower' }, { value: 'higher', label: '⬆️ Go higher' }].map(opt => (
+              {[
+                { value: 'same', icon: <IconOkHand size={13} />, label: 'Same dose' },
+                { value: 'lower', icon: <IconArrowDown size={13} />, label: 'Go lower' },
+                { value: 'higher', icon: <IconArrowUp size={13} />, label: 'Go higher' },
+              ].map(opt => (
                 <button key={opt.value} type="button" onClick={() => set('edible_dose_feedback', review.edible_dose_feedback === opt.value ? null : opt.value)}
                   className={`flex-1 rounded-xl border px-2 py-2 text-xs font-medium transition ${review.edible_dose_feedback === opt.value ? 'border-purple-500/50 bg-purple-500/20 text-purple-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'}`}
-                >{opt.label}</button>
+                ><span className="flex items-center gap-1 justify-center">{opt.icon}{opt.label}</span></button>
               ))}
             </div>
           </div>
@@ -309,10 +314,10 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
             <div className="flex gap-2">
-              {[{ label: '✅ Yes', value: true }, { label: '❌ No', value: false }].map(({ label, value }) => (
+              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
                   className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                >{label}</button>
+                  dangerouslySetInnerHTML={{ __html: label }} />
               ))}
             </div>
           </div>
@@ -323,10 +328,13 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
       <div>
         <p className="mb-2 text-sm font-medium text-zinc-200">Would buy again?</p>
         <div className="flex gap-2">
-          {[{ label: '👍 Yes', value: true }, { label: '👎 No', value: false }].map(({ label, value }) => (
+          {[
+            { icon: <IconThumbsUp size={14} />, label: 'Yes', value: true },
+            { icon: <IconThumbsDown size={14} />, label: 'No', value: false },
+          ].map(({ icon, label, value }) => (
             <button key={label} type="button" onClick={() => set('would_buy_again', value)}
               className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.would_buy_again === value ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-            >{label}</button>
+            ><span className="flex items-center gap-1.5 justify-center">{icon}{label}</span></button>
           ))}
         </div>
       </div>
@@ -349,7 +357,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           {error && <span className="text-sm text-rose-400">{error}</span>}
           {review.rating === 0 && !saved && <span className="text-xs text-zinc-500">Add a star rating to save</span>}
         </div>
-        {!saved && <p className="text-xs text-emerald-400/70">Reviews with notes can be marked helpful by the community — helpful votes level up your rank 🌿→🌳</p>}
+        {!saved && <p className="text-xs text-emerald-400/70">Reviews with notes can be marked helpful by the community — helpful votes level up your rank.</p>}
       </div>
     </div>
   );

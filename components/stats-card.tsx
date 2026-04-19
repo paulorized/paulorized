@@ -129,7 +129,7 @@ export function StatsCard({
     ctx.font = 'bold 20px Montserrat, system-ui'; ctx.textAlign = 'center';
     ctx.fillStyle = '#f4f4f5'; ctx.fillText(`@${username}`, W/2, 128);
     ctx.font = '700 9px system-ui'; ctx.fillStyle = '#34d399';
-    ctx.fillText('MY CANNABIS BRAG SHEET 🌿', W/2, 142);
+    ctx.fillText('MY CANNABIS BRAG SHEET ✦', W/2, 142);
 
     // divider
     ctx.strokeStyle = 'rgba(52,211,153,0.2)'; ctx.lineWidth = 1;
@@ -201,7 +201,7 @@ export function StatsCard({
       ctx.strokeStyle='rgba(52,211,153,0.3)'; ctx.lineWidth=1; rr(ctx,PAD,Y,W-PAD*2,BH,10); ctx.stroke();
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.font='9px system-ui'; ctx.fillStyle='#71717a';
-      ctx.fillText('🏆  FAVORITE BRAND', W/2, Y+12);
+      ctx.fillText('★  FAVORITE BRAND', W/2, Y+12);
       ctx.font='bold 14px system-ui'; ctx.fillStyle='#f4f4f5';
       ctx.fillText(topBrand.toUpperCase(), W/2, Y+BH-10);
       Y += BH + 10; ctx.textBaseline='alphabetic';

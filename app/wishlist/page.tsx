@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useToast } from '@/components/toast';
-import { WishlistCardSkeleton } from '@/components/skeleton';
-import { IconIndica, IconSativa, IconHybrid, IconLeaf } from '@/components/icons';
+import { IconIndica, IconSativa, IconHybrid, IconUnknown } from '@/components/icons';
 
 interface WishlistItem {
   id: string;
@@ -20,24 +18,24 @@ const typeColors: Record<string, { bg: string; border: string; text: string; glo
   unknown: { bg: 'bg-zinc-800/60', border: 'border-zinc-600/40', text: 'text-zinc-400', glow: 'shadow-zinc-500/10' },
 };
 
-const typeIconComponents: Record<string, React.ReactNode> = {
-  indica:  <IconIndica size={22} />,
-  sativa:  <IconSativa size={22} />,
-  hybrid:  <IconHybrid size={22} />,
-  unknown: <IconLeaf size={22} />,
+const typeIcons: Record<string, React.ReactNode> = {
+  indica: <IconIndica size={22} />,
+  sativa: <IconSativa size={22} />,
+  hybrid: <IconHybrid size={22} />,
+  unknown: <IconUnknown size={22} />,
 };
 
 function StrainCard({ item, onRemove }: { item: WishlistItem; onRemove: (id: string, name: string) => void }) {
   const type = (item.strain_type ?? 'unknown').toLowerCase();
   const colors = typeColors[type] ?? typeColors.unknown;
-  const icon = typeIconComponents[type] ?? typeIconComponents.unknown;
+  const icon = typeIcons[type] ?? <IconUnknown size={22} />;
   const num = parseInt(item.id.replace(/-/g, '').slice(0, 4), 16) % 999 + 1;
   const dexNum = String(num).padStart(3, '0');
 
   return (
     <div className={`relative rounded-2xl border ${colors.border} ${colors.bg} shadow-lg p-4 flex flex-col gap-3 transition hover:scale-[1.02]`}>
       <span className="absolute top-3 right-3 text-xs font-mono text-zinc-600">#{dexNum}</span>
-      <div className={`w-14 h-14 rounded-full border-2 ${colors.border} flex items-center justify-center ${colors.text} bg-zinc-900/60 mx-auto shadow-inner`}>
+      <div className={`w-14 h-14 rounded-full border-2 ${colors.border} flex items-center justify-center text-2xl bg-zinc-900/60 mx-auto shadow-inner`}>
         {icon}
       </div>
       <div className="text-center">
@@ -68,7 +66,6 @@ function StrainCard({ item, onRemove }: { item: WishlistItem; onRemove: (id: str
 }
 
 export default function WishlistPage() {
-  const { toast } = useToast();
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -103,7 +100,6 @@ export default function WishlistPage() {
     });
     setItems(prev => prev.filter(i => i.id !== id));
     setRemoving(null);
-    toast(`${strain_name} removed from wishlist`, 'info');
   };
 
   const counts = { indica: 0, sativa: 0, hybrid: 0, unknown: 0 };
@@ -118,7 +114,7 @@ export default function WishlistPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-1">
-          <IconLeaf size={28} className="text-emerald-400" />
+          <span className="text-3xl">📕</span>
           <h1 className="text-2xl font-bold text-zinc-100">Strain Wishlist</h1>
         </div>
         <p className="text-sm text-zinc-500">Strains you want to try. Gotta catch &apos;em all.</p>
@@ -145,10 +141,10 @@ export default function WishlistPage() {
             {counts.unknown > 0 && <div className="bg-zinc-500 transition-all" style={{ width: (counts.unknown / items.length * 100) + '%' }} />}
           </div>
           <div className="flex gap-4 mt-3 flex-wrap">
-            {counts.indica > 0 && <span className="flex items-center gap-1 text-xs text-purple-400"><IconIndica size={12} /> {counts.indica} Indica</span>}
-            {counts.sativa > 0 && <span className="flex items-center gap-1 text-xs text-yellow-400"><IconSativa size={12} /> {counts.sativa} Sativa</span>}
-            {counts.hybrid > 0 && <span className="flex items-center gap-1 text-xs text-emerald-400"><IconHybrid size={12} /> {counts.hybrid} Hybrid</span>}
-            {counts.unknown > 0 && <span className="flex items-center gap-1 text-xs text-zinc-500"><IconLeaf size={12} /> {counts.unknown} Unknown</span>}
+            {counts.indica > 0 && <span className="flex items-center gap-1 text-xs text-purple-400"><IconIndica size={11} /> {counts.indica} Indica</span>}
+            {counts.sativa > 0 && <span className="flex items-center gap-1 text-xs text-yellow-400"><IconSativa size={11} /> {counts.sativa} Sativa</span>}
+            {counts.hybrid > 0 && <span className="flex items-center gap-1 text-xs text-emerald-400"><IconHybrid size={11} /> {counts.hybrid} Hybrid</span>}
+            {counts.unknown > 0 && <span className="flex items-center gap-1 text-xs text-zinc-500"><IconUnknown size={11} /> {counts.unknown} Unknown</span>}
           </div>
         </div>
       )}
@@ -156,15 +152,17 @@ export default function WishlistPage() {
       {/* Loading */}
       {loading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {[1,2,3,4,5,6].map(i => <WishlistCardSkeleton key={i} />)}
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 animate-pulse h-48" />
+          ))}
         </div>
       )}
 
       {/* Empty state */}
       {!loading && !error && items.length === 0 && (
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center space-y-3">
-          <IconLeaf size={40} className="text-emerald-500/40" />
-          <p className="text-base font-semibold text-zinc-300">Your wishlist is empty</p>
+          <div className="text-5xl">📖</div>
+          <p className="text-base font-semibold text-zinc-300">Your Pokédex is empty</p>
           <p className="text-sm text-zinc-500">Search for a strain and hit <span className="text-amber-400 font-semibold">Add to Wishlist</span> to start your collection.</p>
           <Link href="/strain-search" className="mt-2 inline-block rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
             Search Strains
@@ -176,11 +174,8 @@ export default function WishlistPage() {
       {!loading && items.length > 0 && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {items.map((item, i) => (
-              <div key={item.id}
-                className={`animate-scale-in ${removing === item.id ? 'opacity-50 pointer-events-none' : ''}`}
-                style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
-              >
+            {items.map(item => (
+              <div key={item.id} className={removing === item.id ? 'opacity-50 pointer-events-none' : ''}>
                 <StrainCard item={item} onRemove={handleRemove} />
               </div>
             ))}

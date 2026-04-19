@@ -140,7 +140,7 @@ export function CommunityPreview() {
                     <span key={e} className="rounded-full border border-zinc-700/60 text-zinc-500 text-[10px] px-2 py-0.5">{e}</span>
                   ))}
                   {item.would_buy_again && (
-                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5">✓ Would buy again</span>
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5">&#10003; Would buy again</span>
                   )}
                 </div>
               )}

@@ -1,10 +1,8 @@
-// components/icons.tsx — CannaBaseAI complete icon set.
-// Stroke-based, currentColor, 1.5px strokeWidth, viewBox 0 0 24 24.
-// Each icon accepts { size?: number, ...SVGProps }.
+// icons.tsx — CannaBaseAI unified icon set
+// All icons: stroke-based, currentColor, 1.5px strokeWidth, viewBox 0 0 24 24
+// Usage: <IconName size={16} className="text-emerald-400" />
 
-import React, { SVGProps } from 'react';
-
-type IconProps = { size?: number } & SVGProps<SVGSVGElement>;
+import type { SVGProps } from 'react';
 
 const _base = (size = 16, rest: SVGProps<SVGSVGElement>) => ({
   xmlns: 'http://www.w3.org/2000/svg',
@@ -19,13 +17,13 @@ const _base = (size = 16, rest: SVGProps<SVGSVGElement>) => ({
   ...rest,
 });
 
-// ── STRAIN TYPES ─────────────────────────────────────────────────────────────
+// ── Strain Types ─────────────────────────────────────────────────────────────
 
-export function IconIndica({ size = 16, ...rest }: IconProps) {
+export function IconIndica({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return <svg {..._base(size, rest)}><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" /></svg>;
 }
 
-export function IconSativa({ size = 16, ...rest }: IconProps) {
+export function IconSativa({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <circle cx="12" cy="12" r="4" />
@@ -34,7 +32,7 @@ export function IconSativa({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconHybrid({ size = 16, ...rest }: IconProps) {
+export function IconHybrid({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M7 3c0 3.5 10 6.5 10 10S7 17.5 7 21" />
@@ -44,7 +42,7 @@ export function IconHybrid({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconUnknown({ size = 16, ...rest }: IconProps) {
+export function IconUnknown({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <circle cx="12" cy="12" r="9" />
@@ -54,9 +52,9 @@ export function IconUnknown({ size = 16, ...rest }: IconProps) {
   );
 }
 
-// ── CONSUMPTION METHODS ───────────────────────────────────────────────────────
+// ── Consumption ───────────────────────────────────────────────────────────────
 
-export function IconJoint({ size = 16, ...rest }: IconProps) {
+export function IconJoint({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M3 16l12-5 4 1.5-12 5z" />
@@ -67,7 +65,7 @@ export function IconJoint({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconKingSize({ size = 16, ...rest }: IconProps) {
+export function IconKingSize({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M2 17l15-6 4 1.5-15 6z" />
@@ -78,7 +76,7 @@ export function IconKingSize({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconBlunt({ size = 16, ...rest }: IconProps) {
+export function IconBlunt({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M3 13.5c1-2 4-3 9-3s7 .5 9 1.5-2 2.5-9 2.5-9-1-9-1z" />
@@ -89,10 +87,11 @@ export function IconBlunt({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconBong({ size = 16, ...rest }: IconProps) {
+export function IconBong({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M9 3h3" /><path d="M10.5 3v5" />
+      <path d="M9 3h3" />
+      <path d="M10.5 3v5" />
       <path d="M8 8h5l-0.3 3" />
       <path d="M12.7 11a6 6 0 1 1-5.4 0" />
       <path d="M13 12l3-1.5.5 2-2.8 1.2" />
@@ -100,7 +99,7 @@ export function IconBong({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconBowl({ size = 16, ...rest }: IconProps) {
+export function IconBowl({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M3 14h10" />
@@ -111,7 +110,7 @@ export function IconBowl({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconVape({ size = 16, ...rest }: IconProps) {
+export function IconVape({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M4 10h2v4H4z" />
@@ -122,7 +121,7 @@ export function IconVape({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconEdible({ size = 16, ...rest }: IconProps) {
+export function IconEdible({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-4-4 4 4 0 0 1-5-5z" />
@@ -134,7 +133,7 @@ export function IconEdible({ size = 16, ...rest }: IconProps) {
   );
 }
 
-export function IconBrownie({ size = 16, ...rest }: IconProps) {
+export function IconBrownie({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M4 6h12.5a3.5 3.5 0 0 1-3.5 3.5A3.5 3.5 0 0 1 16.5 13V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z" />
@@ -142,17 +141,23 @@ export function IconBrownie({ size = 16, ...rest }: IconProps) {
       <path d="M7 10v2" />
       <circle cx="10" cy="14" r="0.6" fill="currentColor" stroke="none" />
       <circle cx="13" cy="17" r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="7"  cy="16" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="7" cy="16" r="0.6" fill="currentColor" stroke="none" />
     </svg>
   );
 }
 
-// ── UI ICONS ─────────────────────────────────────────────────────────────────
+// ── UI ────────────────────────────────────────────────────────────────────────
 
-export function IconSearch({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></svg>;
+export function IconSearch({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M20 20l-4.2-4.2" />
+    </svg>
+  );
 }
-export function IconWarning({ size = 16, ...rest }: IconProps) {
+
+export function IconWarning({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 3.5L21.5 20H2.5z" />
@@ -161,13 +166,16 @@ export function IconWarning({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconCheck({ size = 16, ...rest }: IconProps) {
+
+export function IconCheck({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return <svg {..._base(size, rest)}><path d="M4.5 12.5l4.5 4.5L19.5 6.5" /></svg>;
 }
-export function IconClose({ size = 16, ...rest }: IconProps) {
+
+export function IconClose({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return <svg {..._base(size, rest)}><path d="M5.5 5.5l13 13M18.5 5.5l-13 13" /></svg>;
 }
-export function IconLeaf({ size = 16, ...rest }: IconProps) {
+
+export function IconLeaf({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 21v-6" />
@@ -180,17 +188,19 @@ export function IconLeaf({ size = 16, ...rest }: IconProps) {
   );
 }
 
-// ── ACTIONS ───────────────────────────────────────────────────────────────────
+// ── Actions ───────────────────────────────────────────────────────────────────
 
-export function IconSave({ size = 16, ...rest }: IconProps) {
+export function IconSave({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M12 3v11" /><path d="M7 10l5 5 5-5" />
+      <path d="M12 3v11" />
+      <path d="M7 10l5 5 5-5" />
       <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
     </svg>
   );
 }
-export function IconCamera({ size = 16, ...rest }: IconProps) {
+
+export function IconCamera({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M3 8a2 2 0 0 1 2-2h2l1.5-2h7L17 6h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -198,19 +208,29 @@ export function IconCamera({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconScan({ size = 16, ...rest }: IconProps) {
+
+export function IconScan({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M4 8V6a2 2 0 0 1 2-2h2" /><path d="M20 8V6a2 2 0 0 0-2-2h-2" />
-      <path d="M4 16v2a2 2 0 0 0 2 2h2" /><path d="M20 16v2a2 2 0 0 1-2 2h-2" />
+      <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+      <path d="M20 8V6a2 2 0 0 0-2-2h-2" />
+      <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+      <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
       <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
-export function IconRefresh({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M20 12a8 8 0 1 1-2.9-6.2" /><path d="M20 4v4h-4" /></svg>;
+
+export function IconRefresh({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M20 12a8 8 0 1 1-2.9-6.2" />
+      <path d="M20 4v4h-4" />
+    </svg>
+  );
 }
-export function IconPin({ size = 16, ...rest }: IconProps) {
+
+export function IconPin({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 22s7-6.5 7-12a7 7 0 0 0-14 0c0 5.5 7 12 7 12z" />
@@ -218,25 +238,33 @@ export function IconPin({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconScale({ size = 16, ...rest }: IconProps) {
+
+export function IconScale({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M12 4v16" /><path d="M6 20h12" /><path d="M6 8h12" />
+      <path d="M12 4v16" />
+      <path d="M6 20h12" />
+      <path d="M6 8h12" />
       <path d="M3 12l3-6 3 6a3 3 0 0 1-6 0z" />
       <path d="M15 12l3-6 3 6a3 3 0 0 1-6 0z" />
     </svg>
   );
 }
-export function IconTrophy({ size = 16, ...rest }: IconProps) {
+
+export function IconTrophy({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M7 4h10v5a5 5 0 0 1-10 0z" />
-      <path d="M7 6H4v1a3 3 0 0 0 3 3" /><path d="M17 6h3v1a3 3 0 0 1-3 3" />
-      <path d="M12 14v3" /><path d="M8 20h8" /><path d="M9 17h6v3H9z" />
+      <path d="M7 6H4v1a3 3 0 0 0 3 3" />
+      <path d="M17 6h3v1a3 3 0 0 1-3 3" />
+      <path d="M12 14v3" />
+      <path d="M8 20h8" />
+      <path d="M9 17h6v3H9z" />
     </svg>
   );
 }
-export function IconTag({ size = 16, ...rest }: IconProps) {
+
+export function IconTag({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M20.6 12.6l-8 8a2 2 0 0 1-2.8 0L3 13.8V4h9.8l7.8 7.8a2 2 0 0 1 0 2.8z" />
@@ -244,7 +272,8 @@ export function IconTag({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconSparkle({ size = 16, ...rest }: IconProps) {
+
+export function IconSparkle({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 3l1.8 6.2L20 11l-6.2 1.8L12 19l-1.8-6.2L4 11l6.2-1.8z" />
@@ -252,35 +281,49 @@ export function IconSparkle({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconLightbulb({ size = 16, ...rest }: IconProps) {
+
+export function IconLightbulb({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M9 18h6" /><path d="M10 21h4" />
+      <path d="M9 18h6" />
+      <path d="M10 21h4" />
       <path d="M12 3a6 6 0 0 0-4 10.5c.8.8 1.5 1.6 1.5 2.5V17h5v-1c0-.9.7-1.7 1.5-2.5A6 6 0 0 0 12 3z" />
     </svg>
   );
 }
-export function IconGlobe({ size = 16, ...rest }: IconProps) {
+
+export function IconGlobe({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <circle cx="12" cy="12" r="9" />
-      <path d="M3 12h18" /><path d="M12 3a13 13 0 0 1 0 18" /><path d="M12 3a13 13 0 0 0 0 18" />
+      <path d="M3 12h18" />
+      <path d="M12 3a13 13 0 0 1 0 18" />
+      <path d="M12 3a13 13 0 0 0 0 18" />
     </svg>
   );
 }
-export function IconHourglass({ size = 16, ...rest }: IconProps) {
+
+export function IconHourglass({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M6 3h12" /><path d="M6 21h12" />
+      <path d="M6 3h12" />
+      <path d="M6 21h12" />
       <path d="M7 3v3c0 3 5 4 5 6s-5 3-5 6v3" />
       <path d="M17 3v3c0 3-5 4-5 6s5 3 5 6v3" />
     </svg>
   );
 }
-export function IconMail({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>;
+
+export function IconMail({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </svg>
+  );
 }
-export function IconLink({ size = 16, ...rest }: IconProps) {
+
+export function IconLink({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M10 13.5a4 4 0 0 0 5.6 0l2.5-2.5a4 4 0 1 0-5.6-5.6l-1 1" />
@@ -288,43 +331,70 @@ export function IconLink({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconPhone({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>;
-}
-export function IconFloppy({ size = 16, ...rest }: IconProps) {
+
+export function IconPhone({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M4 4h12l4 4v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
-      <path d="M7 4v5h8V4" /><rect x="7" y="13" width="10" height="6" rx="0.5" />
+      <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />
     </svg>
   );
 }
-export function IconEdit({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M15.5 3.5l5 5L8 21H3v-5z" /><path d="M13 6l5 5" /></svg>;
+
+export function IconFloppy({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M4 4h12l4 4v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />
+      <path d="M7 4v5h8V4" />
+      <rect x="7" y="13" width="10" height="6" rx="0.5" />
+    </svg>
+  );
 }
-export function IconComment({ size = 16, ...rest }: IconProps) {
+
+export function IconEdit({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M15.5 3.5l5 5L8 21H3v-5z" />
+      <path d="M13 6l5 5" />
+    </svg>
+  );
+}
+
+export function IconComment({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-9l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" />
       <circle cx="8.5" cy="11" r="0.7" fill="currentColor" stroke="none" />
-      <circle cx="12"  cy="11" r="0.7" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="11" r="0.7" fill="currentColor" stroke="none" />
       <circle cx="15.5" cy="11" r="0.7" fill="currentColor" stroke="none" />
     </svg>
   );
 }
-export function IconBookmark({ size = 16, ...rest }: IconProps) {
+
+export function IconBookmark({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return <svg {..._base(size, rest)}><path d="M6 3h12v18l-6-4-6 4z" /></svg>;
 }
-export function IconStar({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)} fill="currentColor"><path d="M12 3l2.8 6 6.4.6-4.8 4.4 1.4 6.4L12 17.5 6.2 20.4l1.4-6.4L2.8 9.6 9.2 9z" /></svg>;
+
+export function IconStar({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)} fill="currentColor" stroke="currentColor">
+      <path d="M12 3l2.8 6 6.4.6-4.8 4.4 1.4 6.4L12 17.5 6.2 20.4l1.4-6.4L2.8 9.6 9.2 9z" />
+    </svg>
+  );
 }
-export function IconStarOutline({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M12 3l2.8 6 6.4.6-4.8 4.4 1.4 6.4L12 17.5 6.2 20.4l1.4-6.4L2.8 9.6 9.2 9z" /></svg>;
-}
-export function IconCrown({ size = 16, ...rest }: IconProps) {
+
+export function IconStarOutline({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M3 8l3 9h12l3-9-4.5 3L12 5 7.5 11z" /><path d="M5 20h14" />
+      <path d="M12 3l2.8 6 6.4.6-4.8 4.4 1.4 6.4L12 17.5 6.2 20.4l1.4-6.4L2.8 9.6 9.2 9z" />
+    </svg>
+  );
+}
+
+export function IconCrown({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M3 8l3 9h12l3-9-4.5 3L12 5 7.5 11z" />
+      <path d="M5 20h14" />
       <circle cx="3" cy="8" r="0.8" fill="currentColor" stroke="none" />
       <circle cx="21" cy="8" r="0.8" fill="currentColor" stroke="none" />
       <circle cx="12" cy="5" r="0.8" fill="currentColor" stroke="none" />
@@ -332,9 +402,9 @@ export function IconCrown({ size = 16, ...rest }: IconProps) {
   );
 }
 
-// ── STATUS & FEEDBACK ─────────────────────────────────────────────────────────
+// ── Status / Gestures ─────────────────────────────────────────────────────────
 
-export function IconThumbsUp({ size = 16, ...rest }: IconProps) {
+export function IconThumbsUp({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M7 11v9h-3a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z" />
@@ -342,7 +412,8 @@ export function IconThumbsUp({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconThumbsDown({ size = 16, ...rest }: IconProps) {
+
+export function IconThumbsDown({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M7 13V4h-3a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1z" />
@@ -350,7 +421,8 @@ export function IconThumbsDown({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconFire({ size = 16, ...rest }: IconProps) {
+
+export function IconFire({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 3c0 3-3 4-3 7 0 1.5 1 2.5 2 3-.5-1.5 1-3 2-3 0 2 3 2.5 3 5.5a6 6 0 0 1-12 0c0-5 5-5 5-12.5z" />
@@ -358,7 +430,8 @@ export function IconFire({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconTurtle({ size = 16, ...rest }: IconProps) {
+
+export function IconTurtle({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <ellipse cx="12" cy="12" rx="6" ry="5" />
@@ -369,7 +442,8 @@ export function IconTurtle({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconBrain({ size = 16, ...rest }: IconProps) {
+
+export function IconBrain({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 5a3 3 0 0 0-3 3 2.5 2.5 0 0 0-3 3c0 1 .5 2 1.5 2.5A3 3 0 0 0 9 18a3 3 0 0 0 3 2" />
@@ -379,7 +453,8 @@ export function IconBrain({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconMuscle({ size = 16, ...rest }: IconProps) {
+
+export function IconMuscle({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M3 18c0-4 3-7 8-7" />
@@ -389,7 +464,8 @@ export function IconMuscle({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconOkHand({ size = 16, ...rest }: IconProps) {
+
+export function IconOkHand({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <circle cx="9" cy="10" r="3" />
@@ -400,13 +476,26 @@ export function IconOkHand({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconArrowUp({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M12 20V4" /><path d="M5 11l7-7 7 7" /></svg>;
+
+export function IconArrowUp({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M12 20V4" />
+      <path d="M5 11l7-7 7 7" />
+    </svg>
+  );
 }
-export function IconArrowDown({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M12 4v16" /><path d="M5 13l7 7 7-7" /></svg>;
+
+export function IconArrowDown({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M12 4v16" />
+      <path d="M5 13l7 7 7-7" />
+    </svg>
+  );
 }
-export function IconPinch({ size = 16, ...rest }: IconProps) {
+
+export function IconPinch({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M9 12c-1-1-1-2 0-3l3-3c1-1 2-1 3 0s1 2 0 3l-2 2" />
@@ -416,7 +505,8 @@ export function IconPinch({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconWave({ size = 16, ...rest }: IconProps) {
+
+export function IconWave({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M8 20a5 5 0 0 1-3-4.5V9a1.5 1.5 0 0 1 3 0v3" />
@@ -427,7 +517,8 @@ export function IconWave({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconPointUp({ size = 16, ...rest }: IconProps) {
+
+export function IconPointUp({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M10 20v-8V4a1.5 1.5 0 0 1 3 0v8" />
@@ -436,7 +527,8 @@ export function IconPointUp({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconFolded({ size = 16, ...rest }: IconProps) {
+
+export function IconFolded({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 4v16" />
@@ -445,29 +537,40 @@ export function IconFolded({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconHandshake({ size = 16, ...rest }: IconProps) {
+
+export function IconHandshake({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
-      <path d="M2 11l4-3 4 2 2 2" /><path d="M22 11l-4-3-4 2-2 2" />
-      <path d="M8 14l2 2a2 2 0 0 0 3 0l3-3 2 2" /><path d="M14 11l-3 3" />
-    </svg>
-  );
-}
-export function IconHeart({ size = 16, ...rest }: IconProps) {
-  return <svg {..._base(size, rest)}><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" /></svg>;
-}
-export function IconPeople({ size = 16, ...rest }: IconProps) {
-  return (
-    <svg {..._base(size, rest)}>
-      <circle cx="9" cy="8" r="3" /><path d="M3 20v-1a5 5 0 0 1 10 0v1" />
-      <circle cx="16" cy="9" r="2.5" /><path d="M14 14.5a4 4 0 0 1 7 3.5V19" />
+      <path d="M2 11l4-3 4 2 2 2" />
+      <path d="M22 11l-4-3-4 2-2 2" />
+      <path d="M8 14l2 2a2 2 0 0 0 3 0l3-3 2 2" />
+      <path d="M14 11l-3 3" />
     </svg>
   );
 }
 
-// ── TIERS ─────────────────────────────────────────────────────────────────────
+export function IconHeart({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z" />
+    </svg>
+  );
+}
 
-export function IconSeedling({ size = 16, ...rest }: IconProps) {
+export function IconPeople({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg {..._base(size, rest)}>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3 20v-1a5 5 0 0 1 10 0v1" />
+      <circle cx="16" cy="9" r="2.5" />
+      <path d="M14 14.5a4 4 0 0 1 7 3.5V19" />
+    </svg>
+  );
+}
+
+// ── Tiers ─────────────────────────────────────────────────────────────────────
+
+export function IconSeedling({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 20v-7" />
@@ -477,7 +580,8 @@ export function IconSeedling({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconGrower({ size = 16, ...rest }: IconProps) {
+
+export function IconGrower({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 21V9" />
@@ -488,7 +592,8 @@ export function IconGrower({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconConnoisseur({ size = 16, ...rest }: IconProps) {
+
+export function IconConnoisseur({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 21V6" />
@@ -502,7 +607,8 @@ export function IconConnoisseur({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconLegend({ size = 16, ...rest }: IconProps) {
+
+export function IconLegend({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M12 22V4" />
@@ -520,25 +626,27 @@ export function IconLegend({ size = 16, ...rest }: IconProps) {
   );
 }
 
-// ── REFERENCE OBJECTS ─────────────────────────────────────────────────────────
+// ── Reference ─────────────────────────────────────────────────────────────────
 
-export function IconGolfBall({ size = 16, ...rest }: IconProps) {
+export function IconGolfBall({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <circle cx="12" cy="12" r="8" />
-      <circle cx="9"  cy="9"  r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="8"  r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="15" cy="9"  r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="8"  cy="12" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="9" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="9" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="12" r="0.6" fill="currentColor" stroke="none" />
       <circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none" />
       <circle cx="16" cy="12" r="0.6" fill="currentColor" stroke="none" />
-      <circle cx="9"  cy="15" r="0.6" fill="currentColor" stroke="none" />
+      <circle cx="9" cy="15" r="0.6" fill="currentColor" stroke="none" />
       <circle cx="12" cy="16" r="0.6" fill="currentColor" stroke="none" />
       <circle cx="15" cy="15" r="0.6" fill="currentColor" stroke="none" />
+      <path d="M10 20l2 1 2-1" opacity="0.6" />
     </svg>
   );
 }
-export function IconBattery({ size = 16, ...rest }: IconProps) {
+
+export function IconBattery({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <rect x="3" y="8" width="16" height="8" rx="1.5" />
@@ -547,29 +655,48 @@ export function IconBattery({ size = 16, ...rest }: IconProps) {
     </svg>
   );
 }
-export function IconCup({ size = 16, ...rest }: IconProps) {
+
+export function IconCup({ size = 16, ...rest }: { size?: number } & SVGProps<SVGSVGElement>) {
   return (
     <svg {..._base(size, rest)}>
       <path d="M5 7h14l-1.5 13a1 1 0 0 1-1 1H7.5a1 1 0 0 1-1-1z" />
-      <path d="M4 7h16" /><path d="M13 3l-2 8" />
+      <path d="M4 7h16" />
+      <path d="M13 3l-2 8" />
       <path d="M6 11h12" opacity="0.5" />
     </svg>
   );
 }
 
-// ── REGISTRIES ────────────────────────────────────────────────────────────────
+// ── Registries ────────────────────────────────────────────────────────────────
 
-export const StrainTypeIcon: Record<string, React.ComponentType<IconProps>> = {
-  indica: IconIndica, sativa: IconSativa, hybrid: IconHybrid, unknown: IconUnknown,
+export const StrainTypeIcon: Record<string, React.FC<{ size?: number } & SVGProps<SVGSVGElement>>> = {
+  indica:  IconIndica,
+  sativa:  IconSativa,
+  hybrid:  IconHybrid,
+  unknown: IconUnknown,
 };
 
-export const ConsumptionIcon: Record<string, React.ComponentType<IconProps>> = {
-  joint: IconJoint, 'pre-roll': IconJoint, 'king-size': IconKingSize,
-  blunt: IconBlunt, bong: IconBong, bowl: IconBowl, pipe: IconBowl,
-  vape: IconVape, edible: IconEdible, brownie: IconBrownie,
+export const ConsumptionIcon: Record<string, React.FC<{ size?: number } & SVGProps<SVGSVGElement>>> = {
+  joint:    IconJoint,
+  kingsize: IconKingSize,
+  blunt:    IconBlunt,
+  bong:     IconBong,
+  bowl:     IconBowl,
+  vape:     IconVape,
+  edible:   IconEdible,
+  brownie:  IconBrownie,
 };
 
-export const TierIcon: Record<string, React.ComponentType<IconProps>> = {
-  seedling: IconSeedling, grower: IconGrower,
-  connoisseur: IconConnoisseur, legend: IconLegend,
+export const TierIconMap: Record<string, React.FC<{ size?: number } & SVGProps<SVGSVGElement>>> = {
+  seedling:    IconSeedling,
+  grower:      IconGrower,
+  connoisseur: IconConnoisseur,
+  legend:      IconLegend,
 };
+
+import React from 'react';
+export function TierIcon({ name, size = 16, ...rest }: { name: string; size?: number } & SVGProps<SVGSVGElement>) {
+  const Comp = TierIconMap[name.toLowerCase()];
+  if (!Comp) return null;
+  return <Comp size={size} {...rest} />;
+}

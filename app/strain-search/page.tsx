@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { IconWarning } from '@/components/icons';
 
 interface StrainResult {
   strain_name: string;
@@ -318,7 +319,7 @@ function StrainSearchInner() {
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-medium text-amber-400">
-                    ⚠️ AI Estimate — may not be exact
+                    <IconWarning size={12} className="inline-block mr-1" />AI Estimate — may not be exact
                   </span>
                 )}
               </div>

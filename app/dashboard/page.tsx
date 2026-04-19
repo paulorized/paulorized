@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { WeightWidget } from '@/components/weight-widget';
-import { IconJoint, IconBong, IconBowl, IconVape, IconEdible, IconLeaf, IconIndica, IconSativa, IconHybrid, IconTrophy, IconTag, IconRefresh } from '@/components/icons';
 import { StatsCard } from '@/components/stats-card';
+import { IconLeaf, IconJoint, IconTag, IconTrophy, IconGlobe, IconBrain, IconScale } from '@/components/icons';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -108,7 +108,7 @@ function StrainKpiCard({ label, icon, record, emptyMsg }: {
   if (!strainQuery) {
     return (
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+        <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
         {inner}
       </div>
     );
@@ -117,7 +117,7 @@ function StrainKpiCard({ label, icon, record, emptyMsg }: {
     <a href={`/strains?q=${strainQuery}`}
       className="block rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition hover:border-emerald-500/40 hover:bg-zinc-900 group">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
+        <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
         <span className="text-[10px] text-zinc-700 group-hover:text-emerald-500 transition">StrainAI ›</span>
       </div>
       {inner}
@@ -131,7 +131,7 @@ function SimpleKpiCard({ label, icon, value, sub, href }: {
   const cls = "rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition" + (href ? " hover:border-zinc-700 hover:bg-zinc-900 block" : "");
   const content = (
     <>
-      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1">{icon} {label}</p>
+      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600">{icon} {label}</p>
       <p className="mt-2 text-2xl font-bold text-zinc-100">{value}</p>
       {sub && <p className="mt-1 text-xs text-zinc-500 truncate">{sub}</p>}
     </>
@@ -204,14 +204,14 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
   const [active, setActive] = useState<string | null>(null);
 
   const units = [
-    { key: 'joint',    icon: <IconJoint size={18} />,   name: 'Standard Joints',  grams: 0.35,  color: 'emerald' },
-    { key: 'king',     icon: <IconJoint size={18} />,   name: 'King Size Joints', grams: 0.5,   color: 'yellow'  },
-    { key: 'blunt',    icon: <IconLeaf size={18} />,    name: 'Blunts',           grams: 1.0,   color: 'amber'   },
-    { key: 'bong',     icon: <IconBong size={18} />,    name: 'Bong Rips',        grams: 0.25,  color: 'sky'     },
-    { key: 'bowl',     icon: <IconBowl size={18} />,    name: 'Bowl Packs',       grams: 0.3,   color: 'purple'  },
-    { key: 'eighth',   icon: <IconLeaf size={18} />,    name: 'Eighths',          grams: 3.5,   color: 'teal'    },
-    { key: 'quarter',  icon: <IconLeaf size={18} />,    name: 'Quarters',         grams: 7.0,   color: 'pink'    },
-    { key: 'brownie',  icon: <IconEdible size={18} />,  name: 'Pot Brownies',     grams: 1.0,   color: 'orange'  },
+    { key: 'joint',    icon: 'J',  name: 'Standard Joints',  grams: 0.35,  color: 'emerald' },
+    { key: 'king',     icon: 'K',  name: 'King Size Joints', grams: 0.5,   color: 'yellow'  },
+    { key: 'blunt',    icon: 'B',  name: 'Blunts',           grams: 1.0,   color: 'amber'   },
+    { key: 'bong',     icon: '≈',  name: 'Bong Rips',        grams: 0.25,  color: 'sky'     },
+    { key: 'bowl',     icon: '○',  name: 'Bowl Packs',       grams: 0.3,   color: 'purple'  },
+    { key: 'eighth',   icon: '⅛',  name: 'Eighths',          grams: 3.5,   color: 'teal'    },
+    { key: 'quarter',  icon: '¼',  name: 'Quarters',         grams: 7.0,   color: 'pink'    },
+    { key: 'brownie',  icon: '◆',  name: 'Pot Brownies',     grams: 1.0,   color: 'orange'  },
   ];
 
   const colorMap: Record<string, { bg: string; border: string; text: string; numText: string }> = {
@@ -268,7 +268,7 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
         const c = colorMap[u.color];
         return (
           <p className={`text-xs ${c.text} text-center py-1`}>
-            That&apos;s <span className="font-bold">{count.toLocaleString()} {u.name.toLowerCase()}</span> worth of cannabis logged
+            That&apos;s <span className="font-bold">{count.toLocaleString()} {u.name.toLowerCase()}</span> worth of cannabis logged ✦
           </p>
         );
       })()}
@@ -414,7 +414,7 @@ export default function DashboardPage() {
   if (!myData) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-16 text-center space-y-3">
-        <div className="flex justify-center text-zinc-600"><IconRefresh size={40} /></div>
+        <div className="flex justify-center text-zinc-600"><IconScale size={40} /></div>
         <h1 className="text-xl font-bold text-zinc-100">Could not load stats</h1>
         <p className="text-sm text-zinc-500">Try refreshing the page.</p>
       </div>
@@ -463,26 +463,26 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <StrainKpiCard
               label="Highest THC Flower"
-              icon={<IconLeaf size={13} />}
+              icon={<IconLeaf size={12} />}
               record={myData.highestThcByType?.['flower']}
               emptyMsg="No flower logged yet"
             />
             <StrainKpiCard
               label="Highest THC Pre-roll"
-              icon={<IconJoint size={13} />}
+              icon={<IconJoint size={12} />}
               record={myData.highestThcByType?.['pre-roll']}
               emptyMsg="No pre-rolls logged yet"
             />
             <SimpleKpiCard
               label="Strains Tried"
-              icon={<IconHybrid size={14} />}
+              icon={<IconBrain size={12} />}
               value={String(myData.uniqueStrains ?? 0)}
               sub={myData.topStrains?.[0] ? `Most tried: ${myData.topStrains[0].name}` : undefined}
               href={myData.topStrains?.[0] ? `/strains?q=${encodeURIComponent(myData.topStrains[0].name)}` : undefined}
             />
             <SimpleKpiCard
               label="Go-To Product"
-              icon={<IconTrophy size={14} />}
+              icon={<IconTrophy size={12} />}
               value={myData.favProductType ? (myData.favProductType.name.charAt(0).toUpperCase() + myData.favProductType.name.slice(1)) : '—'}
               sub={myData.favProductType ? `${myData.favProductType.count} logs` : 'No data yet'}
             />
@@ -656,7 +656,7 @@ export default function DashboardPage() {
 
           {myData.totalScans === 0 && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 py-12 text-center space-y-3">
-              <div className="flex justify-center text-zinc-600"><IconLeaf size={40} /></div>
+              <div className="flex justify-center text-zinc-600"><IconScale size={40} /></div>
               <p className="text-sm font-medium text-zinc-300">No personal stats yet</p>
               <p className="text-sm text-zinc-500">Start scanning products to see your data here.</p>
               <Link href="/" className="inline-block mt-2 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
@@ -684,7 +684,7 @@ export default function DashboardPage() {
               <a href={`/strains?q=${encodeURIComponent(communityData.topStrains[0].name)}`}
                 className="block rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition hover:border-purple-500/30 hover:bg-zinc-900 group">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTrophy size={11} /> Most Logged Strain</p>
+                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconTrophy size={12} /> Most Logged Strain</p>
                   <span className="text-[10px] text-zinc-700 group-hover:text-purple-400 transition">StrainAI ›</span>
                 </div>
                 <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topStrains[0].name}</p>
@@ -692,7 +692,7 @@ export default function DashboardPage() {
               </a>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTrophy size={11} /> Most Logged Strain</p>
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconTrophy size={12} /> Most Logged Strain</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -700,13 +700,13 @@ export default function DashboardPage() {
             {/* Top brand */}
             {communityData.topBrands[0] ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTag size={11} /> Top Brand</p>
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconTag size={12} /> Top Brand</p>
                 <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topBrands[0].name}</p>
                 <p className="mt-1 text-xs text-zinc-500">{communityData.topBrands[0].count} logs</p>
               </div>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTag size={11} /> Top Brand</p>
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconTag size={12} /> Top Brand</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -714,13 +714,13 @@ export default function DashboardPage() {
             {/* Most popular product type */}
             {communityData.topProductTypes[0] ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconLeaf size={11} /> Most Popular Type</p>
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconGlobe size={12} /> Most Popular Type</p>
                 <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{communityData.topProductTypes[0].name}</p>
                 <p className="mt-1 text-xs text-zinc-500">{communityData.topProductTypes[0].count} logs</p>
               </div>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconLeaf size={11} /> Most Popular Type</p>
+                <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconGlobe size={12} /> Most Popular Type</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -730,16 +730,15 @@ export default function DashboardPage() {
               const counts = communityData.strainTypeCounts;
               const winner = Object.entries(counts).filter(([k]) => k !== 'unknown').sort((a, b) => b[1] - a[1])[0];
               const total = Object.values(counts).reduce((a, b) => a + b, 0);
-              const icons: Record<string, React.ReactNode> = { sativa: <IconSativa size={14} />, indica: <IconIndica size={14} />, hybrid: <IconHybrid size={14} />, unknown: <IconLeaf size={14} /> };
               return winner ? (
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconHybrid size={11} /> Community Leans</p>
-                  <p className="mt-2 text-xl font-bold text-zinc-100 capitalize flex items-center gap-1">{icons[winner[0]] ?? ''} {winner[0]}</p>
+                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconBrain size={12} /> Community Leans</p>
+                  <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{winner[0]}</p>
                   <p className="mt-1 text-xs text-zinc-500">{total > 0 ? Math.round((winner[1] / total) * 100) : 0}% of all logs</p>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconHybrid size={11} /> Community Leans</p>
+                  <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-zinc-600"><IconBrain size={12} /> Community Leans</p>
                   <p className="mt-3 text-xs text-zinc-600">No data yet</p>
                 </div>
               );

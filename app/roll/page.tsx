@@ -2,17 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { IconLeaf, IconTrophy, IconFire, IconPinch, IconPointUp } from '@/components/icons';
 
 type Step = 'grind' | 'spread' | 'roll' | 'seal' | 'done';
 
 const COMPLIMENTS = [
-  "Perfect roll. Respect. 🌿",
-  "That's artisan level right there. 🏆",
-  "Smooth as silk. You've done this before. 😏",
-  "Chef's kiss. Absolutely flawless. 💚",
-  "A masterpiece. Frame it. 🎨",
-  "The homies would be proud. 🤝",
-  "That roll deserves its own profile page. 🌟",
+  "Perfect roll. Respect. ✦",
+  "That's artisan level right there. ★",
+  "Smooth as silk. You've done this before.",
+  "Chef's kiss. Absolutely flawless.",
+  "A masterpiece. Frame it.",
+  "The homies would be proud.",
+  "That roll deserves its own profile page. ✦",
 ];
 
 function Particle({ x, y, color }: { x: number; y: number; color: string }) {
@@ -178,7 +179,7 @@ export default function RollPage() {
 
       {/* Header */}
       <div className="mb-6 text-center">
-        <p className="text-2xl font-bold text-zinc-100">Let&apos;s Roll One 🌿</p>
+        <p className="text-2xl font-bold text-zinc-100 flex items-center gap-2 justify-center">Let&apos;s Roll One <IconLeaf size={22} className="text-emerald-400" /></p>
         <p className="mt-1 text-xs text-zinc-500">A sacred ritual in 4 steps</p>
       </div>
 
@@ -216,7 +217,7 @@ export default function RollPage() {
                 className="cursor-grab active:cursor-grabbing text-5xl transition hover:scale-110"
                 title="Drag me to the grinder"
               >
-                🌿
+                <IconLeaf size={40} className="text-emerald-400" />
               </div>
             )}
 
@@ -370,7 +371,7 @@ export default function RollPage() {
               onTouchMove={e => { if (isRolling) moveRoll(e.touches[0].clientY); }}
               onTouchEnd={endRoll}
             >
-              <span className="text-2xl mb-2">🤌</span>
+              <span className="mb-2 text-zinc-400"><IconPinch size={24} /></span>
               <span className="text-xs text-zinc-500">drag up to roll</span>
             </div>
 
@@ -389,7 +390,7 @@ export default function RollPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-6">
           <div className="text-center space-y-1">
             <p className="font-semibold text-zinc-100">Step 4 — Lick & light</p>
-            <p className="text-xs text-zinc-500">{!licked ? 'Tap the tip to seal it' : !lit ? 'Sealing…' : 'Lighting up 🔥'}</p>
+            <p className="text-xs text-zinc-500">{!licked ? 'Tap the tip to seal it' : !lit ? 'Sealing…' : 'Lighting up ✦'}</p>
           </div>
 
           <div className="flex flex-col items-center gap-6">
@@ -403,12 +404,12 @@ export default function RollPage() {
               <div className={`h-4 w-4 rounded-r-full border border-amber-700/30 transition-all ${licked ? 'bg-amber-200/10' : 'bg-amber-50/5 cursor-pointer'}`} />
               {/* Flame */}
               {lit && (
-                <div className="absolute -right-1 -top-5 text-xl flame-anim">🔥</div>
+                <div className="absolute -right-1 -top-5 text-amber-400 flame-anim"><IconFire size={20} /></div>
               )}
               {/* Lick prompt */}
               {!licked && (
-                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-amber-300/60 whitespace-nowrap">
-                  👆 tap to seal
+                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-amber-300/60 whitespace-nowrap flex items-center gap-1">
+                  <IconPointUp size={11} /> tap to seal
                 </div>
               )}
             </div>
@@ -417,7 +418,7 @@ export default function RollPage() {
               <p className="text-xs text-zinc-400 animate-pulse">licking the seal…</p>
             )}
             {lit && (
-              <p className="text-xs text-emerald-400 animate-pulse">she&apos;s lit 🔥</p>
+              <p className="text-xs text-emerald-400 animate-pulse flex items-center gap-1">she&apos;s lit <IconFire size={12} /></p>
             )}
           </div>
         </div>
@@ -431,7 +432,7 @@ export default function RollPage() {
             {particles.map(p => <Particle key={p.id} x={p.x} y={p.y} color={p.color} />)}
           </div>
 
-          <div className="text-5xl">🚬</div>
+          <div className="flex justify-center text-zinc-300"><IconLeaf size={48} /></div>
           <div>
             <p className="text-xl font-bold text-emerald-300">That&apos;s a wrap.</p>
             <p className="mt-2 text-sm text-zinc-400 italic">{compliment}</p>
@@ -452,7 +453,7 @@ export default function RollPage() {
               }}
               className="w-full rounded-xl bg-emerald-500 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400 active:scale-95"
             >
-              Roll another 🌿
+              Roll another ✦
             </button>
             <Link href="/"
               className="block w-full rounded-xl border border-zinc-700 py-3 text-sm text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"

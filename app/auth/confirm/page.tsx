@@ -28,7 +28,7 @@ export default function AuthConfirmPage() {
   return (
     <main className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <div className="mb-3 flex justify-center text-emerald-400 animate-pulse"><IconLeaf size={32} /></div>
+        <div className="mb-3 flex justify-center text-emerald-400 animate-pulse"><IconLeaf size={36} /></div>
         <p className="text-sm text-zinc-400">Signing you in…</p>
       </div>
     </main>

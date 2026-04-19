@@ -14,7 +14,7 @@ export default async function WelcomePage() {
       {/* ── Hero ── */}
       <section className="mx-auto max-w-2xl px-6 pt-16 pb-12 text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400">
-          🌿 AI-powered cannabis tracking
+          ✦ AI-powered cannabis tracking
         </div>
         <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl">
           Know exactly what<br />
@@ -68,7 +68,7 @@ export default async function WelcomePage() {
             <p className="font-semibold text-zinc-100">Identify any strain</p>
             <p className="text-sm text-zinc-500 mt-0.5">Search 10,000+ strains by name. Get THC range, effects, flavors, and type — even for obscure boutique drops. Powered by live web search.</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {['🌙 Indica', '☀️ Sativa', '⚡ Hybrid'].map(t => (
+              {['Indica', 'Sativa', 'Hybrid'].map(t => (
                 <span key={t} className="rounded-full border border-zinc-700 bg-zinc-800 px-2 py-0.5 text-xs text-zinc-400">{t}</span>
               ))}
               {['Relaxed', 'Euphoric', 'Creative', 'Sleepy'].map(e => (
@@ -100,7 +100,7 @@ export default async function WelcomePage() {
           </span>
           <div>
             <p className="font-semibold text-zinc-100">Community feed</p>
-            <p className="text-sm text-zinc-500 mt-0.5">See what others are scanning and smoking. Leave reviews, earn helpful votes, and rank up from Seedling 🌿 to Legend 🌳.</p>
+            <p className="text-sm text-zinc-500 mt-0.5">See what others are scanning and smoking. Leave reviews, earn helpful votes, and rank up from Seedling to Legend.</p>
           </div>
         </div>
       </section>
@@ -127,7 +127,7 @@ export default async function WelcomePage() {
                     <span className="text-xs text-zinc-400">{item.user}</span>
                     <span className="text-[10px] text-zinc-600">{item.logs} logs</span>
                   </div>
-                  <span className="text-[10px] text-zinc-600">🌿 Seedling</span>
+                  <span className="text-[10px] text-zinc-600">✦ Seedling</span>
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-sm font-semibold text-zinc-100">{item.strain}</span>
@@ -136,7 +136,7 @@ export default async function WelcomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-yellow-400">{'★'.repeat(item.rating)}{'☆'.repeat(5 - item.rating)}</span>
-                  <span className="text-xs text-emerald-400">✓ Would buy again</span>
+                  <span className="text-xs text-emerald-400">&#10003; Would buy again</span>
                 </div>
                 {item.note && <p className="text-xs text-zinc-400 italic">&ldquo;{item.note}&rdquo;</p>}
                 {item.effects.length > 0 && (
