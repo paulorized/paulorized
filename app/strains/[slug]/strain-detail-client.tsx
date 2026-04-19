@@ -47,7 +47,7 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
           const d = await idxRes.json();
           if (d.result) { setResult(d.result); setLoading(false); return; }
         }
-        const name = slug.replace(/-/g, ' ');
+        const name = (slug ?? '').replace(/-/g, ' ');
         const searchRes = await fetch('/api/strain-search', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ query: name }),
