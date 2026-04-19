@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { WeightWidget } from '@/components/weight-widget';
-import { IconJoint, IconBong, IconBowl, IconVape, IconEdible, IconLeaf, IconIndica, IconSativa, IconHybrid } from '@/components/icons';
+import { IconJoint, IconBong, IconBowl, IconVape, IconEdible, IconLeaf, IconIndica, IconSativa, IconHybrid, IconTrophy, IconTag, IconRefresh } from '@/components/icons';
 import { StatsCard } from '@/components/stats-card';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -268,7 +268,7 @@ function StashCalculator({ totalGrams, label }: { totalGrams: number; label?: st
         const c = colorMap[u.color];
         return (
           <p className={`text-xs ${c.text} text-center py-1`}>
-            That&apos;s <span className="font-bold">{count.toLocaleString()} {u.name.toLowerCase()}</span> worth of cannabis logged 🌿
+            That&apos;s <span className="font-bold">{count.toLocaleString()} {u.name.toLowerCase()}</span> worth of cannabis logged
           </p>
         );
       })()}
@@ -414,7 +414,7 @@ export default function DashboardPage() {
   if (!myData) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-16 text-center space-y-3">
-        <p className="text-4xl">📊</p>
+        <div className="flex justify-center text-zinc-600"><IconRefresh size={40} /></div>
         <h1 className="text-xl font-bold text-zinc-100">Could not load stats</h1>
         <p className="text-sm text-zinc-500">Try refreshing the page.</p>
       </div>
@@ -475,14 +475,14 @@ export default function DashboardPage() {
             />
             <SimpleKpiCard
               label="Strains Tried"
-              icon="🧬"
+              icon={<IconHybrid size={14} />}
               value={String(myData.uniqueStrains ?? 0)}
               sub={myData.topStrains?.[0] ? `Most tried: ${myData.topStrains[0].name}` : undefined}
               href={myData.topStrains?.[0] ? `/strains?q=${encodeURIComponent(myData.topStrains[0].name)}` : undefined}
             />
             <SimpleKpiCard
               label="Go-To Product"
-              icon="🏆"
+              icon={<IconTrophy size={14} />}
               value={myData.favProductType ? (myData.favProductType.name.charAt(0).toUpperCase() + myData.favProductType.name.slice(1)) : '—'}
               sub={myData.favProductType ? `${myData.favProductType.count} logs` : 'No data yet'}
             />
@@ -656,7 +656,7 @@ export default function DashboardPage() {
 
           {myData.totalScans === 0 && (
             <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 py-12 text-center space-y-3">
-              <p className="text-4xl">📊</p>
+              <div className="flex justify-center text-zinc-600"><IconLeaf size={40} /></div>
               <p className="text-sm font-medium text-zinc-300">No personal stats yet</p>
               <p className="text-sm text-zinc-500">Start scanning products to see your data here.</p>
               <Link href="/" className="inline-block mt-2 rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-300">
@@ -684,7 +684,7 @@ export default function DashboardPage() {
               <a href={`/strains?q=${encodeURIComponent(communityData.topStrains[0].name)}`}
                 className="block rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 transition hover:border-purple-500/30 hover:bg-zinc-900 group">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏆 Most Logged Strain</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTrophy size={11} /> Most Logged Strain</p>
                   <span className="text-[10px] text-zinc-700 group-hover:text-purple-400 transition">StrainAI ›</span>
                 </div>
                 <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topStrains[0].name}</p>
@@ -692,7 +692,7 @@ export default function DashboardPage() {
               </a>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏆 Most Logged Strain</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTrophy size={11} /> Most Logged Strain</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -700,13 +700,13 @@ export default function DashboardPage() {
             {/* Top brand */}
             {communityData.topBrands[0] ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏷️ Top Brand</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTag size={11} /> Top Brand</p>
                 <p className="mt-2 text-xl font-bold text-zinc-100 truncate">{communityData.topBrands[0].name}</p>
                 <p className="mt-1 text-xs text-zinc-500">{communityData.topBrands[0].count} logs</p>
               </div>
             ) : (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🏷️ Top Brand</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconTag size={11} /> Top Brand</p>
                 <p className="mt-3 text-xs text-zinc-600">No data yet</p>
               </div>
             )}
@@ -733,13 +733,13 @@ export default function DashboardPage() {
               const icons: Record<string, React.ReactNode> = { sativa: <IconSativa size={14} />, indica: <IconIndica size={14} />, hybrid: <IconHybrid size={14} />, unknown: <IconLeaf size={14} /> };
               return winner ? (
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🧬 Community Leans</p>
-                  <p className="mt-2 text-xl font-bold text-zinc-100 capitalize">{icons[winner[0]] ?? ''} {winner[0]}</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconHybrid size={11} /> Community Leans</p>
+                  <p className="mt-2 text-xl font-bold text-zinc-100 capitalize flex items-center gap-1">{icons[winner[0]] ?? ''} {winner[0]}</p>
                   <p className="mt-1 text-xs text-zinc-500">{total > 0 ? Math.round((winner[1] / total) * 100) : 0}% of all logs</p>
                 </div>
               ) : (
                 <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600">🧬 Community Leans</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-600 flex items-center gap-1"><IconHybrid size={11} /> Community Leans</p>
                   <p className="mt-3 text-xs text-zinc-600">No data yet</p>
                 </div>
               );

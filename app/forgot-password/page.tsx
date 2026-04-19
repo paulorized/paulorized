@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { IconMail } from '@/components/icons';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -35,7 +36,7 @@ export default function ForgotPasswordPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
           {sent ? (
             <div className="text-center space-y-4">
-              <div className="text-4xl">📬</div>
+              <div className="flex justify-center text-emerald-400"><IconMail size={40} /></div>
               <p className="text-sm font-semibold text-emerald-300">Check your email</p>
               <p className="text-xs text-zinc-400">
                 We sent a reset link to <span className="text-zinc-200">{email}</span>. Click it to set a new password.

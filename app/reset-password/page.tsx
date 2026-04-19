@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { IconCheck, IconLink } from '@/components/icons';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -47,13 +48,13 @@ export default function ResetPasswordPage() {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-6 py-8">
           {done ? (
             <div className="text-center space-y-3">
-              <div className="text-4xl">✅</div>
+              <div className="flex justify-center text-emerald-400"><IconCheck size={40} /></div>
               <p className="text-sm font-semibold text-emerald-300">Password updated!</p>
               <p className="text-xs text-zinc-400">Redirecting you to the app…</p>
             </div>
           ) : !ready ? (
             <div className="text-center space-y-3">
-              <div className="text-4xl">🔗</div>
+              <div className="flex justify-center text-zinc-400"><IconLink size={40} /></div>
               <p className="text-sm font-semibold text-zinc-300">Verifying reset link…</p>
               <p className="text-xs text-zinc-500">Make sure you clicked the link from your email.</p>
             </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
+import { IconMail } from '@/components/icons';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
@@ -47,7 +48,7 @@ function LoginForm() {
 
       {message === 'check-email' && (
         <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-xs text-emerald-400">
-          📬 Check your email to confirm your account, then sign in here.
+          <span className="flex items-center gap-1.5"><IconMail size={13} /> Check your email to confirm your account, then sign in here.</span>
         </div>
       )}
 

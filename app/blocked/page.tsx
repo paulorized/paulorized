@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
+import { IconWarning } from '@/components/icons';
 
 export default function BlockedPage() {
   useEffect(() => {
@@ -13,7 +14,7 @@ export default function BlockedPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
       <div className="max-w-sm">
-        <div className="mb-6 text-6xl">🚫</div>
+        <div className="mb-6 flex justify-center text-rose-500"><IconWarning size={56} /></div>
         <h1 className="mb-3 text-2xl font-bold text-zinc-100">Age Requirement Not Met</h1>
         <p className="mb-2 text-zinc-400">
           CannaBaseAI is only available to users who are <span className="text-white font-semibold">21 years of age or older.</span>

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import React, { useMemo, useRef, useState, useEffect } from 'react';
-import { IconIndica, IconSativa, IconHybrid, IconUnknown, IconSearch, IconWarning } from '@/components/icons';
+import { IconIndica, IconSativa, IconHybrid, IconUnknown, IconSearch, IconWarning, IconPin, IconSave, IconCamera, IconScale, IconGlobe, IconHourglass, IconSparkle, IconLightbulb } from '@/components/icons';
 import { useSearchParams } from 'next/navigation';
 import { emptyProduct, type ExtractedProduct } from '@/types/product';
 import { ReviewForm } from './review-form';
@@ -323,7 +323,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             <h2 className="font-semibold text-zinc-100">Saved to your log ✅</h2>
           </div>
           <div className="rounded-xl bg-zinc-950 p-4 space-y-3">
-            {dispensaryName && <p className="text-sm text-zinc-400">📍 {dispensaryName}</p>}
+            {dispensaryName && <p className="text-sm text-zinc-400 flex items-center gap-1"><IconPin size={13} /> {dispensaryName}</p>}
             <div className="grid grid-cols-2 gap-3 text-sm">
               {result.brand && <div><p className="text-xs text-zinc-600">Brand</p><p className="font-medium text-zinc-100">{result.brand}</p></div>}
               {result.strain_name && <div><p className="text-xs text-zinc-600">Strain</p><p className="font-medium text-zinc-100">{result.strain_name}</p></div>}
@@ -335,7 +335,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               {result.mg_per_piece != null && <div><p className="text-xs text-zinc-600">Per piece</p><p className="font-medium text-zinc-100">{result.mg_per_piece}mg</p></div>}
             </div>
             {result.thc_estimated && (
-              <p className="text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label.</p>
+              <p className="text-xs text-amber-400/80 flex items-center gap-1"><IconWarning size={12} /> THC/CBD values are estimates — potency info was not found on the label.</p>
             )}
           </div>
           <div className="flex gap-3">
@@ -462,7 +462,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
 
               {/* Dispensary */}
           <div ref={dispensaryRef} className="relative">
-            <input className={inputClass} type="text" placeholder="📍 Dispensary (optional)"
+            <input className={inputClass} type="text" placeholder="Dispensary (optional)"
               value={dispensaryName}
               onChange={(e) => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
               onFocus={() => setShowDispensaryDropdown(true)}
@@ -472,8 +472,8 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
                 {filteredDispensaries.map((d) => (
                   <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
-                    📍 {d}
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5">
+                    <IconPin size={12} className="shrink-0 text-zinc-500" />{d}
                   </li>
                 ))}
               </ul>
@@ -481,12 +481,12 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
           </div>
 
           {result.thc_estimated && (
-            <p className="text-xs text-amber-400/80">⚠️ THC/CBD values are estimates — potency info was not found on the label. For accurate numbers, try scanning all sides of the package.</p>
+            <p className="text-xs text-amber-400/80 flex items-center gap-1"><IconWarning size={12} /> THC/CBD values are estimates — potency info was not found on the label. For accurate numbers, try scanning all sides of the package.</p>
           )}
 
           <button type="button" onClick={handleSave} disabled={isSaving}
             className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
-            {isSaving ? 'Saving…' : '💾 Save to my log'}
+            {isSaving ? 'Saving…' : <span className="flex items-center gap-1.5 justify-center"><IconSave size={16} /> Save to my log</span>}
           </button>
 
           {error && <p className="text-sm text-rose-400">{error}</p>}
@@ -617,7 +617,9 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               <div className="flex gap-3 p-3">
                 <button type="button" onClick={capturePhoto}
                   className="flex-1 rounded-xl bg-emerald-400 py-3 text-sm font-semibold text-zinc-950 transition active:bg-emerald-300">
-                  {fileCount === 0 ? '📸 Take photos' : '📸 Take another'}
+                  {fileCount === 0
+                    ? <span className="flex items-center gap-1.5 justify-center"><IconCamera size={15} /> Take photos</span>
+                    : <span className="flex items-center gap-1.5 justify-center"><IconCamera size={15} /> Take another</span>}
                 </button>
                 {fileCount > 0 ? (
                   <button type="button" onClick={() => { closeCamera(); runScan(); }}
@@ -643,7 +645,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                 <span className="text-sm text-zinc-300 font-medium">{fileCount} photo{fileCount > 1 ? 's' : ''} ready</span>
                 <button type="button" onClick={openCamera} className="ml-auto text-xs text-zinc-500 hover:text-zinc-300 transition">+ add more</button>
               </div>
-              <p className="text-xs text-zinc-600">💡 Best results: front label, back label, and potency panel.</p>
+              <p className="text-xs text-zinc-600 flex items-center gap-1"><IconLightbulb size={12} /> Best results: front label, back label, and potency panel.</p>
               <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
                 type="submit" disabled={isScanning}>
                 {isScanning
@@ -684,7 +686,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
             </div>
           </div>
 
-          <p className="text-xs text-zinc-500">💡 For best results, include photos of all visible sides of the package — especially the potency label.</p>
+          <p className="text-xs text-zinc-500 flex items-center gap-1"><IconLightbulb size={12} /> For best results, include photos of all visible sides of the package — especially the potency label.</p>
 
           <form onSubmit={handleScan}>
             <button className="w-full rounded-2xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500"
@@ -894,17 +896,17 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                     className="w-full rounded-xl bg-purple-500/80 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-500 disabled:opacity-50"
                   >
                     {isWebSearching
-                      ? '🌐 Searching…'
+                      ? <span className="flex items-center gap-1.5 justify-center"><IconGlobe size={14} /> Searching…</span>
                       : isLooking
-                        ? '⏳ Loading strain data…'
+                        ? <span className="flex items-center gap-1.5 justify-center"><IconHourglass size={14} /> Loading strain data…</span>
                         : selectedStrain
-                          ? `✦ Use ${selectedStrain.name}`
-                          : `✦ Use "${strainSearchQuery.trim()}"`}
+                          ? <span className="flex items-center gap-1.5 justify-center"><IconSparkle size={14} /> Use {selectedStrain.name}</span>
+                          : <span className="flex items-center gap-1.5 justify-center"><IconSparkle size={14} /> Use &ldquo;{strainSearchQuery.trim()}&rdquo;</span>}
                   </button>
                 )}
               </>
             )}
-            {lookupError && lookupDone && <p className="text-xs text-amber-400">⚠️ {lookupError}</p>}
+            {lookupError && lookupDone && <p className="text-xs text-amber-400 flex items-center gap-1"><IconWarning size={12} /> {lookupError}</p>}
           </div>
 
           {/* STEP 2 — Product type + Brand */}
@@ -943,7 +945,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
                   onClick={() => setShowOzConverter(v => !v)}
                   className="text-[10px] text-emerald-500 hover:text-emerald-400 transition"
                 >
-                  {showOzConverter ? '✕ close converter' : '⚖️ oz → g converter'}
+                  {showOzConverter ? '✕ close converter' : <span className="flex items-center gap-1"><IconScale size={11} /> oz → g converter</span>}
                 </button>
               </div>
               {showOzConverter && (
@@ -1011,13 +1013,13 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               </label>
             </div>
             {result.thc_estimated && (
-              <p className="text-xs text-amber-400/80">⚠️ THC is an AI estimate — update if you know the exact %.</p>
+              <p className="text-xs text-amber-400/80 flex items-center gap-1"><IconWarning size={12} /> THC is an AI estimate — update if you know the exact %.</p>
             )}
           </div>
 
           {/* Dispensary */}
           <div ref={dispensaryRef} className="relative">
-            <p className="mb-1.5 text-xs text-zinc-500">📍 Dispensary <span className="text-zinc-700">(optional)</span></p>
+            <p className="mb-1.5 text-xs text-zinc-500 flex items-center gap-1"><IconPin size={12} /> Dispensary <span className="text-zinc-700">(optional)</span></p>
             <input className={inputClass} type="text" placeholder="Where did you get it?"
               value={dispensaryName}
               onChange={e => { setDispensaryName(e.target.value); setShowDispensaryDropdown(true); }}
@@ -1028,8 +1030,8 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
               <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl">
                 {filteredDispensaries.map(d => (
                   <li key={d} onMouseDown={() => { setDispensaryName(d); setShowDispensaryDropdown(false); }}
-                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800">
-                    📍 {d}
+                    className="cursor-pointer px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 flex items-center gap-1.5">
+                    <IconPin size={12} className="shrink-0 text-zinc-500" />{d}
                   </li>
                 ))}
               </ul>
@@ -1040,7 +1042,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
 
           <button type="button" onClick={handleSave} disabled={isSaving}
             className="w-full rounded-xl bg-emerald-400 py-4 text-base font-semibold text-zinc-950 transition active:bg-emerald-300 disabled:bg-zinc-700 disabled:text-zinc-500">
-            {isSaving ? 'Saving…' : '💾 Save to my log'}
+            {isSaving ? 'Saving…' : <span className="flex items-center gap-1.5 justify-center"><IconSave size={16} /> Save to my log</span>}
           </button>
 
         </div>

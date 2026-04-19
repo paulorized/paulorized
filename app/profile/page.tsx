@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, Suspense } from 'react';
+import { IconPhone } from '@/components/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase';
 
@@ -421,7 +422,7 @@ function ProfilePage() {
         onClick={() => (window as Window & { __pwaInstall?: () => void }).__pwaInstall?.()}
         className="flex items-center gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-5 py-4 transition hover:border-zinc-700 hover:bg-zinc-800/50 w-full text-left mt-4"
       >
-        <span className="text-2xl">📲</span>
+        <IconPhone size={22} className="text-zinc-400 shrink-0" />
         <div>
           <p className="font-medium text-zinc-200 text-sm">Add to Home Screen</p>
           <p className="text-xs text-zinc-500 mt-0.5">Install CannaBaseAI as an app on your device</p>

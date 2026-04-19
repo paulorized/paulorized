@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { IconGolfBall, IconBattery, IconPhone, IconCup, IconScale } from '@/components/icons';
 
 // ── Pound-club milestones ──────────────────────────────────────────────────
 const POUND = 453.592; // grams per pound
@@ -21,11 +22,11 @@ const ALL_MILESTONES = [
 
 // Fun object that lives near the current weight for flavour
 const FUN_OBJECTS = [
-  { grams: 45.93,  singular: 'golf ball',     plural: 'golf balls',     emoji: '⛳' },
-  { grams: 23,     singular: 'AA battery',    plural: 'AA batteries',   emoji: '🔋' },
-  { grams: 171,    singular: 'iPhone',        plural: 'iPhones',        emoji: '📱' },
-  { grams: 354,    singular: 'can of soda',   plural: 'cans of soda',   emoji: '🥤' },
-  { grams: 28.35,  singular: 'ounce',         plural: 'oz',             emoji: '⚖️'  },
+  { grams: 45.93,  singular: 'golf ball',     plural: 'golf balls',     icon: <IconGolfBall size={28} /> },
+  { grams: 23,     singular: 'AA battery',    plural: 'AA batteries',   icon: <IconBattery size={28} /> },
+  { grams: 171,    singular: 'iPhone',        plural: 'iPhones',        icon: <IconPhone size={28} /> },
+  { grams: 354,    singular: 'can of soda',   plural: 'cans of soda',   icon: <IconCup size={28} /> },
+  { grams: 28.35,  singular: 'ounce',         plural: 'oz',             icon: <IconScale size={28} /> },
 ];
 
 interface WeightWidgetProps {
@@ -102,7 +103,7 @@ export function WeightWidget({
           <p className="text-xs text-zinc-500 mt-0.5">{sublabel}</p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-2xl">{bestObj.emoji}</p>
+          <div className="text-zinc-300">{bestObj.icon}</div>
           <p className="text-sm font-bold text-zinc-100 mt-0.5">{bestDisplay}</p>
           <p className="text-[11px] text-zinc-500">{bestCount === 1 ? bestObj.singular : bestObj.plural}</p>
         </div>

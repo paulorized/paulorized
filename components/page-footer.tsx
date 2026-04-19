@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useState } from 'react';
+import { IconComment, IconEdit, IconFolded } from '@/components/icons';
 
 function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [message, setMessage] = useState('');
@@ -45,7 +46,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
         </div>
         {sent ? (
           <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-5 text-center space-y-1">
-            <p className="text-2xl">🙏</p>
+            <div className="flex justify-center text-emerald-400"><IconFolded size={28} /></div>
             <p className="font-medium text-emerald-400 text-sm">Thanks for the feedback!</p>
             <p className="text-xs text-zinc-500">It really helps improve the app.</p>
             <button type="button" onClick={onClose}
@@ -91,7 +92,7 @@ export function PageFooter() {
           rel="noopener noreferrer"
           className="flex items-center gap-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-3 transition hover:border-indigo-500/40 hover:bg-indigo-500/10"
         >
-          <span>💬</span>
+          <IconComment size={18} className="text-indigo-400 shrink-0" />
           <div>
             <p className="text-xs font-medium text-indigo-300">Enjoying CannaBaseAI? Join our Discord</p>
             <p className="text-xs text-zinc-600">Share feedback &amp; chat with the community</p>
@@ -105,7 +106,7 @@ export function PageFooter() {
           onClick={() => setShowFeedback(true)}
           className="w-full flex items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-zinc-900/30 px-5 py-3 text-xs text-zinc-500 transition hover:border-zinc-700 hover:text-zinc-300"
         >
-          <span>✏️</span>
+          <IconEdit size={14} />
           <span>Leave feedback for the developer</span>
         </button>
 
