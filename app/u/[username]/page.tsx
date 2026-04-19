@@ -160,7 +160,7 @@ function ReviewCard({ review }: { review: Review }) {
           )}
           {review.would_buy_again != null && (
             <span className={`text-xs font-medium ${review.would_buy_again ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {review.would_buy_again ? '&#10003; Would buy again' : '&#10007; Would not buy again'}
+              {review.would_buy_again ? '✓ Would buy again' : '✗ Would not buy again'}
             </span>
           )}
         </div>
