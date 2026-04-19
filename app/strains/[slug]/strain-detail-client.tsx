@@ -65,7 +65,7 @@ export function StrainDetailClient({ result: initialResult, slug }: { result: St
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
   const toggleWishlist = async () => {
-    if (wishlistLoading) return;
+    if (wishlistLoading || !result) return;
     setWishlistLoading(true);
     try {
       if (wishlisted) {
