@@ -7,7 +7,7 @@ import { ReviewForm } from './review-form';
 import { GuestGateModal } from './guest-gate-modal';
 import { incrementGuestScanCount, isGuestLimitReached } from './guest-banner';
 import { ScanHelpModal, shouldAutoShowScanTutorial } from './scan-help-modal';
-import { IconPin, IconWarning, IconCamera, IconFloppy, IconLightbulb, IconScale, IconGlobe, IconHourglass, IconIndica, IconSativa, IconHybrid, IconUnknown } from '@/components/icons';
+import { IconPin, IconWarning, IconCamera, IconScan, IconSearch, IconFloppy, IconLightbulb, IconScale, IconGlobe, IconHourglass, IconIndica, IconSativa, IconHybrid, IconUnknown } from '@/components/icons';
 
 const PRODUCT_TYPES = [
   'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
