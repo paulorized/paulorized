@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>CannaBaseAI — Loader Preview</title>
+<style>
+  :root {
+    --bg: #09090b;
+    --card: rgba(24, 24, 27, 0.6);
+    --border: #27272a;
+    --emerald: #34d399;
+    --purple: #a78bfa;
+    --yellow: #fde047;
+    --zinc-400: #a1a1aa;
+    --zinc-500: #71717a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: #e4e4e7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+  h1 .canna { color: var(--emerald); }
+  h1 .base  { color: var(--purple); }
+  h1 .ai    { color: var(--yellow); }
+  .subtitle {
+    color: var(--zinc-400);
+    font-size: 14px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  /* Control bar */
+  .controls {
+    max-width: 640px;
+    margin: 0 auto 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px;
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--zinc-400);
+  }
+  .controls input[type="range"] {
+    width: 140px;
+    accent-color: var(--emerald);
+  }
+  .controls input[type="number"] {
+    width: 70px;
+    background: #18181b;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: #e4e4e7;
+    padding: 6px 8px;
+    font-size: 13px;
+    text-align: right;
+  }
+  .speed-val {
+    color: #e4e4e7;
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+  }
+
+  /* Grid of loader demos */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-height: 260px;
+    justify-content: center;
+  }
+  .card-label {
+    font-size: 13px;
+    color: var(--zinc-400);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .card-sub { font-size: 12px; color: var(--zinc-500); }
+
+  /* === Loader === */
+  .cbai-stage {
+    position: relative;
+    display: block;
+  }
+  .cbai-stage img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+  }
+  .cbai-stage img.active { opacity: 1; }
+
+  /* StrainAI tint — hue-rotate turns emerald into purple territory.
+     Not perfect, but gives you a rough preview of what the purple variant
+     will feel like before you generate the real purple frames. */
+  .cbai-stage.strain img {
+    filter: hue-rotate(260deg) saturate(1.15) brightness(1.05);
+  }
+
+  /* Frame strip preview — shows all 6 frames inline so you can verify them */
+  .strip {
+    max-width: 1100px;
+    margin: 40px auto 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .strip-title {
+    font-size: 13px;
+    color: var(--zinc-400);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .strip-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+  .strip-cell {
+    aspect-ratio: 1;
+    background: #18181b;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .strip-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .strip-cell-num {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    font-size: 11px;
+    color: var(--zinc-500);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Error state if images don't load */
+  .error {
+    max-width: 640px;
+    margin: 28px auto 0;
+    padding: 16px 20px;
+    border: 1px solid #7f1d1d;
+    background: rgba(127, 29, 29, 0.2);
+    border-radius: 10px;
+    font-size: 13px;
+    color: #fca5a5;
+    display: none;
+  }
+  .error.show { display: block; }
+
+  /* Label + dots */
+  .loader-text {
+    font-size: 13px;
+    color: var(--zinc-400);
+    letter-spacing: 0.02em;
+    min-height: 18px;
+    display: flex;
+    gap: 1px;
+  }
+  .loader-text .dot { animation: dot-blink 1.4s infinite; }
+  .loader-text .dot:nth-child(2) { animation-delay: 0.2s; }
+  .loader-text .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-blink {
+    0%, 20% { opacity: 0.2; }
+    50%     { opacity: 1; }
+    100%    { opacity: 0.2; }
+  }
+</style>
+</head>
+<body>
+
+<h1><span class="canna">Canna</span><span class="base">Base</span><span class="ai">AI</span> — Loader Preview</h1>
+<p class="subtitle">Live flipbook using your 6 PNG frames from <code>public/loader/scan/</code>.</p>
+
+<div class="controls">
+  <label>
+    Cycle
+    <input type="range" id="cycle" min="1.2" max="6" step="0.1" value="3" />
+    <span class="speed-val" id="cycleVal">3.0s</span>
+  </label>
+  <label>
+    Frame hold
+    <input type="number" id="hold" min="50" max="1500" step="10" value="500" />
+    ms
+  </label>
+</div>
+
+<div class="error" id="err">
+  Couldn't load frames. Make sure this HTML file is at the repo root
+  (<code>paulorized-main/paulorized-main/cannabis-loader-preview.html</code>)
+  and your PNGs are at <code>public/loader/scan/1.png</code> … <code>6.png</code>.
+</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-label">Scan · 96px</div>
+    <div class="cbai-stage scan" data-size="96" style="width:96px;height:96px;"></div>
+    <div class="loader-text">
+      Scanning<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+    </div>
+    <div class="card-sub">emerald frames, default size</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">StrainAI · 96px</div>
+    <div class="cbai-stage strain" data-size="96" style="width:96px;height:96px;"></div>
+    <div class="loader-text">
+      Consulting StrainAI<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+    </div>
+    <div class="card-sub">hue-shifted for preview only</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Small · 56px</div>
+    <div class="cbai-stage scan" data-size="56" style="width:56px;height:56px;"></div>
+    <div class="card-sub">button / inline size</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Large · 160px</div>
+    <div class="cbai-stage scan" data-size="160" style="width:160px;height:160px;"></div>
+    <div class="card-sub">full-page / hero</div>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="strip-title">All 6 frames · verify they progress cleanly</div>
+  <div class="strip-row" id="strip">
+    <div class="strip-cell"><span class="strip-cell-num">1</span><img src="public/loader/scan/1.png" alt="frame 1"/></div>
+    <div class="strip-cell"><span class="strip-cell-num">2</span><img src="public/loader/scan/2.png" alt="frame 2"/></div>
+    <div class="strip-cell"><span class="strip-cell-num">3</span><img src="public/loader/scan/3.png" alt="frame 3"/></div>
+    <div class="strip-cell"><span class="strip-cell-num">4</span><img src="public/loader/scan/4.png" alt="frame 4"/></div>
+    <div class="strip-cell"><span class="strip-cell-num">5</span><img src="public/loader/scan/5.png" alt="frame 5"/></div>
+    <div class="strip-cell"><span class="strip-cell-num">6</span><img src="public/loader/scan/6.png" alt="frame 6"/></div>
+  </div>
+</div>
+
+<script>
+  const FRAME_COUNT = 6;
+  const FOLDER = "public/loader/scan";
+
+  // Build <img> stack inside each .cbai-stage
+  document.querySelectorAll(".cbai-stage").forEach((stage) => {
+    for (let i = 1; i <= FRAME_COUNT; i++) {
+      const img = document.createElement("img");
+      img.src = `${FOLDER}/${i}.png`;
+      img.alt = "";
+      img.dataset.frame = String(i - 1);
+      stage.appendChild(img);
+    }
+  });
+
+  // Error detection — if frame 1 fails to load anywhere, show the hint
+  const probe = new Image();
+  probe.onerror = () => document.getElementById("err").classList.add("show");
+  probe.src = `${FOLDER}/1.png`;
+
+  // Controls
+  const cycleEl = document.getElementById("cycle");
+  const cycleValEl = document.getElementById("cycleVal");
+  const holdEl = document.getElementById("hold");
+
+  let frameMs = 500;
+  let tickId = null;
+  let current = 0;
+
+  function syncFromCycle() {
+    const c = parseFloat(cycleEl.value);
+    cycleValEl.textContent = c.toFixed(1) + "s";
+    frameMs = Math.round((c * 1000) / FRAME_COUNT);
+    holdEl.value = frameMs;
+    restart();
+  }
+  function syncFromHold() {
+    frameMs = Math.max(50, parseInt(holdEl.value, 10) || 500);
+    const c = (frameMs * FRAME_COUNT) / 1000;
+    cycleEl.value = c;
+    cycleValEl.textContent = c.toFixed(1) + "s";
+    restart();
+  }
+  cycleEl.addEventListener("input", syncFromCycle);
+  holdEl.addEventListener("change", syncFromHold);
+
+  function tick() {
+    current = (current + 1) % FRAME_COUNT;
+    document.querySelectorAll(".cbai-stage").forEach((stage) => {
+      stage.querySelectorAll("img").forEach((img, idx) => {
+        img.classList.toggle("active", idx === current);
+      });
+    });
+  }
+  function restart() {
+    if (tickId) clearInterval(tickId);
+    current = -1;
+    tick(); // show frame 0 immediately
+    tickId = setInterval(tick, frameMs);
+  }
+
+  restart();
+</script>
+
+</body>
+</html>
