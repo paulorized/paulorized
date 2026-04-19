@@ -229,7 +229,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
           <Stars rating={item.rating} />
           {item.would_buy_again != null && (
             <span className={`text-xs font-medium ${item.would_buy_again ? 'text-emerald-400' : 'text-rose-400'}`}>
-              {item.would_buy_again ? '&#10003; Would buy again' : '&#10007; Would not buy again'}
+              {item.would_buy_again ? '✓ Would buy again' : '✗ Would not buy again'}
             </span>
           )}
         </div>
@@ -336,7 +336,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
                   <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
                     <p className="text-[10px] text-zinc-500 mb-1">Canoeing</p>
                     <p className={`text-sm font-semibold ${item.canoeing ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {item.canoeing ? '&#10007; Yes' : '&#10003; No'}
+                      {item.canoeing ? '✗ Yes' : '✓ No'}
                     </p>
                   </div>
                 )}
@@ -344,7 +344,7 @@ function FeedCard({ item, expanded, onExpand, onVote, onImageClick, onDelete, cu
                   <div className="flex-1 min-w-[80px] rounded-xl bg-zinc-800/60 border border-zinc-700/50 px-3 py-2.5 text-center">
                     <p className="text-[10px] text-zinc-500 mb-1">Clogging</p>
                     <p className={`text-sm font-semibold ${item.clogging ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      {item.clogging ? '&#10007; Yes' : '&#10003; No'}
+                      {item.clogging ? '✗ Yes' : '✓ No'}
                     </p>
                   </div>
                 )}
