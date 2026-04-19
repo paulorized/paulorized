@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -8,6 +8,7 @@ import { GuestGateModal } from './guest-gate-modal';
 import { incrementGuestScanCount, isGuestLimitReached } from './guest-banner';
 import { ScanHelpModal, shouldAutoShowScanTutorial } from './scan-help-modal';
 import { IconPin, IconWarning, IconCamera, IconScan, IconSearch, IconFloppy, IconLightbulb, IconScale, IconGlobe, IconHourglass, IconIndica, IconSativa, IconHybrid, IconUnknown } from '@/components/icons';
+import CannabisLoader from './cannabis-loader';
 
 const PRODUCT_TYPES = [
   'Flower', 'Pre-roll', 'Vape', 'Concentrate', 'Edible', 'Tincture', 'Topical', 'Capsule', 'Beverage', 'Other',
@@ -313,6 +314,16 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
     return <GuestGateModal reason={guestGate} onClose={() => setGuestGate(null)} />;
   }
 
+  // ── Full-screen scan loader overlay (shown during /api/scan) ──
+  // Rendered above any mode (camera/upload/manual) so user sees the plant
+  // animation during the long GPT-4o vision call.
+  const scanLoaderOverlay = isScanning ? (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950/85 backdrop-blur-sm">
+      <CannabisLoader variant="scan" size={140} label="Scanning your label" cycleSeconds={3} />
+      <p className="mt-6 text-xs text-zinc-500">Reading the package with AI — hang tight.</p>
+    </div>
+  ) : null;
+
   // ── Saved confirmation screen ──
   if (stage === 'saved') {
     return (
@@ -596,6 +607,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   if (mode === 'camera') {
     return (
       <div className="space-y-4">
+        {scanLoaderOverlay}
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -665,6 +677,7 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
   if (mode === 'upload') {
     return (
       <div className="space-y-4">
+        {scanLoaderOverlay}
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -792,8 +805,20 @@ export function ScanForm({ isGuest = false }: { isGuest?: boolean }) {
       }
     };
 
+    // StrainAI loading overlay — shown during manual strain lookup
+    // (web search + AI populate). Uses the same plant-growth loader.
+    const strainLoaderOverlay = (isLooking || isWebSearching) ? (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-zinc-950/85 backdrop-blur-sm">
+        <CannabisLoader variant="scan" size={140} label="Consulting StrainAI" cycleSeconds={3} />
+        <p className="mt-6 text-xs text-zinc-500">
+          {isWebSearching ? 'Searching the web for strain data…' : 'Pulling strain intel with AI…'}
+        </p>
+      </div>
+    ) : null;
+
     return (
       <div className="space-y-4">
+        {strainLoaderOverlay}
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
