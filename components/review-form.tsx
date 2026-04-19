@@ -199,20 +199,22 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it canoe?</p>
             <div className="flex gap-2">
-              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
+              {[{ label: '✓ Yes', value: true }, { label: '✗ No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('canoeing', review.canoeing === value ? null : value)}
-                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.canoeing === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                  dangerouslySetInnerHTML={{ __html: label }} />
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.canoeing === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                  {label}
+                </button>
               ))}
             </div>
           </div>
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
             <div className="flex gap-2">
-              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
+              {[{ label: '✓ Yes', value: true }, { label: '✗ No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
-                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                  dangerouslySetInnerHTML={{ __html: label }} />
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                  {label}
+                </button>
               ))}
             </div>
           </div>
@@ -314,10 +316,11 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-200">Did it clog?</p>
             <div className="flex gap-2">
-              {[{ label: '&#10003; Yes', value: true }, { label: '&#10007; No', value: false }].map(({ label, value }) => (
+              {[{ label: '✓ Yes', value: true }, { label: '✗ No', value: false }].map(({ label, value }) => (
                 <button key={label} type="button" onClick={() => set('clogging', review.clogging === value ? null : value)}
-                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}
-                  dangerouslySetInnerHTML={{ __html: label }} />
+                  className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${review.clogging === value ? 'border-sky-500/50 bg-sky-500/20 text-sky-300' : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'}`}>
+                  {label}
+                </button>
               ))}
             </div>
           </div>
@@ -353,7 +356,7 @@ export function ReviewForm({ productLogId, productType, userId, suggestedEffects
           <button type="button" onClick={handleSave} disabled={isSaving || review.rating === 0}
             className="rounded-xl bg-emerald-400 px-5 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-300"
           >{isSaving ? 'Saving...' : hasExisting ? 'Update review' : 'Save review'}</button>
-          {saved && <span className="text-sm text-emerald-400">&#10003; {hasExisting ? 'Review updated!' : 'Review saved!'}</span>}
+          {saved && <span className="text-sm text-emerald-400">✓ {hasExisting ? 'Review updated!' : 'Review saved!'}</span>}
           {error && <span className="text-sm text-rose-400">{error}</span>}
           {review.rating === 0 && !saved && <span className="text-xs text-zinc-500">Add a star rating to save</span>}
         </div>

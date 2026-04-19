@@ -20,8 +20,6 @@ const montserrat = Montserrat({
 import { ThemeProvider } from '@/components/theme-provider';
 import Image from 'next/image';
 import { PWAPromptLoader } from '@/components/pwa-prompt-loader';
-import { ToastProvider } from '@/components/toast';
-import { NavLinks } from '@/components/nav-links';
 import { NotificationBell } from '@/components/notification-bell';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -85,7 +83,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
         <ThemeProvider>
-          <ToastProvider>
           <header className="sticky top-0 z-50 border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
             <div className="mx-auto w-full max-w-2xl px-4">
               {/* Row 1: Logo + Bell + Avatar */}
@@ -120,14 +117,28 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
                 )}
               </div>
               {/* Row 2: Nav links (only when logged in) */}
-              {userId && <NavLinks />}
+              {userId && (
+                <nav className="nav-scroll flex items-center justify-between border-t border-zinc-800/40 pb-1.5 pt-1 overflow-x-auto">
+                  <Link href="/?reset=1" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Scan</Link>
+                  <Link href="/history" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">History</Link>
+                  <Link href="/dashboard" className="rounded-lg px-2 py-1 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-100 whitespace-nowrap">Stats</Link>
+                  <Link href="/community" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-teal-400 font-semibold">Community</span>
+                  </Link>
+                  <Link href="/wishlist" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-purple-400 font-semibold">Wishlist</span>
+                  </Link>
+                  <Link href="/strains" className="rounded-lg px-2 py-1 text-xs transition hover:bg-zinc-800 whitespace-nowrap">
+                    <span className="text-yellow-300 font-semibold">StrainAI</span>
+                  </Link>
+                </nav>
+              )}
             </div>
           </header>
           <div className="w-full">{children}</div>
           <PWAPromptLoader />
           <Analytics />
           <SpeedInsights />
-          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
